@@ -24,7 +24,8 @@ export default {
   data() {
     return {
       currentView: 'home',
-      surveyCode: ''
+      surveyId: null,
+      surveyData: null
     }
   },
   methods: {
@@ -34,8 +35,9 @@ export default {
     showCreate() {
       this.currentView = 'create';
     },
-    handleSurveyCode(code) {
-      this.surveyCode = code;
+    handleSurveyCode({ surveyId, surveyData }) {
+      this.surveyId = surveyId;
+      this.surveyData = surveyData;
       this.currentView = 'takeSurvey';
     }
   }
