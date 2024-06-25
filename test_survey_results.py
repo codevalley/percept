@@ -78,8 +78,65 @@ class TestSurveyResults(unittest.TestCase):
             resp = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
                                     data=json.dumps(response),
                                     content_type='application/json')
-            self.participant_codes.append(json.loads(resp.data)['user_code'])
+            response_data = json.loads(resp.data)
+            self.assertEqual(resp.status_code, 201)
+            self.assertIn('user_code', response_data)
+            self.participant_codes.append(response_data['user_code'])
 
+    def test_submit_answers(self):
+        response_data = {
+            "answers": [
+                {"question_id": 1, "answer": 3},
+                {"question_id": 2, "answer": False},
+                {"question_id": 3, "answer": 7},
+                {"question_id": 4, "answer": True}
+            ]
+        }
+        response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
+                                    data=json.dumps(response_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 201)
+        data = json.loads(response.data)
+        self.assertIn('user_code', data)
+        self.assertIn('deviation_from_creator', data)
+        self.assertIn('deviation_from_others', data)
+        self.assertIn('overall_deviation', data)
+
+    def test_submit_answers_invalid_data(self):
+        # Test answer out of range for scale question
+        invalid_data = {"answers": [{"question_id": 1, "answer": 6}]}  # Max is 5 for this question
+        response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
+                                    data=json.dumps(invalid_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        
+        # Test invalid boolean answer
+        invalid_data = {"answers": [{"question_id": 2, "answer": "Not a boolean"}]}
+        response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
+                                    data=json.dumps(invalid_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        
+        # Test invalid question ID
+        invalid_data = {"answers": [{"question_id": 999, "answer": 5}]}
+        response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
+                                    data=json.dumps(invalid_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+        # Test missing question_id
+        invalid_data = {"answers": [{"answer": 5}]}
+        response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
+                                    data=json.dumps(invalid_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+
+        # Test missing answer
+        invalid_data = {"answers": [{"question_id": 1}]}
+        response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
+                                    data=json.dumps(invalid_data),
+                                    content_type='application/json')
+        self.assertEqual(response.status_code, 400)
     def test_creator_results(self):
         response = self.client.get(f'/api/v1/surveys/{self.survey_id}/results?user_code={self.creator_code}')
         self.assertEqual(response.status_code, 200)

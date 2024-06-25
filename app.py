@@ -115,14 +115,25 @@ def submit_answers(survey_id):
             return jsonify({'error': 'Survey not found'}), 404
         
         # Validate answers
-        valid_question_ids = {q['id'] for q in survey['questions']}
+        valid_questions = {q['id']: q for q in survey['questions']}
         for answer in data['answers']:
             if 'question_id' not in answer or 'answer' not in answer:
                 app.logger.warning(f"Invalid answer format: {answer}")
                 return jsonify({'error': f"Invalid answer format: {answer}"}), 400
-            if answer['question_id'] not in valid_question_ids:
+            
+            if answer['question_id'] not in valid_questions:
                 app.logger.warning(f"Invalid question ID: {answer['question_id']}")
                 return jsonify({'error': f"Invalid question ID: {answer['question_id']}"}), 400
+            
+            question = valid_questions[answer['question_id']]
+            if question['response_type'] == 'scale':
+                if not isinstance(answer['answer'], (int, float)) or not (1 <= answer['answer'] <= question['response_scale_max']):
+                    app.logger.warning(f"Invalid answer for scale question {answer['question_id']}: {answer['answer']}")
+                    return jsonify({'error': f"Invalid answer for question {answer['question_id']}: must be between 1 and {question['response_scale_max']}"}), 400
+            elif question['response_type'] == 'boolean':
+                if not isinstance(answer['answer'], bool):
+                    app.logger.warning(f"Invalid answer for boolean question {answer['question_id']}: {answer['answer']}")
+                    return jsonify({'error': f"Invalid answer for question {answer['question_id']}: must be a boolean"}), 400
         
         # Store the answers
         user_code = generate_unique_id()  # Generate a new user_code for each submission
