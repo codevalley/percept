@@ -2,7 +2,12 @@
   <div id="app">
     <Home v-if="currentView === 'home'" @participate="showParticipate" @create="showCreate" />
     <Participate v-if="currentView === 'participate'" @submit-code="handleSurveyCode" />
-    <TakeSurvey v-if="currentView === 'takeSurvey'" :surveyCode="surveyCode" />
+    <TakeSurvey 
+      v-if="currentView === 'takeSurvey'" 
+      :surveyId="surveyId" 
+      :surveyData="surveyData"
+      @survey-completed="handleSurveyCompleted"
+    />
     <Create v-if="currentView === 'create'" />
   </div>
 </template>
@@ -25,7 +30,8 @@ export default {
     return {
       currentView: 'home',
       surveyId: null,
-      surveyData: null
+      surveyData: null,
+      userCode: null
     }
   },
   methods: {
@@ -36,9 +42,24 @@ export default {
       this.currentView = 'create';
     },
     handleSurveyCode({ surveyId, surveyData }) {
+      console.log('Received survey data:', surveyId, surveyData);
       this.surveyId = surveyId;
       this.surveyData = surveyData;
-      this.currentView = 'takeSurvey';
+      if (this.surveyId && this.surveyData) {
+        console.log('Changing view to takeSurvey');
+        this.currentView = 'takeSurvey';
+      } else {
+        console.error('Invalid survey data received');
+        // Handle error - maybe show an error message to the user
+      }
+    },
+    handleSurveyCompleted(data) {
+      console.log('Survey completed:', data);
+      this.userCode = data.user_code;
+      // You might want to add a 'results' view here
+      // this.currentView = 'results';
+      // For now, let's just go back to the home view
+      this.currentView = 'home';
     }
   }
 }

@@ -29,9 +29,14 @@ export default {
       this.isLoading = true;
       this.errorMessage = '';
       try {
+        console.log('Fetching survey with code:', this.code);
         const response = await api.getSurvey(this.code);
-        // Emit the event with survey data
-        this.$emit('submit-code', { surveyId: this.code, surveyData: response.data });
+        console.log('Received survey data:', response.data);
+        if (response.data && response.data.questions) {
+          this.$emit('submit-code', { surveyId: this.code, surveyData: response.data });
+        } else {
+          throw new Error('Invalid survey data received');
+        }
       } catch (error) {
         console.error('Error fetching survey:', error);
         this.errorMessage = 'Invalid survey code or survey not found. Please try again.';
