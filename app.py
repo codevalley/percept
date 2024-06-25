@@ -3,11 +3,16 @@
 from statistics import StatisticsError, mean, stdev
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
+from flask_cors import CORS
 import time
 import os
 import logging
 
 app = Flask(__name__)
+
+# Add the CORS configuration here
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:8080"}})
+
 
 # Constants
 MINIMUM_RESPONSES = 5
