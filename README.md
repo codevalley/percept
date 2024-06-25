@@ -1,6 +1,6 @@
-# Backfeed API
+# Percept API
 
-Backfeed is a web application designed to help individuals improve their self-awareness by collecting anonymous feedback from their peers. This repository contains the backend API implemented using Flask and MongoDB.
+Percept is a web application designed to help individuals improve their self-awareness by collecting anonymous feedback from their peers. This repository contains the backend API implemented using Flask and MongoDB.
 
 ## Features
 
@@ -19,8 +19,8 @@ Backfeed is a web application designed to help individuals improve their self-aw
 
 1. Clone the repository:
    ```
-   git clone https://github.com/<your-github-username>/backfeed-api.git
-   cd backfeed-api
+   git clone https://github.com/codevalley/percept.git
+   cd percept
    ```
 
 2. Set up a virtual environment (optional but recommended):
@@ -45,7 +45,7 @@ Backfeed is a web application designed to help individuals improve their self-aw
 
 5. Create a `.env` file in the project root and add your MongoDB URI:
    ```
-   MONGO_URI=mongodb://localhost:27017/backfeed
+   MONGO_URI=mongodb://localhost:27017/percept
    ```
 
 6. Run the application:
@@ -55,12 +55,15 @@ Backfeed is a web application designed to help individuals improve their self-aw
 
 The API will be available at `http://localhost:5001`.
 
+
 ## Using the API
 
 Here are some example curl commands to interact with the API:
 
+Note for Windows users: These commands are designed to work in Git Bash. If you're using Windows Command Prompt or PowerShell, you may need to adjust the quotes or use a different method to send JSON data.
+
 1. Create a new survey:
-   ```
+   ```bash
    curl -X POST http://localhost:5001/api/v1/surveys \
         -H "Content-Type: application/json" \
         -d '{
@@ -75,27 +78,39 @@ Here are some example curl commands to interact with the API:
           ]
         }'
    ```
+   Response:
+   ```json
+   {
+     "survey_id": 1719295638748,
+     "share_link": "/surveys/1719295638748",
+     "user_code": 1719295638749,
+     "questions": [
+       {"id": 1, "text": "How do you feel?"}
+     ]
+   }
+   ```
 
 2. Retrieve a survey (replace {survey_id} with the ID from the create response):
-   ```
+   ```bash
    curl -X GET http://localhost:5001/api/v1/surveys/{survey_id}
    ```
 
 3. Submit answers to a survey:
-   ```
+   ```bash
    curl -X POST http://localhost:5001/api/v1/surveys/{survey_id}/answers \
         -H "Content-Type: application/json" \
         -d '{
           "answers": [
             {
-              "question_id": {question_id},
-              "answer": 3
+              "question_id": 1,
+              "answer": 4
             }
           ]
         }'
    ```
 
-Replace `{survey_id}` and `{question_id}` with actual IDs from your created survey.
+Replace `{survey_id}` with the actual survey ID from your created survey.
+
 
 ## API Endpoints
 
