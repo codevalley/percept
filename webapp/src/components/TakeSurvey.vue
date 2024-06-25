@@ -1,5 +1,5 @@
 <template>
-  <div class="take-survey" v-if="isDataLoaded">
+  <div class="take-survey" v-if="currentQuestion">
     <h2>{{ currentQuestion.text }}</h2>
     <div class="answer-options">
       <template v-if="currentQuestion.response_type === 'scale'">
@@ -23,12 +23,6 @@
     <button @click="nextQuestion" class="btn" :disabled="currentAnswer === null || isSubmitting">
       {{ isLastQuestion ? 'Finish' : 'Next' }}
     </button>
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-  </div>
-  <div v-else class="loading">
-    Loading survey data...
-    <p>Survey ID: {{ surveyId }}</p>
-    <p>Survey Data: {{ JSON.stringify(surveyData) }}</p>
   </div>
 </template>
 
@@ -52,23 +46,18 @@ export default {
       currentQuestionIndex: 0,
       answers: {},
       currentAnswer: null,
-      isSubmitting: false,
-      errorMessage: ''
+      isSubmitting: false
     }
   },
   computed: {
-    isDataLoaded() {
-      console.log('Survey Data:', this.surveyData);
-      return this.surveyData && this.surveyData.questions && this.surveyData.questions.length > 0;
-    },
     currentQuestion() {
-      return this.isDataLoaded ? this.surveyData.questions[this.currentQuestionIndex] : null;
+      return this.surveyData.questions[this.currentQuestionIndex];
     },
     progress() {
-      return this.isDataLoaded ? ((this.currentQuestionIndex + 1) / this.surveyData.questions.length) * 100 : 0;
+      return ((this.currentQuestionIndex + 1) / this.surveyData.questions.length) * 100;
     },
     isLastQuestion() {
-      return this.isDataLoaded && this.currentQuestionIndex === this.surveyData.questions.length - 1;
+      return this.currentQuestionIndex === this.surveyData.questions.length - 1;
     }
   },
   methods: {
@@ -76,8 +65,8 @@ export default {
       this.currentAnswer = value;
     },
     async nextQuestion() {
-      if (!this.currentQuestion) return;
-      
+      if (this.currentAnswer === null) return;
+
       this.answers[this.currentQuestion.id] = this.currentAnswer;
       this.currentAnswer = null;
       
@@ -89,23 +78,22 @@ export default {
     },
     async submitSurvey() {
       this.isSubmitting = true;
-      this.errorMessage = '';
       try {
-        const response = await api.submitAnswers(this.surveyId, Object.entries(this.answers).map(([questionId, answer]) => ({
-          question_id: questionId,
+        const answersToSubmit = Object.entries(this.answers).map(([questionId, answer]) => ({
+          question_id: parseInt(questionId),
           answer
-        })));
+        }));
+        console.log('Submitting answers:', answersToSubmit);
+        const response = await api.submitAnswers(this.surveyId, { answers: answersToSubmit });
+        console.log('Survey submission response:', response.data);
         this.$emit('survey-completed', response.data);
       } catch (error) {
-        console.error('Error submitting survey:', error);
-        this.errorMessage = 'Error submitting survey. Please try again.';
+        console.error('Error submitting survey:', error.response ? error.response.data : error);
+        this.$emit('survey-error', 'Error submitting survey. Please try again.');
       } finally {
         this.isSubmitting = false;
       }
     }
-  },
-  mounted() {
-    console.log('TakeSurvey mounted. Survey ID:', this.surveyId, 'Survey Data:', this.surveyData);
   }
 }
 </script>

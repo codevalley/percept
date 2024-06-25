@@ -24,7 +24,7 @@ export default {
 
   // Submit answers for a survey
   submitAnswers(surveyId, answers) {
-    return api.post(`${API_URL}/surveys/${surveyId}/answers`, { answers });
+    return axios.post(`${API_URL}/surveys/${surveyId}/answers`, answers);
   },
 
   // Get survey results

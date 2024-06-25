@@ -52,9 +52,21 @@ Percept is a web application designed to help individuals improve their self-awa
    ```
    python app.py
    ```
-
+7. Unit tests
+   ```
+   python -m unittest test_survey_results.py
+   ```
 The API will be available at `http://localhost:5001`.
 
+## Install Vue
+  [WIP]
+  Go to webapp folder and run the following commands
+  ```
+  npm install -g @vue/cli
+  npm install axios canvas-confetti
+  npm install
+  npm run serve
+  ```
 
 ## Using the API
 

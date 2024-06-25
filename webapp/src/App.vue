@@ -7,8 +7,15 @@
       :surveyId="surveyId" 
       :surveyData="surveyData"
       @survey-completed="handleSurveyCompleted"
+      @survey-error="handleSurveyError"
     />
     <Create v-if="currentView === 'create'" />
+    <Toast 
+      :message="toastMessage" 
+      :type="toastType" 
+      :duration="3000"
+      @hidden="handleToastHidden"
+    />
   </div>
 </template>
 
@@ -17,6 +24,7 @@ import Home from './components/HomeView.vue';
 import Participate from './components/ParticipateView.vue';
 import TakeSurvey from './components/TakeSurvey.vue';
 import Create from './components/CreateView.vue';
+import Toast from './components/ToastView.vue';
 
 export default {
   name: 'App',
@@ -24,14 +32,17 @@ export default {
     Home,
     Participate,
     TakeSurvey,
-    Create
+    Create,
+    Toast
   },
   data() {
     return {
       currentView: 'home',
       surveyId: null,
       surveyData: null,
-      userCode: null
+      userCode: null,
+      toastMessage: '',
+      toastType: 'success'
     }
   },
   methods: {
@@ -50,7 +61,7 @@ export default {
         this.currentView = 'takeSurvey';
       } else {
         console.error('Invalid survey data received');
-        // Handle error - maybe show an error message to the user
+        this.showToast('Error: Invalid survey data', 'error');
       }
     },
     handleSurveyCompleted(data) {
@@ -59,7 +70,21 @@ export default {
       // You might want to add a 'results' view here
       // this.currentView = 'results';
       // For now, let's just go back to the home view
-      this.currentView = 'home';
+      this.showToast('Survey submitted successfully!', 'success');
+    },
+    handleSurveyError(errorMessage) {
+      this.showToast(errorMessage, 'error');
+    },
+    showToast(message, type = 'success') {
+      console.log('Showing toast:', message, type);
+      this.toastMessage = message;
+      this.toastType = type;
+    },
+    handleToastHidden() {
+      if (this.toastType === 'success' && this.currentView === 'takeSurvey') {
+        this.currentView = 'home';
+      }
+      this.toastMessage = '';
     }
   }
 }

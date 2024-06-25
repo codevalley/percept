@@ -104,27 +104,32 @@ def submit_answers(survey_id):
     app.logger.debug(f"Request data: {data}")
     
     if not data or 'answers' not in data:
-        app.logger.warning("Invalid request data")
-        return jsonify({'error': 'Invalid request data'}), 400
+        app.logger.warning("Invalid request data: 'answers' not found in request")
+        return jsonify({'error': 'Invalid request data: answers not provided'}), 400
     
     try:
         # Fetch the survey
         survey = mongo.db.surveys.find_one({'survey_id': survey_id})
         if not survey:
+            app.logger.warning(f"Survey not found: {survey_id}")
             return jsonify({'error': 'Survey not found'}), 404
         
         # Validate answers
         valid_question_ids = {q['id'] for q in survey['questions']}
         for answer in data['answers']:
+            if 'question_id' not in answer or 'answer' not in answer:
+                app.logger.warning(f"Invalid answer format: {answer}")
+                return jsonify({'error': f"Invalid answer format: {answer}"}), 400
             if answer['question_id'] not in valid_question_ids:
+                app.logger.warning(f"Invalid question ID: {answer['question_id']}")
                 return jsonify({'error': f"Invalid question ID: {answer['question_id']}"}), 400
         
         # Store the answers
         user_code = generate_unique_id()  # Generate a new user_code for each submission
         answer_submission = {
             'survey_id': survey_id,
-            'user_code': user_code,  # Store the user_code explicitly
-            'answers': {str(answer['question_id']): answer['answer'] for answer in data['answers']},  # Store answers as a dictionary
+            'user_code': user_code,
+            'answers': {str(answer['question_id']): answer['answer'] for answer in data['answers']},
             'submitted_at': generate_unique_id()
         }
         result = mongo.db.answers.insert_one(answer_submission)
@@ -135,7 +140,7 @@ def submit_answers(survey_id):
         overall_deviation = 0.4  # placeholder
         
         response = jsonify({
-            'user_code': user_code,  # Return the new user_code to the client
+            'user_code': user_code,
             'deviation_from_creator': deviation_from_creator,
             'deviation_from_others': deviation_from_others,
             'overall_deviation': overall_deviation
@@ -145,7 +150,6 @@ def submit_answers(survey_id):
     except Exception as e:
         app.logger.error(f"Error submitting answers: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-    
     
 @app.route('/api/v1/surveys/<int:survey_id>/results', methods=['GET'])
 def get_survey_results(survey_id):
