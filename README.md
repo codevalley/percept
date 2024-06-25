@@ -114,7 +114,7 @@ Replace `{survey_id}` with the actual survey ID from your created survey.
 
 ## API Endpoints
 
-For detailed API documentation, refer to the [API_ENDPOINTS.md](API_ENDPOINTS.md) file.
+For detailed API documentation, refer to the [api_endpoints.md](api_endpoints.md) file.
 
 ## Contributing
 
