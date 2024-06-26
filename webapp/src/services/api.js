@@ -24,11 +24,11 @@ export default {
 
   // Submit answers for a survey
   submitAnswers(surveyId, answers) {
-    return axios.post(`${API_URL}/surveys/${surveyId}/answers`, answers);
+    return api.post(`${API_URL}/surveys/${surveyId}/answers`, answers);
   },
 
   // Get survey results
   getSurveyResults(surveyId, userCode) {
     return api.get(`${API_URL}/surveys/${surveyId}/results?user_code=${userCode}`);
-  }
+  },
 };

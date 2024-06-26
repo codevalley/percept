@@ -9,6 +9,11 @@
       @survey-completed="handleSurveyCompleted"
       @survey-error="handleSurveyError"
     />
+    <ResultsView
+      v-if="currentView === 'results'"
+      :surveyId="surveyId"
+      :userCode="userCode"
+    />
     <Create v-if="currentView === 'create'" />
     <Toast 
       :message="toastMessage" 
@@ -23,6 +28,7 @@
 import Home from './components/HomeView.vue';
 import Participate from './components/ParticipateView.vue';
 import TakeSurvey from './components/TakeSurvey.vue';
+import ResultsView from './components/ResultsView.vue';
 import Create from './components/CreateView.vue';
 import Toast from './components/ToastView.vue';
 
@@ -32,6 +38,7 @@ export default {
     Home,
     Participate,
     TakeSurvey,
+    ResultsView,
     Create,
     Toast
   },
@@ -67,10 +74,8 @@ export default {
     handleSurveyCompleted(data) {
       console.log('Survey completed:', data);
       this.userCode = data.user_code;
-      // You might want to add a 'results' view here
-      // this.currentView = 'results';
-      // For now, let's just go back to the home view
       this.showToast('Survey submitted successfully!', 'success');
+      this.currentView = 'results';
     },
     handleSurveyError(errorMessage) {
       this.showToast(errorMessage, 'error');
@@ -81,9 +86,6 @@ export default {
       this.toastType = type;
     },
     handleToastHidden() {
-      if (this.toastType === 'success' && this.currentView === 'takeSurvey') {
-        this.currentView = 'home';
-      }
       this.toastMessage = '';
     }
   }
