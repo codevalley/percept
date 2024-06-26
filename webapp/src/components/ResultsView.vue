@@ -6,9 +6,12 @@
     <div v-else-if="results">
       <div class="overall-stats">
         <h2>Overall Statistics</h2>
-        <p>Deviation from Creator: {{ results.deviation_from_creator?.toFixed(2) || 'N/A' }}</p>
-        <p>Deviation from Others: {{ results.deviation_from_others?.toFixed(2) || 'N/A' }}</p>
-        <p>Overall Deviation: {{ results.overall_deviation?.toFixed(2) || 'N/A' }}</p>
+        <p v-if="results.overall_statistics">
+          Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate?.toFixed(2) || 'N/A' }}
+        </p>
+        <p v-if="results.overall_statistics.deviation_from_creator !== undefined">Deviation from Creator: {{ results.overall_statistics.deviation_from_creator?.toFixed(2) || 'N/A' }}</p>
+        <p v-if="results.overall_statistics.deviation_from_others !== undefined">Deviation from Others: {{ results.overall_statistics.deviation_from_others?.toFixed(2) || 'N/A' }}</p>
+        <p v-if="results.overall_statistics.overall_deviation !== undefined">Overall Deviation: {{ results.overall_statistics.overall_deviation?.toFixed(2) || 'N/A' }}</p>
       </div>
       <div class="questions" v-if="results.questions">
         <h2>Question Results</h2>
