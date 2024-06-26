@@ -1,17 +1,58 @@
 <template>
   <div class="create">
-    <h2>Create a New Survey</h2>
-    <form @submit.prevent="addQuestion">
-      <input v-model="newQuestion" type="text" placeholder="Enter your question" required>
-      <button type="submit" class="btn">Add Question</button>
-    </form>
+    <h2>{{ creationStage === 'questions' ? 'Create a New Survey' : 'Complete Your Survey' }}</h2>
+    
+    <!-- Question Creation Stage -->
+    <div v-if="creationStage === 'questions'" class="question-creation">
+      <div class="input-row">
+        <input v-model="newQuestion.text" type="text" placeholder="Enter your question" required>
+      </div>
+      <div class="input-row">
+        <select v-model="newQuestion.response_type" required>
+          <option value="scale">Scale</option>
+          <option value="boolean">Yes/No</option>
+        </select>
+        <input v-if="newQuestion.response_type === 'scale'" v-model.number="newQuestion.response_scale_max" type="number" min="2" max="10" placeholder="Max scale value" required>
+      </div>
+      <div class="input-row">
+        <button @click="addQuestion" class="btn">Add Question</button>
+        <button @click="startSurveyCompletion" class="btn" :disabled="questions.length === 0">Finish</button>
+      </div>
+    </div>
+
     <ul class="question-list">
-      <li v-for="question in questions" :key="question.id">{{ question.text }}</li>
+      <li v-for="(question, index) in questions" :key="question.id" class="question-item">
+        <span>{{ question.text }}</span>
+        <span class="question-type" :class="question.response_type">
+          {{ question.response_type === 'scale' ? `Scale (1-${question.response_scale_max})` : 'Yes/No' }}
+        </span>
+        
+        <!-- Creator Answer Section -->
+        <div v-if="creationStage === 'completion'" class="creator-answer">
+          <div v-if="question.response_type === 'scale'" class="scale-answers">
+            <button 
+              v-for="n in question.response_scale_max" 
+              :key="n" 
+              @click="selectAnswer(index, n)"
+              :class="['answer-btn', { selected: creatorAnswers[index] === n }]"
+            >
+              {{ n }}
+            </button>
+          </div>
+          <div v-else class="boolean-answers">
+            <button @click="selectAnswer(index, true)" :class="['answer-btn', { selected: creatorAnswers[index] === true }]">Yes</button>
+            <button @click="selectAnswer(index, false)" :class="['answer-btn', { selected: creatorAnswers[index] === false }]">No</button>
+          </div>
+        </div>
+      </li>
     </ul>
-    <button @click="finishSurvey" class="btn" :disabled="questions.length === 0 || isLoading">
-      <span v-if="!isLoading">Finish Survey</span>
+
+    <!-- Submit Survey Button -->
+    <button v-if="creationStage === 'completion' && !showSuccess" @click="finishSurvey" class="btn" :disabled="!allQuestionsAnswered || isLoading">
+      <span v-if="!isLoading">Submit Survey</span>
       <span v-else class="loader"></span>
     </button>
+
     <div v-if="showSuccess" class="success-message">
       <h3>Survey Created Successfully!</h3>
       <p>Survey ID: {{ createdSurveyId }}</p>
@@ -28,24 +69,45 @@ export default {
   name: 'CreateView',
   data() {
     return {
-      newQuestion: '',
+      creationStage: 'questions',
+      newQuestion: {
+        text: '',
+        response_type: 'scale',
+        response_scale_max: 5
+      },
       questions: [],
+      creatorAnswers: [],
       isLoading: false,
       showSuccess: false,
       createdSurveyId: null,
       errorMessage: ''
     }
   },
+  computed: {
+    allQuestionsAnswered() {
+      return this.creatorAnswers.length === this.questions.length &&
+             this.creatorAnswers.every(answer => answer !== null && answer !== undefined);
+    }
+  },
   methods: {
     addQuestion() {
-      this.questions.push({
+      const question = {
         id: Date.now(),
-        text: this.newQuestion,
-        response_type: 'scale',
-        response_scale_max: 10,
-        creator_answer: 5
-      });
-      this.newQuestion = '';
+        text: this.newQuestion.text,
+        response_type: this.newQuestion.response_type,
+        response_scale_max: this.newQuestion.response_type === 'scale' ? this.newQuestion.response_scale_max : undefined
+      };
+      this.questions.push(question);
+      this.newQuestion.text = '';
+      this.newQuestion.response_type = 'scale';
+      this.newQuestion.response_scale_max = 5;
+    },
+    startSurveyCompletion() {
+      this.creationStage = 'completion';
+      this.creatorAnswers = new Array(this.questions.length).fill(null);
+    },
+    selectAnswer(index, value) {
+      this.creatorAnswers[index] = value;
     },
     async finishSurvey() {
       this.isLoading = true;
@@ -54,17 +116,19 @@ export default {
         const surveyData = {
           title: "New Survey",
           description: "Survey created via Backfeed",
-          questions: this.questions
+          questions: this.questions.map((q, index) => ({
+            ...q,
+            creator_answer: this.creatorAnswers[index]
+          }))
         };
         const response = await api.createSurvey(surveyData);
         console.log('Survey created', response.data);
         this.createdSurveyId = response.data.survey_id;
         this.showSuccess = true;
-        this.questions = [];
         this.celebrateSuccess();
       } catch (error) {
         console.error('Error creating survey:', error);
-        this.errorMessage = 'Error creating survey. Please try again.'+error;
+        this.errorMessage = 'Error creating survey. Please try again.' + error;
       } finally {
         this.isLoading = false;
       }
@@ -81,23 +145,34 @@ export default {
 </script>
 
 <style scoped>
-form {
+.create {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.question-creation {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: 15px;
   margin-bottom: 20px;
 }
 
-input {
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+
+input, select {
+  flex: 1;
   padding: 10px;
   font-size: 16px;
   border: 1px solid #ccc;
   border-radius: 5px;
-  width: 300px;
 }
 
 .btn {
+  flex: 1;
   padding: 10px 20px;
   font-size: 18px;
   border: none;
@@ -118,9 +193,62 @@ input {
 }
 
 .question-list {
-  text-align: left;
-  max-width: 500px;
-  margin: 0 auto 20px;
+  list-style-type: none;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.question-item {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.question-type {
+  font-size: 0.8em;
+  padding: 3px 8px;
+  border-radius: 12px;
+  align-self: flex-start;
+  margin-top: 5px;
+}
+
+.question-type.scale {
+  background-color: #e1f5fe;
+  color: #0277bd;
+}
+
+.question-type.boolean {
+  background-color: #f1f8e9;
+  color: #558b2f;
+}
+
+.creator-answer {
+  margin-top: 10px;
+}
+
+.scale-answers, .boolean-answers {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.answer-btn {
+  padding: 10px 15px;
+  font-size: 16px;
+  border: 1px solid #e0e0e0;
+  background-color: #f5f5f5;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.answer-btn.selected {
+  background-color: #3498db;
+  color: white;
+  border-color: #3498db;
 }
 
 .loader {
