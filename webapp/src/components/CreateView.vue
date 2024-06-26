@@ -22,33 +22,38 @@
 
     <ul class="question-list">
       <li v-for="(question, index) in questions" :key="question.id" class="question-item">
-        <span>{{ question.text }}</span>
-        <span class="question-type" :class="question.response_type">
-          {{ question.response_type === 'scale' ? `Scale (1-${question.response_scale_max})` : 'Yes/No' }}
-        </span>
-        
-        <!-- Creator Answer Section -->
-        <div v-if="creationStage === 'completion'" class="creator-answer">
-          <div v-if="question.response_type === 'scale'" class="scale-answers">
-            <button 
-              v-for="n in question.response_scale_max" 
-              :key="n" 
-              @click="selectAnswer(index, n)"
-              :class="['answer-btn', { selected: creatorAnswers[index] === n }]"
-            >
-              {{ n }}
-            </button>
+        <div class="question-content">
+          <div class="question-header">
+            <span class="question-text">{{ question.text }}</span>
+            <span class="question-type" :class="question.response_type">
+              {{ question.response_type === 'scale' ? `Scale (1-${question.response_scale_max})` : 'Yes/No' }}
+            </span>
           </div>
-          <div v-else class="boolean-answers">
-            <button @click="selectAnswer(index, true)" :class="['answer-btn', { selected: creatorAnswers[index] === true }]">Yes</button>
-            <button @click="selectAnswer(index, false)" :class="['answer-btn', { selected: creatorAnswers[index] === false }]">No</button>
+          
+          <!-- Creator Answer Section -->
+          <div v-if="creationStage === 'completion'" class="creator-answer">
+            <div v-if="question.response_type === 'scale'" class="scale-answers">
+              <button 
+                v-for="n in question.response_scale_max" 
+                :key="n" 
+                @click="selectAnswer(index, n)"
+                :class="['answer-btn', { selected: creatorAnswers[index] === n }]"
+                :disabled="isSubmitted"
+              >
+                {{ n }}
+              </button>
+            </div>
+            <div v-else class="boolean-answers">
+              <button @click="selectAnswer(index, true)" :class="['answer-btn', { selected: creatorAnswers[index] === true }]" :disabled="isSubmitted">Yes</button>
+              <button @click="selectAnswer(index, false)" :class="['answer-btn', { selected: creatorAnswers[index] === false }]" :disabled="isSubmitted">No</button>
+            </div>
           </div>
         </div>
       </li>
     </ul>
 
     <!-- Submit Survey Button -->
-    <button v-if="creationStage === 'completion' && !showSuccess" @click="finishSurvey" class="btn" :disabled="!allQuestionsAnswered || isLoading">
+    <button v-if="creationStage === 'completion' && !showSuccess" @click="finishSurvey" class="btn" :disabled="!allQuestionsAnswered || isLoading || isSubmitted">
       <span v-if="!isLoading">Submit Survey</span>
       <span v-else class="loader"></span>
     </button>
@@ -80,7 +85,8 @@ export default {
       isLoading: false,
       showSuccess: false,
       createdSurveyId: null,
-      errorMessage: ''
+      errorMessage: '',
+      isSubmitted: false
     }
   },
   computed: {
@@ -107,9 +113,13 @@ export default {
       this.creatorAnswers = new Array(this.questions.length).fill(null);
     },
     selectAnswer(index, value) {
-      this.creatorAnswers[index] = value;
+      if (!this.isSubmitted) {
+        this.creatorAnswers[index] = value;
+      }
     },
     async finishSurvey() {
+      if (this.isSubmitted) return;
+      
       this.isLoading = true;
       this.errorMessage = '';
       try {
@@ -125,6 +135,7 @@ export default {
         console.log('Survey created', response.data);
         this.createdSurveyId = response.data.survey_id;
         this.showSuccess = true;
+        this.isSubmitted = true;
         this.celebrateSuccess();
       } catch (error) {
         console.error('Error creating survey:', error);
@@ -199,20 +210,31 @@ input, select {
 }
 
 .question-item {
-  display: flex;
-  flex-direction: column;
-  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.question-content {
   border: 1px solid #e0e0e0;
   border-radius: 5px;
-  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.question-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f8f8f8;
+}
+
+.question-text {
+  font-weight: bold;
 }
 
 .question-type {
   font-size: 0.8em;
   padding: 3px 8px;
   border-radius: 12px;
-  align-self: flex-start;
-  margin-top: 5px;
 }
 
 .question-type.scale {
@@ -226,18 +248,20 @@ input, select {
 }
 
 .creator-answer {
-  margin-top: 10px;
+  padding: 10px;
+  background-color: #ffffff;
 }
 
 .scale-answers, .boolean-answers {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  justify-content: center;
 }
 
 .answer-btn {
-  padding: 10px 15px;
-  font-size: 16px;
+  padding: 8px 12px;
+  font-size: 14px;
   border: 1px solid #e0e0e0;
   background-color: #f5f5f5;
   border-radius: 20px;
@@ -249,6 +273,11 @@ input, select {
   background-color: #3498db;
   color: white;
   border-color: #3498db;
+}
+
+.answer-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .loader {
