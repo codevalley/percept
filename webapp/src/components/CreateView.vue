@@ -1,7 +1,25 @@
 <template>
   <div class="create">
-    <h2>{{ creationStage === 'questions' ? 'Create a New Survey' : 'Complete Your Survey' }}</h2>
+    <!-- Survey Title and Description Section -->
+    <div class="survey-info">
+      <input 
+        v-model="surveyTitle" 
+        type="text" 
+        class="survey-title-input"
+        required
+      >
+      <textarea 
+        v-model="surveyDescription" 
+        class="survey-description-input"
+        maxlength="240"
+      ></textarea>
+    </div>
     
+    <!-- Guidance for creator answers -->
+    <div v-if="creationStage === 'completion'" class="creator-guidance">
+      Can you answer these yourself first?
+    </div>
+
     <!-- Question Creation Stage -->
     <div v-if="creationStage === 'questions'" class="question-creation">
       <div class="input-row">
@@ -75,6 +93,8 @@ export default {
   data() {
     return {
       creationStage: 'questions',
+      surveyTitle: 'Help me improve',
+      surveyDescription: 'Take 2 minutes to answer a few questions about me',
       newQuestion: {
         text: '',
         response_type: 'scale',
@@ -124,8 +144,8 @@ export default {
       this.errorMessage = '';
       try {
         const surveyData = {
-          title: "New Survey",
-          description: "Survey created via Backfeed",
+          title: this.surveyTitle || "Untitled Survey",
+          description: this.surveyDescription || "No description provided",
           questions: this.questions.map((q, index) => ({
             ...q,
             creator_answer: this.creatorAnswers[index]
@@ -156,10 +176,61 @@ export default {
 </script>
 
 <style scoped>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #333;
+  line-height: 1.6;
+}
+
 .create {
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
+}
+
+.survey-info {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.survey-title-input,
+.survey-description-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 15px 0;
+  margin-bottom: 15px;
+  border: none;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 18px;
+  transition: border-color 0.3s ease;
+  text-align: center;
+  background-color: transparent;
+}
+
+.survey-title-input {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.survey-description-input {
+  height: 60px;
+  resize: none;
+}
+
+.survey-title-input:focus,
+.survey-description-input:focus {
+  outline: none;
+  border-bottom-color: #3498db;
+}
+
+.creator-guidance {
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 20px;
+  color: #3498db;
+  font-weight: bold;
 }
 
 .question-creation {
@@ -176,15 +247,21 @@ export default {
 
 input, select {
   flex: 1;
-  padding: 10px;
+  padding: 12px;
   font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #3498db;
 }
 
 .btn {
   flex: 1;
-  padding: 10px 20px;
+  padding: 12px 20px;
   font-size: 18px;
   border: none;
   border-radius: 25px;
@@ -199,7 +276,7 @@ input, select {
 }
 
 .btn:disabled {
-  background-color: #ccc;
+  background-color: #bdc3c7;
   cursor: not-allowed;
 }
 
@@ -215,7 +292,7 @@ input, select {
 
 .question-content {
   border: 1px solid #e0e0e0;
-  border-radius: 5px;
+  border-radius: 12px;
   overflow: hidden;
 }
 
@@ -223,7 +300,7 @@ input, select {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
+  padding: 15px;
   background-color: #f8f8f8;
 }
 
@@ -233,8 +310,8 @@ input, select {
 
 .question-type {
   font-size: 0.8em;
-  padding: 3px 8px;
-  border-radius: 12px;
+  padding: 5px 10px;
+  border-radius: 15px;
 }
 
 .question-type.scale {
@@ -248,7 +325,7 @@ input, select {
 }
 
 .creator-answer {
-  padding: 10px;
+  padding: 15px;
   background-color: #ffffff;
 }
 
@@ -260,7 +337,7 @@ input, select {
 }
 
 .answer-btn {
-  padding: 8px 12px;
+  padding: 10px 15px;
   font-size: 14px;
   border: 1px solid #e0e0e0;
   background-color: #f5f5f5;
@@ -300,7 +377,7 @@ input, select {
   border-color: #c3e6cb;
   color: #155724;
   padding: 15px;
-  border-radius: 5px;
+  border-radius: 12px;
   margin-top: 20px;
 }
 
@@ -309,7 +386,7 @@ input, select {
   border-color: #f5c6cb;
   color: #721c24;
   padding: 15px;
-  border-radius: 5px;
+  border-radius: 12px;
   margin-top: 20px;
 }
 </style>
