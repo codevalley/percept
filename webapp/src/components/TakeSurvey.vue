@@ -1,26 +1,49 @@
 <template>
-  <div class="take-survey" v-if="currentQuestion">
-    <h2>{{ currentQuestion.text }}</h2>
-    <div class="answer-options">
+  <div class="max-w-2xl mx-auto p-4" v-if="currentQuestion">
+    <h2 class="text-2xl font-bold mb-6 text-center">{{ currentQuestion.text }}</h2>
+    <div class="flex justify-center gap-4 mb-8">
       <template v-if="currentQuestion.response_type === 'scale'">
         <button 
           v-for="n in currentQuestion.response_scale_max" 
           :key="n" 
           @click="selectAnswer(n)"
-          :class="['option', { selected: currentAnswer === n }]"
+          :class="[
+            'w-12 h-12 border rounded-md flex items-center justify-center cursor-pointer transition-colors',
+            currentAnswer === n ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-blue-100'
+          ]"
         >
           {{ n }}
         </button>
       </template>
       <template v-else-if="currentQuestion.response_type === 'boolean'">
-        <button @click="selectAnswer(true)" :class="['option', { selected: currentAnswer === true }]">Yes</button>
-        <button @click="selectAnswer(false)" :class="['option', { selected: currentAnswer === false }]">No</button>
+        <button 
+          @click="selectAnswer(true)" 
+          :class="[
+            'px-6 py-2 border rounded-md transition-colors',
+            currentAnswer === true ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-blue-100'
+          ]"
+        >
+          Yes
+        </button>
+        <button 
+          @click="selectAnswer(false)" 
+          :class="[
+            'px-6 py-2 border rounded-md transition-colors',
+            currentAnswer === false ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-blue-100'
+          ]"
+        >
+          No
+        </button>
       </template>
     </div>
-    <div class="progress-bar">
-      <div class="progress" :style="{ width: `${progress}%` }"></div>
+    <div class="w-full h-2 bg-gray-200 rounded-full mb-6">
+      <div class="h-full bg-blue-500 rounded-full transition-all duration-300 ease-in-out" :style="{ width: `${progress}%` }"></div>
     </div>
-    <button @click="nextQuestion" class="btn" :disabled="currentAnswer === null || isSubmitting">
+    <button 
+      @click="nextQuestion" 
+      class="w-full py-3 text-lg font-semibold text-white bg-blue-500 rounded-full hover:bg-blue-600 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
+      :disabled="currentAnswer === null || isSubmitting"
+    >
       {{ isLastQuestion ? 'Finish' : 'Next' }}
     </button>
   </div>
@@ -97,79 +120,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.answer-options {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin: 20px 0;
-}
-
-.option {
-  width: 40px;
-  height: 40px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.option.selected {
-  background-color: #3498db;
-  color: white;
-}
-
-.progress-bar {
-  width: 100%;
-  height: 10px;
-  background-color: #eee;
-  border-radius: 5px;
-  margin-bottom: 20px;
-}
-
-.progress {
-  height: 100%;
-  background-color: #3498db;
-  border-radius: 5px;
-  transition: width 0.3s ease-in-out;
-}
-
-.btn {
-  padding: 10px 20px;
-  font-size: 18px;
-  border: none;
-  border-radius: 25px;
-  background-color: #3498db;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.btn:hover:not(:disabled) {
-  background-color: #2980b9;
-}
-
-.error-message {
-  color: #721c24;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  padding: 10px;
-  margin-top: 10px;
-}
-
-.loading {
-  font-size: 18px;
-  color: #666;
-  margin-top: 20px;
-}
-</style>

@@ -64,6 +64,7 @@ The API will be available at `http://localhost:5001`.
   ```
   npm install -g @vue/cli
   npm install axios canvas-confetti
+  npm install -D tailwindcss@latest postcss@latest autoprefixer@latest
   npm install
   npm run serve
   ```

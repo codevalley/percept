@@ -1,39 +1,19 @@
 <template>
-    <div class="home">
-      <h1>Welcome to Percept</h1>
-      <div class="button-container">
-        <button @click="$emit('participate')" class="btn">Participate</button>
-        <button @click="$emit('create')" class="btn">Create</button>
-      </div>
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <h1 class="text-4xl font-bold mb-8 text-gray-800">Welcome to Percept</h1>
+    <div class="flex justify-center space-x-6 mt-8">
+      <button @click="$emit('participate')" class="px-6 py-3 text-lg font-semibold text-white bg-blue-500 rounded-full hover:bg-blue-600 transition duration-300">
+        Participate
+      </button>
+      <button @click="$emit('create')" class="px-6 py-3 text-lg font-semibold text-white bg-green-500 rounded-full hover:bg-green-600 transition duration-300">
+        Create
+      </button>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: 'HomeView'
-  }
-  </script>
-  
-  <style scoped>
-  .button-container {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 30px;
-  }
-  
-  .btn {
-    padding: 10px 20px;
-    font-size: 18px;
-    border: none;
-    border-radius: 25px;
-    background-color: #3498db;
-    color: white;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  .btn:hover {
-    background-color: #2980b9;
-  }
-  </style>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'HomeView'
+}
+</script>

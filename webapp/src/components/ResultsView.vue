@@ -1,38 +1,41 @@
 <template>
-  <div class="results-view">
-    <h1>Survey Results</h1>
-    <div v-if="loading">Loading results...</div>
-    <div v-else-if="error">{{ error }}</div>
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">Survey Results</h1>
+    <div v-if="loading" class="text-lg text-gray-600">Loading results...</div>
+    <div v-else-if="error" class="text-lg text-red-600">{{ error }}</div>
     <div v-else-if="results">
-      <div class="overall-stats">
-        <h2>Overall Statistics</h2>
-        <p v-if="results.overall_statistics">
+      <div class="bg-gray-100 p-6 rounded-lg mb-8">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Overall Statistics</h2>
+        <p v-if="results.overall_statistics" class="mb-2">
           Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate?.toFixed(2) || 'N/A' }}
         </p>
-        <p v-if="results.overall_statistics.deviation_from_creator !== undefined">Deviation from Creator: {{ results.overall_statistics.deviation_from_creator?.toFixed(2) || 'N/A' }}</p>
-        <p v-if="results.overall_statistics.deviation_from_others !== undefined">Deviation from Others: {{ results.overall_statistics.deviation_from_others?.toFixed(2) || 'N/A' }}</p>
-        <p v-if="results.overall_statistics.overall_deviation !== undefined">Overall Deviation: {{ results.overall_statistics.overall_deviation?.toFixed(2) || 'N/A' }}</p>
+        <p v-if="results.overall_statistics.deviation_from_creator !== undefined" class="mb-2">
+          Deviation from Creator: {{ results.overall_statistics.deviation_from_creator?.toFixed(2) || 'N/A' }}
+        </p>
+        <p v-if="results.overall_statistics.deviation_from_others !== undefined" class="mb-2">
+          Deviation from Others: {{ results.overall_statistics.deviation_from_others?.toFixed(2) || 'N/A' }}
+        </p>
+        <p v-if="results.overall_statistics.overall_deviation !== undefined" class="mb-2">
+          Overall Deviation: {{ results.overall_statistics.overall_deviation?.toFixed(2) || 'N/A' }}
+        </p>
       </div>
-      <div class="questions" v-if="results.questions">
-        <h2>Question Results</h2>
-        <div v-for="question in results.questions" :key="question.id" class="question-result">
-          <h3>{{ question.text }}</h3>
-          <p v-if="question.type === 'scale'">
-            Your Answer: {{ question.user_score || 'N/A' }}
-            <br>
-            Average Score: {{ question.average_score?.toFixed(2) || 'N/A' }}
-            <br>
-            Your Deviation: {{ question.user_deviation?.toFixed(2) || 'N/A' }}
-          </p>
-          <p v-else-if="question.type === 'boolean'">
-            Your Answer: {{ question.user_answer !== undefined ? (question.user_answer ? 'Yes' : 'No') : 'N/A' }}
-            <br>
-            Percentage who answered Yes: {{ question.true_percentage?.toFixed(2) || 'N/A' }}%
-          </p>
+      <div v-if="results.questions">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Question Results</h2>
+        <div v-for="question in results.questions" :key="question.id" class="bg-white border border-gray-200 p-6 rounded-lg mb-4 shadow-sm">
+          <h3 class="text-xl font-medium text-gray-700 mb-3">{{ question.text }}</h3>
+          <div v-if="question.type === 'scale'" class="space-y-2">
+            <p>Your Answer: <span class="font-semibold">{{ question.user_score || 'N/A' }}</span></p>
+            <p>Average Score: <span class="font-semibold">{{ question.average_score?.toFixed(2) || 'N/A' }}</span></p>
+            <p>Your Deviation: <span class="font-semibold">{{ question.user_deviation?.toFixed(2) || 'N/A' }}</span></p>
+          </div>
+          <div v-else-if="question.type === 'boolean'" class="space-y-2">
+            <p>Your Answer: <span class="font-semibold">{{ question.user_answer !== undefined ? (question.user_answer ? 'Yes' : 'No') : 'N/A' }}</span></p>
+            <p>Percentage who answered Yes: <span class="font-semibold">{{ question.true_percentage?.toFixed(2) || 'N/A' }}%</span></p>
+          </div>
         </div>
       </div>
     </div>
-    <div v-else>No results available.</div>
+    <div v-else class="text-lg text-gray-600">No results available.</div>
   </div>
 </template>
 
@@ -76,34 +79,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.results-view {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.overall-stats {
-  background-color: #f0f0f0;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
-.question-result {
-  background-color: #ffffff;
-  border: 1px solid #e0e0e0;
-  padding: 15px;
-  margin-bottom: 15px;
-  border-radius: 8px;
-}
-
-h1, h2 {
-  color: #333;
-}
-
-h3 {
-  color: #555;
-}
-</style>

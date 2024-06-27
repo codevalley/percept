@@ -1,14 +1,28 @@
 <template>
-  <div class="participate">
-    <h2>Enter Survey Code</h2>
-    <form @submit.prevent="submitCode">
-      <input v-model="code" type="text" placeholder="Survey Code" required>
-      <button type="submit" class="btn" :disabled="isLoading">
-        <span v-if="!isLoading">Enter</span>
-        <span v-else class="loader"></span>
-      </button>
-    </form>
-    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+      <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Enter Survey Code</h2>
+      <form @submit.prevent="submitCode" class="space-y-4">
+        <input 
+          v-model="code" 
+          type="text" 
+          placeholder="Survey Code" 
+          required
+          class="w-full px-4 py-2 text-gray-700 bg-gray-200 rounded-lg focus:outline-none focus:bg-white focus:ring-2 focus:ring-blue-400"
+        >
+        <button 
+          type="submit" 
+          class="w-full px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 transition duration-300 ease-in-out"
+          :disabled="isLoading"
+        >
+          <span v-if="!isLoading">Enter</span>
+          <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
+        </button>
+      </form>
+      <p v-if="errorMessage" class="mt-4 text-sm text-red-600 bg-red-100 border border-red-400 rounded-md p-2">
+        {{ errorMessage }}
+      </p>
+    </div>
   </div>
 </template>
 
@@ -47,64 +61,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
-
-input {
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  width: 200px;
-}
-
-.btn {
-  padding: 10px 20px;
-  font-size: 18px;
-  border: none;
-  border-radius: 25px;
-  background-color: #3498db;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.btn:hover:not(:disabled) {
-  background-color: #2980b9;
-}
-
-.btn:disabled {
-  background-color: #95a5a6;
-  cursor: not-allowed;
-}
-
-.loader {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  animation: spin 1s linear infinite;
-  display: inline-block;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.error-message {
-  color: #721c24;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  padding: 10px;
-  margin-top: 10px;
-}
-</style>
