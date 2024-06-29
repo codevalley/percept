@@ -1,192 +1,231 @@
 <template>
-  <div class="max-w-2xl mx-auto p-4">
-    <!-- Survey Title and Description Section -->
-    <div class="mb-8 text-center">
-      <input 
-        v-model="surveyTitle" 
-        type="text" 
-        class="w-full max-w-md px-4 py-2 text-2xl font-bold text-center border-b border-gray-300 focus:border-blue-500 focus:outline-none bg-transparent"
-        required
-      >
-      <textarea 
-        v-model="surveyDescription" 
-        class="w-full max-w-md mt-4 px-4 py-2 text-lg text-center border-b border-gray-300 focus:border-blue-500 focus:outline-none bg-transparent resize-none"
-        maxlength="240"
-      ></textarea>
-    </div>
-    
-    <!-- Guidance for creator answers -->
-    <div v-if="creationStage === 'completion'" class="text-center text-lg font-bold text-blue-500 mb-6">
-      Can you answer these yourself first?
-    </div>
-
-    <!-- Question Creation Stage -->
-    <div v-if="creationStage === 'questions'" class="space-y-4 mb-8">
-      <div class="flex flex-col space-y-2">
-        <input v-model="newQuestion.text" type="text" placeholder="Enter your question" required
-               class="w-full px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-      </div>
-      <div class="flex space-x-2">
-        <select v-model="newQuestion.response_type" required
-                class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-          <option value="scale">Scale</option>
-          <option value="boolean">Yes/No</option>
-        </select>
-        <input v-if="newQuestion.response_type === 'scale'" v-model.number="newQuestion.response_scale_max" 
-               type="number" min="2" max="10" placeholder="Max scale value" required
-               class="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-      </div>
-      <div class="flex space-x-2">
-        <button @click="addQuestion" class="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300">Add Question</button>
-        <button @click="startSurveyCompletion" :disabled="questions.length === 0" 
-                class="flex-1 px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">Finish</button>
-      </div>
-    </div>
-
-    <ul class="space-y-4">
-      <li v-for="(question, index) in questions" :key="question.id" class="border border-gray-200 rounded-lg overflow-hidden">
-        <div class="bg-gray-50 p-4 flex justify-between items-center">
-          <span class="font-semibold">{{ question.text }}</span>
-          <span class="text-sm px-2 py-1 rounded-full" 
-                :class="question.response_type === 'scale' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'">
-            {{ question.response_type === 'scale' ? `Scale (1-${question.response_scale_max})` : 'Yes/No' }}
-          </span>
-        </div>
+  <div class="font-['IBM_Plex_Sans'] min-h-screen bg-white p-4">
+    <div class="max-w-[859px] mx-auto">
+      <div class="flex items-start mb-10">
+        <!-- Profile Icon -->
+        <div class="w-14 h-14 bg-[#787885] rounded-full mr-5 flex-shrink-0"></div>
         
-        <!-- Creator Answer Section -->
-        <div v-if="creationStage === 'completion'" class="p-4 bg-white">
-          <div v-if="question.response_type === 'scale'" class="flex justify-center space-x-2">
-            <button 
-              v-for="n in question.response_scale_max" 
-              :key="n" 
-              @click="selectAnswer(index, n)"
-              :class="['w-10 h-10 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300',
-                       creatorAnswers[index] === n ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300']"
-              :disabled="isSubmitted"
-            >
-              {{ n }}
-            </button>
+        <!-- Header Section -->
+        <div class="flex-grow">
+          <h1 class="text-neutral-900 text-4xl font-semibold leading-10 mb-2 text-left">{{ surveyTitle }}</h1>
+          <p class="text-zinc-700 text-lg font-normal leading-7 text-left">{{ surveyDescription }}</p>
+        </div>
+      </div>
+
+      <!-- Question Input Section -->
+      <div class="bg-[#F1F2F4] rounded-[25px] p-7 mb-10">
+        <div class="relative">
+          <input 
+            v-model="newQuestion.text" 
+            @keyup.enter="addQuestion"
+            @focus="inputFocused = true"
+            @blur="inputFocused = false"
+            class="w-full bg-transparent text-[34px] font-bold text-[#2A2731] focus:outline-none"
+            :placeholder="inputFocused ? '' : 'Enter your question here'"
+            :disabled="isSubmitted"
+          >
+          <span v-if="!newQuestion.text && !inputFocused" class="absolute left-[calc(100%_-_1ch)] top-1/2 transform -translate-y-1/2 text-[#9590A0] text-[34px] font-bold animate-blink">_</span>
+        </div>
+        <div class="flex space-x-5 mt-6">
+          <button 
+            @click="setQuestionType('scale')"
+            :class="['w-28 h-10 rounded-full flex items-center justify-center space-x-2 border border-[#EEECF1]', 
+                     newQuestion.response_type === 'scale' ? 'bg-[#2A2731] text-white' : 'bg-white text-[#2A2731]']"
+            :disabled="isSubmitted"
+          >
+            <img src="@/assets/scale-icon.svg" alt="Scale" class="w-7 h-7">
+            <span class="text-base font-medium">Scale</span>
+          </button>
+          <button 
+            @click="setQuestionType('boolean')"
+            :class="['w-28 h-10 rounded-full flex items-center justify-center space-x-2 border border-[#EEECF1]', 
+                     newQuestion.response_type === 'boolean' ? 'bg-[#2A2731] text-white' : 'bg-white text-[#2A2731]']"
+            :disabled="isSubmitted"
+          >
+            <img src="@/assets/yes-no-icon.svg" alt="Yes/No" class="w-7 h-7">
+            <span class="text-base font-medium">Yes/No</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Posted Questions -->
+      <div v-if="questions.length > 0" class="bg-[#F7F7F8] rounded-[25px] p-7 space-y-6">
+        <div v-for="(question, index) in questions" :key="question.id" class="flex items-center justify-between">
+          <div class="flex items-center space-x-4">
+            <img src="@/assets/question-icon.svg" alt="Question" class="w-7 h-7">
+            <span :class="['text-2xl font-bold', creatorAnswers[index] !== null ? 'text-[#2A2731]' : 'text-[#9590A0]']">
+              {{ question.text }}
+            </span>
           </div>
-          <div v-else class="flex justify-center space-x-4">
-            <button @click="selectAnswer(index, true)" 
-                    :class="['px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300',
-                             creatorAnswers[index] === true ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300']"
-                    :disabled="isSubmitted">Yes</button>
-            <button @click="selectAnswer(index, false)" 
-                    :class="['px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300',
-                             creatorAnswers[index] === false ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300']"
-                    :disabled="isSubmitted">No</button>
+          <div v-if="question.response_type === 'scale'" class="flex space-x-3">
+            <button 
+              v-for="n in 5" 
+              :key="n"
+              @click="selectAnswer(index, n)"
+              :class="['w-[30px] h-[30px] rounded-full border', 
+                       creatorAnswers[index] === n ? 'bg-[#2A2731] border-[#2A2731]' : 'bg-[#DDDAE3] border-[#DDDAE3]']"
+              :disabled="isSubmitted"
+            ></button>
+          </div>
+          <div v-else class="flex space-x-3">
+            <button 
+              @click="selectAnswer(index, true)"
+              :class="['w-[30px] h-[30px] rounded-full border', 
+                       creatorAnswers[index] === true ? 'bg-[#2A2731] border-[#2A2731]' : 'bg-[#DDDAE3] border-[#DDDAE3]']"
+              :disabled="isSubmitted"
+            ></button>
+            <button 
+              @click="selectAnswer(index, false)"
+              :class="['w-[30px] h-[30px] rounded-full border', 
+                       creatorAnswers[index] === false ? 'bg-[#2A2731] border-[#2A2731]' : 'bg-[#DDDAE3] border-[#DDDAE3]']"
+              :disabled="isSubmitted"
+            ></button>
           </div>
         </div>
-      </li>
-    </ul>
+      </div>
 
-    <!-- Submit Survey Button -->
-    <div class="mt-8 text-center">
-      <button v-if="creationStage === 'completion' && !showSuccess" @click="finishSurvey" 
-              :disabled="!allQuestionsAnswered || isLoading || isSubmitted"
-              class="px-6 py-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed">
-        <span v-if="!isLoading">Submit Survey</span>
-        <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
-      </button>
-    </div>
+      <!-- Spacer to keep Publish button in place -->
+      <div class="h-20">
+        <!-- Alert Box -->
+        <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mt-6 mb-6 text-[#996000]">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span class="text-sm font-medium">Complete self review before publishing</span>
+        </div>
+      </div>
 
-    <div v-if="showSuccess" class="mt-8 p-4 bg-green-100 border border-green-400 text-green-700 rounded-md">
-      <h3 class="font-bold text-lg mb-2">Survey Created Successfully!</h3>
-      <p>Survey ID: {{ createdSurveyId }}</p>
+      <!-- Publish Button -->
+      <div class="mt-6">
+        <button 
+          @click="finishSurvey"
+          :disabled="!allQuestionsAnswered || isLoading || isSubmitted"
+          class="w-[152px] h-[56px] bg-[#3C3844] rounded-full text-center text-[#EEECF1] text-2xl font-bold leading-9 disabled:bg-gray-100 disabled:text-neutral-400"
+        >
+          Publish
+        </button>
+      </div>
     </div>
-    
-    <p v-if="errorMessage" class="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-md">{{ errorMessage }}</p>
   </div>
 </template>
 
 <script>
+import { ref, computed } from 'vue';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
 
 export default {
   name: 'CreateView',
-  data() {
-    return {
-      creationStage: 'questions',
-      surveyTitle: 'Help me improve',
-      surveyDescription: 'Take 2 minutes to answer a few questions about me',
-      newQuestion: {
-        text: '',
-        response_type: 'scale',
-        response_scale_max: 5
-      },
-      questions: [],
-      creatorAnswers: [],
-      isLoading: false,
-      showSuccess: false,
-      createdSurveyId: null,
-      errorMessage: '',
-      isSubmitted: false
+  setup() {
+    const surveyTitle = ref('Help me improve myself');
+    const surveyDescription = ref('Share feedback about myself to improve my awareness');
+    const newQuestion = ref({ text: '', response_type: 'scale' });
+    const questions = ref([]);
+    const creatorAnswers = ref([]);
+    const isLoading = ref(false);
+    const isSubmitted = ref(false);
+    const errorMessage = ref('');
+    const showSuccess = ref(false);
+    const createdSurveyId = ref(null);
+    const inputFocused = ref(false);
+
+    const allQuestionsAnswered = computed(() => 
+      questions.value.length > 0 &&
+      creatorAnswers.value.length === questions.value.length &&
+      creatorAnswers.value.every(answer => answer !== null && answer !== undefined)
+    );
+
+    function setQuestionType(type) {
+      newQuestion.value.response_type = type;
     }
-  },
-  computed: {
-    allQuestionsAnswered() {
-      return this.creatorAnswers.length === this.questions.length &&
-             this.creatorAnswers.every(answer => answer !== null && answer !== undefined);
+
+    function addQuestion() {
+      if (newQuestion.value.text.trim() && !isSubmitted.value) {
+        questions.value.push({
+          id: Date.now(),
+          text: newQuestion.value.text,
+          response_type: newQuestion.value.response_type,
+        });
+        creatorAnswers.value.push(null);
+        newQuestion.value.text = '';
+        newQuestion.value.response_type = 'scale';
+      }
     }
-  },
-  methods: {
-    addQuestion() {
-      const question = {
-        id: Date.now(),
-        text: this.newQuestion.text,
-        response_type: this.newQuestion.response_type,
-        response_scale_max: this.newQuestion.response_type === 'scale' ? this.newQuestion.response_scale_max : undefined
-      };
-      this.questions.push(question);
-      this.newQuestion.text = '';
-      this.newQuestion.response_type = 'scale';
-      this.newQuestion.response_scale_max = 5;
-    },
-    startSurveyCompletion() {
-      this.creationStage = 'completion';
-      this.creatorAnswers = new Array(this.questions.length).fill(null);
-    },
-    selectAnswer(index, value) {
-      if (!this.isSubmitted) {
-        this.creatorAnswers[index] = value;
+
+    function selectAnswer(index, value) {
+      if (!isSubmitted.value) {
+        creatorAnswers.value[index] = value;
       }
-    },
-    async finishSurvey() {
-      if (this.isSubmitted) return;
-      
-      this.isLoading = true;
-      this.errorMessage = '';
-      try {
-        const surveyData = {
-          title: this.surveyTitle || "Untitled Survey",
-          description: this.surveyDescription || "No description provided",
-          questions: this.questions.map((q, index) => ({
-            ...q,
-            creator_answer: this.creatorAnswers[index]
-          }))
-        };
-        const response = await api.createSurvey(surveyData);
-        console.log('Survey created', response.data);
-        this.createdSurveyId = response.data.survey_id;
-        this.showSuccess = true;
-        this.isSubmitted = true;
-        this.celebrateSuccess();
-      } catch (error) {
-        console.error('Error creating survey:', error);
-        this.errorMessage = 'Error creating survey. Please try again.' + error;
-      } finally {
-        this.isLoading = false;
-      }
-    },
-    celebrateSuccess() {
+    }
+
+    function celebrateSuccess() {
       confetti({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }
       });
     }
+
+    async function finishSurvey() {
+      if (isSubmitted.value || !allQuestionsAnswered.value) return;
+      
+      isLoading.value = true;
+      errorMessage.value = '';
+      try {
+        const surveyData = {
+          title: surveyTitle.value || "Untitled Survey",
+          description: surveyDescription.value || "No description provided",
+          questions: questions.value.map((q, index) => ({
+            ...q,
+            creator_answer: creatorAnswers.value[index]
+          }))
+        };
+        const response = await api.createSurvey(surveyData);
+        console.log('Survey created', response.data);
+        createdSurveyId.value = response.data.survey_id;
+        isSubmitted.value = true;
+        showSuccess.value = true;
+        celebrateSuccess();
+      } catch (error) {
+        console.error('Error creating survey:', error);
+        errorMessage.value = 'Error creating survey. Please try again.' + error;
+      } finally {
+        isLoading.value = false;
+      }
+    }
+
+    return {
+      surveyTitle,
+      surveyDescription,
+      newQuestion,
+      questions,
+      creatorAnswers,
+      isLoading,
+      isSubmitted,
+      errorMessage,
+      showSuccess,
+      createdSurveyId,
+      allQuestionsAnswered,
+      inputFocused,
+      setQuestionType,
+      addQuestion,
+      selectAnswer,
+      finishSurvey
+    };
   }
 }
 </script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+
+@keyframes blink {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.animate-blink {
+  animation: blink 1s infinite;
+}
+</style>
