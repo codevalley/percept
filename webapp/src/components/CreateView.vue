@@ -53,7 +53,11 @@
       <div v-if="questions.length > 0" class="bg-[#F7F7F8] rounded-[25px] p-7 space-y-6 mb-12">
         <div v-for="(question, index) in questions" :key="question.id" class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
-            <SvgIcon :name="question.response_type === 'scale' ? 'scale' : 'yes-no'" :size="24" class="text-[#2A2731]" />
+            <SvgIcon 
+        :name="question.response_type === 'scale' ? 'scale' : 'yes-no'" 
+        :size="24" 
+        :class="creatorAnswers[index] !== null ? 'text-[#2A2731]' : 'text-[#9590A0]'"
+      />
             <span :class="['text-2xl font-bold', creatorAnswers[index] !== null ? 'text-[#2A2731]' : 'text-[#9590A0]']">
               {{ question.text }}
             </span>
