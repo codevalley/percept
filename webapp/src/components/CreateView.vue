@@ -1,7 +1,7 @@
 <template>
-  <div class="font-['IBM_Plex_Sans'] min-h-screen bg-white p-4">
+  <div class="font-['IBM_Plex_Sans'] min-h-screen bg-white p-4 pt-[200px]">
     <div class="max-w-[859px] mx-auto">
-      <div class="flex items-start mb-10">
+      <div class="flex items-start mb-12">
         <!-- Profile Icon -->
         <div class="w-14 h-14 bg-[#787885] rounded-full mr-5 flex-shrink-0"></div>
         
@@ -13,8 +13,9 @@
       </div>
 
       <!-- Question Input Section -->
-      <div class="bg-[#F1F2F4] rounded-[25px] p-7 mb-10">
-        <div class="relative">
+      <div class="bg-[#F1F2F4] rounded-[25px] p-7 mb-12">
+        <div class="relative flex items-center mb-6">
+          <SvgIcon name="question" :size="42" class="mr-4 text-[#2A2731]" />
           <input 
             v-model="newQuestion.text" 
             @keyup.enter="addQuestion"
@@ -24,16 +25,16 @@
             :placeholder="inputFocused ? '' : 'Enter your question here'"
             :disabled="isSubmitted"
           >
-          <span v-if="!newQuestion.text && !inputFocused" class="absolute left-[calc(100%_-_1ch)] top-1/2 transform -translate-y-1/2 text-[#9590A0] text-[34px] font-bold animate-blink">_</span>
+          <span v-if="!newQuestion.text && !inputFocused" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-[#9590A0] text-[34px] font-bold animate-blink">_</span>
         </div>
-        <div class="flex space-x-5 mt-6">
+        <div class="flex space-x-5">
           <button 
             @click="setQuestionType('scale')"
             :class="['w-28 h-10 rounded-full flex items-center justify-center space-x-2 border border-[#EEECF1]', 
                      newQuestion.response_type === 'scale' ? 'bg-[#2A2731] text-white' : 'bg-white text-[#2A2731]']"
             :disabled="isSubmitted"
           >
-            <img src="@/assets/scale-icon.svg" alt="Scale" class="w-7 h-7">
+            <SvgIcon name="scale" :size="24" :class="newQuestion.response_type === 'scale' ? 'text-white' : 'text-[#2A2731]'" />
             <span class="text-base font-medium">Scale</span>
           </button>
           <button 
@@ -42,17 +43,17 @@
                      newQuestion.response_type === 'boolean' ? 'bg-[#2A2731] text-white' : 'bg-white text-[#2A2731]']"
             :disabled="isSubmitted"
           >
-            <img src="@/assets/yes-no-icon.svg" alt="Yes/No" class="w-7 h-7">
+            <SvgIcon name="yes-no" :size="24" :class="newQuestion.response_type === 'boolean' ? 'text-white' : 'text-[#2A2731]'" />
             <span class="text-base font-medium">Yes/No</span>
           </button>
         </div>
       </div>
 
       <!-- Posted Questions -->
-      <div v-if="questions.length > 0" class="bg-[#F7F7F8] rounded-[25px] p-7 space-y-6">
+      <div v-if="questions.length > 0" class="bg-[#F7F7F8] rounded-[25px] p-7 space-y-6 mb-12">
         <div v-for="(question, index) in questions" :key="question.id" class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
-            <img src="@/assets/question-icon.svg" alt="Question" class="w-7 h-7">
+            <SvgIcon :name="question.response_type === 'scale' ? 'scale' : 'yes-no'" :size="24" class="text-[#2A2731]" />
             <span :class="['text-2xl font-bold', creatorAnswers[index] !== null ? 'text-[#2A2731]' : 'text-[#9590A0]']">
               {{ question.text }}
             </span>
@@ -84,19 +85,14 @@
         </div>
       </div>
 
-      <!-- Spacer to keep Publish button in place -->
-      <div class="h-20">
-        <!-- Alert Box -->
-        <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mt-6 mb-6 text-[#996000]">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <span class="text-sm font-medium">Complete self review before publishing</span>
-        </div>
+      <!-- Alert Box -->
+      <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-[#996000]">
+        <SvgIcon name="info" :size="20" class="text-[#996000]" />
+        <span class="text-sm font-medium">Complete self review before publishing</span>
       </div>
 
       <!-- Publish Button -->
-      <div class="mt-6">
+      <div class="text-left">
         <button 
           @click="finishSurvey"
           :disabled="!allQuestionsAnswered || isLoading || isSubmitted"
@@ -113,9 +109,13 @@
 import { ref, computed } from 'vue';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
+import SvgIcon from './SvgIcon.vue';
 
 export default {
   name: 'CreateView',
+  components: {
+    SvgIcon,
+  },
   setup() {
     const surveyTitle = ref('Help me improve myself');
     const surveyDescription = ref('Share feedback about myself to improve my awareness');
@@ -173,8 +173,8 @@ export default {
       errorMessage.value = '';
       try {
         const surveyData = {
-          title: surveyTitle.value || "Untitled Survey",
-          description: surveyDescription.value || "No description provided",
+          title: surveyTitle.value,
+          description: surveyDescription.value,
           questions: questions.value.map((q, index) => ({
             ...q,
             creator_answer: creatorAnswers.value[index]
