@@ -95,9 +95,9 @@
       </div>
 
       <!-- Alert Box -->
-      <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-[#996000]">
-        <SvgIcon name="info" :size="20" class="text-[#996000]" />
-        <inline-svg src="assets/question-icon.svg" style="color: #996000;width: 20px; height: 20px;"/>
+      <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-[#F6655A]">
+        
+        <inline-svg src="assets/info-icon.svg" style="color: #F6655A;width: 20px; height: 20px;"/>
         <span class="text-sm font-medium">Complete self review before publishing</span>
       </div>
 
