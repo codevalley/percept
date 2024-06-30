@@ -15,7 +15,7 @@
       <!-- Question Input Section -->
       <div class="bg-[#F1F2F4] rounded-[25px] p-7 mb-12">
         <div class="relative flex items-center mb-6">
-          <SvgIcon name="question" :size="42" class="mr-4 text-[#2A2731]" />
+          <inline-svg src="assets/question-icon.svg" style="color: #2A2731;"/>
           <input 
             v-model="newQuestion.text" 
             @keyup.enter="addQuestion"
@@ -34,7 +34,9 @@
                      newQuestion.response_type === 'scale' ? 'bg-[#2A2731] text-white' : 'bg-white text-[#2A2731]']"
             :disabled="isSubmitted"
           >
-            <SvgIcon name="scale" :size="24" :class="newQuestion.response_type === 'scale' ? 'text-white' : 'text-[#2A2731]'" />
+          <inline-svg src="assets/scale-icon.svg" :style="{ color: newQuestion.response_type === 'scale' ? 'text-white' : '#2A2731' }" 
+                      style="width: 24px; height: 24px;"
+                      :key="newQuestion.response_type === 'scale' ? 'scale' : 'default'" />
             <span class="text-base font-medium">Scale</span>
           </button>
           <button 
@@ -43,7 +45,11 @@
                      newQuestion.response_type === 'boolean' ? 'bg-[#2A2731] text-white' : 'bg-white text-[#2A2731]']"
             :disabled="isSubmitted"
           >
-            <SvgIcon name="yes-no" :size="24" :class="newQuestion.response_type === 'boolean' ? 'text-white' : 'text-[#2A2731]'" />
+            <inline-svg src="assets/yes-no-icon.svg"  
+                        :style="{ color: newQuestion.response_type === 'boolean' ? 'text-white' : '#2A2731' }" 
+                        style="width: 24px; height: 24px;"
+                        :key="newQuestion.response_type === 'boolean' ? 'boolean' : 'default'"
+                        />
             <span class="text-base font-medium">Yes/No</span>
           </button>
         </div>
@@ -53,11 +59,10 @@
       <div v-if="questions.length > 0" class="bg-[#F7F7F8] rounded-[25px] p-7 space-y-6 mb-12">
         <div v-for="(question, index) in questions" :key="question.id" class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
-            <SvgIcon 
-        :name="question.response_type === 'scale' ? 'scale' : 'yes-no'" 
-        :size="24" 
-        :class="creatorAnswers[index] !== null ? 'text-[#2A2731]' : 'text-[#9590A0]'"
-      />
+            
+            <inline-svg :src="question.response_type === 'scale' ? 'assets/scale-icon.svg' : 'assets/yes-no-icon.svg'"  
+                        :style="{ color: creatorAnswers[index] !== null ? '#2A2731' : '#9590A0'}" style="width: 24px; height: 24px;"/>
+
             <span :class="['text-2xl font-bold', creatorAnswers[index] !== null ? 'text-[#2A2731]' : 'text-[#9590A0]']">
               {{ question.text }}
             </span>
@@ -92,6 +97,7 @@
       <!-- Alert Box -->
       <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-[#996000]">
         <SvgIcon name="info" :size="20" class="text-[#996000]" />
+        <inline-svg src="assets/question-icon.svg" style="color: #996000;width: 20px; height: 20px;"/>
         <span class="text-sm font-medium">Complete self review before publishing</span>
       </div>
 
@@ -113,12 +119,11 @@
 import { ref, computed } from 'vue';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
-import SvgIcon from './SvgIcon.vue';
-
+import InlineSvg from 'vue-inline-svg';
 export default {
   name: 'CreateView',
   components: {
-    SvgIcon,
+    InlineSvg,
   },
   setup() {
     const surveyTitle = ref('Help me improve myself');
