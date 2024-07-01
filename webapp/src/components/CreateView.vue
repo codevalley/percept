@@ -62,8 +62,12 @@
           <button 
             @click="addQuestion"
             :disabled="!newQuestion.text.trim() || isSubmitted"
-            :class="['w-28 h-10 rounded-full flex items-center justify-center space-x-2 border border-neutral-100',
-                    !newQuestion.text.trim() || isSubmitted ? 'bg-white text-neutral-300' : 'bg-primary text-white']"
+            :class="[
+              'w-28 h-10 rounded-full flex items-center justify-center space-x-2 border',
+              !newQuestion.text.trim() || isSubmitted 
+                ? 'bg-gray-100 disabled text-neutral-300 border-neutral-100' 
+                : 'bg-accent-green text-white border-accent-green'
+            ]"
           >
             <span class="text-base font-medium">Add</span>
           </button>
@@ -127,21 +131,26 @@
         </div>
       </div>
 
-      <!-- Alert Box -->
-      <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-accent">
-        <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5"/>
-        <span class="text-sm font-medium">Complete self review before publishing</span>
-      </div>
-
       <!-- Publish Button -->
       <div class="text-left">
         <button 
           @click="finishSurvey"
           :disabled="!allQuestionsAnswered || isLoading || isSubmitted"
-          class="w-[152px] h-[56px] bg-primary-light rounded-full text-center text-neutral-100 text-2xl font-bold leading-9 disabled:bg-gray-100 disabled:text-neutral-300"
+          :class="[
+            'w-[152px] h-[56px] rounded-full text-center text-2xl font-bold leading-9',
+            !allQuestionsAnswered || isLoading || isSubmitted
+              ? 'bg-gray-100 text-neutral-300'
+              : 'bg-accent-green text-white'
+          ]"
         >
           Publish
         </button>
+      </div>
+
+      <!-- Alert Box -->
+      <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-accent" style="padding-top: 20px;">
+        <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5"/>
+        <span class="text-sm font-medium">Complete self review before publishing</span>
       </div>
     </div>
     <ToastView :message="toastMessage" :type="toastType" @hidden="clearToast" />

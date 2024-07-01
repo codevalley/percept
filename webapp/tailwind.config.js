@@ -10,7 +10,13 @@ module.exports = {
           light: '#3C3844',
         },
         secondary: '#787885',
-        accent: '#F6655A',
+        accent: {
+          DEFAULT: '#F6655A',
+          green: {
+            DEFAULT: '#2B662E',
+            light: '#CBE5CC',
+          },
+        },
         neutral: {
           100: '#EEECF1',
           200: '#DDDAE3',
