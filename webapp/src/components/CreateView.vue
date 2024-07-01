@@ -1,13 +1,14 @@
 <template>
-  <div class="font-sans min-h-screen bg-white p-4 pt-[200px]">
+  <div class="font-['IBM_Plex_Sans']  min-h-screen bg-white ">
+    <SiteHeader initialPage="create" @page-changed="handlePageChange" />
     <div class="max-w-[859px] mx-auto">
-      <div class="flex items-start mb-12">
+      <div class="flex items-start mb-4">
         <!-- Profile Icon -->
-        <div class="w-14 h-14 bg-secondary rounded-full mr-5 flex-shrink-0"></div>
+        <div class="w-14 h-14 bg-secondary rounded-full mr-5 flex-shrink-0 mt-2"></div>
         
         <!-- Header Section -->
         <div class="flex-grow">
-          <h1 class="text-primary text-4xl font-semibold leading-10 mb-2 text-left">{{ surveyTitle }}</h1>
+          <h1 class="text-primary text-4xl font-semibold leading-10  text-left">{{ surveyTitle }}</h1>
           <p class="text-primary text-lg font-normal leading-7 text-left">{{ surveyDescription }}</p>
         </div>
       </div>
@@ -40,7 +41,7 @@
                 <inline-svg src="assets/scale-icon.svg" :class="newQuestion.response_type === 'scale' ? 'text-white' : 'text-primary'" 
                             class="w-6 h-6"
                             :key="newQuestion.response_type === 'scale' ? 'scale' : 'default'" />
-                <span class="text-base font-medium">Scale</span>
+                <span class="text-base font-medium">Rating</span>
               </button>
 
               <!-- Yes/No button -->
@@ -194,6 +195,7 @@ import { ref, computed } from 'vue';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
 import InlineSvg from 'vue-inline-svg';
+import SiteHeader from './SiteHeader.vue';
 import ToastView from '@/components/ToastView.vue';
 
 export default {
@@ -201,6 +203,7 @@ export default {
   components: {
     InlineSvg,
     ToastView,
+    SiteHeader,
   },
   setup() {
     const surveyTitle = ref('Help me improve myself');
@@ -307,6 +310,12 @@ export default {
         toastType.value = 'error';
       });
     }
+    const handlePageChange = (page) => {
+      console.log(`Page changed to: ${page}`);
+      // Here you would typically handle navigation, but since we don't have a router,
+      // we'll just log it for now. In a full app, you might emit an event to a parent
+      // component to handle the navigation.
+    };
 
     return {
       surveyTitle,
@@ -331,6 +340,7 @@ export default {
       selectAnswer,
       finishSurvey,
       clearToast,
+      handlePageChange,
       copyToClipboard
     };
   }
