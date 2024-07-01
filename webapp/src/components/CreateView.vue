@@ -17,7 +17,7 @@
         <!-- Question Input Section -->
         <div class="bg-neutral-400 rounded-[25px] p-7 mb-12 relative">
           <div class="relative flex items-center mb-6">
-            <inline-svg src="assets/question-icon.svg" class="text-primary"/>
+            <inline-svg src="assets/question-icon.svg" class="text-primary mr-2 mt-1" />
             <input 
               v-model="newQuestion.text" 
               @keyup.enter="addQuestion"
@@ -67,7 +67,7 @@
               :class="[
                 'w-28 h-10 rounded-full flex items-center justify-center space-x-2 border',
                 !newQuestion.text.trim() || isSubmitted 
-                  ? 'bg-gray-100 disabled text-neutral-300 border-neutral-100' 
+                  ? 'bg-gray-200 disabled text-neutral-300 border-neutral-100' 
                   : 'bg-accent-green text-white border-accent-green'
               ]"
             >
