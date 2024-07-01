@@ -1,69 +1,82 @@
 <template>
-  <div class="font-['IBM_Plex_Sans'] min-h-screen bg-white p-4 pt-[200px]">
+  <div class="font-sans min-h-screen bg-white p-4 pt-[200px]">
     <div class="max-w-[859px] mx-auto">
       <div class="flex items-start mb-12">
         <!-- Profile Icon -->
-        <div class="w-14 h-14 bg-[#787885] rounded-full mr-5 flex-shrink-0"></div>
+        <div class="w-14 h-14 bg-secondary rounded-full mr-5 flex-shrink-0"></div>
         
         <!-- Header Section -->
         <div class="flex-grow">
-          <h1 class="text-neutral-900 text-4xl font-semibold leading-10 mb-2 text-left">{{ surveyTitle }}</h1>
-          <p class="text-zinc-700 text-lg font-normal leading-7 text-left">{{ surveyDescription }}</p>
+          <h1 class="text-primary text-4xl font-semibold leading-10 mb-2 text-left">{{ surveyTitle }}</h1>
+          <p class="text-primary text-lg font-normal leading-7 text-left">{{ surveyDescription }}</p>
         </div>
       </div>
 
       <!-- Question Input Section -->
-      <div class="bg-[#F1F2F4] rounded-[25px] p-7 mb-12">
+      <div class="bg-neutral-400 rounded-[25px] p-7 mb-12 relative">
         <div class="relative flex items-center mb-6">
-          <inline-svg src="assets/question-icon.svg" style="color: #2A2731;"/>
+          <inline-svg src="assets/question-icon.svg" class="text-primary"/>
           <input 
             v-model="newQuestion.text" 
             @keyup.enter="addQuestion"
             @focus="inputFocused = true"
             @blur="inputFocused = false"
-            class="w-full bg-transparent text-[34px] font-bold text-[#2A2731] focus:outline-none"
+            class="w-full bg-transparent text-[34px] font-bold text-primary focus:outline-none"
             :placeholder="inputFocused ? '' : 'Enter your question here'"
             :disabled="isSubmitted"
           >
-          <span v-if="!newQuestion.text && !inputFocused" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-[#9590A0] text-[34px] font-bold animate-blink">_</span>
+          <span v-if="!newQuestion.text && !inputFocused" class="absolute right-0 top-1/2 transform -translate-y-1/2 text-neutral-300 text-[34px] font-bold animate-blink">_</span>
         </div>
-        <div class="flex space-x-5">
+        <div class="flex justify-between items-center">
+          <div class="flex space-x-5">
+            <!-- Scale button -->
+            <button 
+              @click="setQuestionType('scale')"
+              :class="['w-28 h-10 rounded-full flex items-center justify-center space-x-2 border border-neutral-100', 
+                      newQuestion.response_type === 'scale' ? 'bg-primary text-white' : 'bg-white text-primary']"
+              :disabled="isSubmitted"
+            >
+              <inline-svg src="assets/scale-icon.svg" :class="newQuestion.response_type === 'scale' ? 'text-white' : 'text-primary'" 
+                          class="w-6 h-6"
+                          :key="newQuestion.response_type === 'scale' ? 'scale' : 'default'" />
+              <span class="text-base font-medium">Scale</span>
+            </button>
+
+            <!-- Yes/No button -->
+            <button 
+              @click="setQuestionType('boolean')"
+              :class="['w-28 h-10 rounded-full flex items-center justify-center space-x-2 border border-neutral-100', 
+                      newQuestion.response_type === 'boolean' ? 'bg-primary text-white' : 'bg-white text-primary']"
+              :disabled="isSubmitted"
+            >
+              <inline-svg src="assets/yes-no-icon.svg"  
+                          :class="newQuestion.response_type === 'boolean' ? 'text-white' : 'text-primary'"
+                          class="w-6 h-6"
+                          :key="newQuestion.response_type === 'boolean' ? 'boolean' : 'default'"
+                          />
+              <span class="text-base font-medium">Yes/No</span>
+            </button>
+          </div>
+
+          <!-- Add button -->
           <button 
-            @click="setQuestionType('scale')"
-            :class="['w-28 h-10 rounded-full flex items-center justify-center space-x-2 border border-[#EEECF1]', 
-                     newQuestion.response_type === 'scale' ? 'bg-[#2A2731] text-white' : 'bg-white text-[#2A2731]']"
-            :disabled="isSubmitted"
+            @click="addQuestion"
+            :disabled="!newQuestion.text.trim() || isSubmitted"
+            :class="['w-28 h-10 rounded-full flex items-center justify-center space-x-2 border border-neutral-100',
+                    !newQuestion.text.trim() || isSubmitted ? 'bg-white text-neutral-300' : 'bg-primary text-white']"
           >
-          <inline-svg src="assets/scale-icon.svg" :style="{ color: newQuestion.response_type === 'scale' ? 'text-white' : '#2A2731' }" 
-                      style="width: 24px; height: 24px;"
-                      :key="newQuestion.response_type === 'scale' ? 'scale' : 'default'" />
-            <span class="text-base font-medium">Scale</span>
-          </button>
-          <button 
-            @click="setQuestionType('boolean')"
-            :class="['w-28 h-10 rounded-full flex items-center justify-center space-x-2 border border-[#EEECF1]', 
-                     newQuestion.response_type === 'boolean' ? 'bg-[#2A2731] text-white' : 'bg-white text-[#2A2731]']"
-            :disabled="isSubmitted"
-          >
-            <inline-svg src="assets/yes-no-icon.svg"  
-                        :style="{ color: newQuestion.response_type === 'boolean' ? 'text-white' : '#2A2731' }" 
-                        style="width: 24px; height: 24px;"
-                        :key="newQuestion.response_type === 'boolean' ? 'boolean' : 'default'"
-                        />
-            <span class="text-base font-medium">Yes/No</span>
+            <span class="text-base font-medium">Add</span>
           </button>
         </div>
       </div>
 
       <!-- Posted Questions -->
-      <div v-if="questions.length > 0" class="bg-[#F7F7F8] rounded-[25px] p-7 space-y-6 mb-12">
+      <div v-if="questions.length > 0" class="bg-neutral-500 rounded-[25px] p-7 space-y-6 mb-12">
         <div v-for="(question, index) in questions" :key="question.id" class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
-            
             <inline-svg :src="question.response_type === 'scale' ? 'assets/scale-icon.svg' : 'assets/yes-no-icon.svg'"  
-                        :style="{ color: creatorAnswers[index] !== null ? '#2A2731' : '#9590A0'}" style="width: 24px; height: 24px;"/>
-
-            <span :class="['text-2xl font-bold', creatorAnswers[index] !== null ? 'text-[#2A2731]' : 'text-[#9590A0]']">
+                        :class="creatorAnswers[index] !== null ? 'text-primary' : 'text-neutral-300'" class="w-6 h-6"/>
+            <span :class="['text-2xl font-bold', creatorAnswers[index] !== null ? 'text-primary' : 'text-neutral-300']">
               {{ question.text }}
             </span>
           </div>
@@ -72,32 +85,51 @@
               v-for="n in 5" 
               :key="n"
               @click="selectAnswer(index, n)"
-              :class="['w-[30px] h-[30px] rounded-full border', 
-                       creatorAnswers[index] === n ? 'bg-[#2A2731] border-[#2A2731]' : 'bg-[#DDDAE3] border-[#DDDAE3]']"
+              :class="['w-[30px] h-[30px] rounded-full border flex items-center justify-center', 
+                      n <= creatorAnswers[index] ? 'bg-primary border-primary' : 'bg-neutral-200 border-neutral-200']"
               :disabled="isSubmitted"
-            ></button>
+            >
+              <div :class="['w-[18px] h-[18px] rounded-full', n <= creatorAnswers[index] ? 'bg-white' : 'bg-transparent']"></div>
+            </button>
           </div>
+          
+          
           <div v-else class="flex space-x-3">
             <button 
               @click="selectAnswer(index, true)"
-              :class="['w-[30px] h-[30px] rounded-full border', 
-                       creatorAnswers[index] === true ? 'bg-[#2A2731] border-[#2A2731]' : 'bg-[#DDDAE3] border-[#DDDAE3]']"
+              :class="['w-[30px] h-[30px] rounded-full border flex items-center justify-center', 
+                      creatorAnswers[index] === true ? 'bg-primary border-primary' : 'bg-neutral-200 border-neutral-200']"
               :disabled="isSubmitted"
-            ></button>
+            >
+              <inline-svg 
+                src="assets/yes-icon.svg" 
+                :class="[
+                  'w-4 h-4', 
+                  creatorAnswers[index] === true ? 'text-white' : 'text-neutral-300'
+                ]" 
+              />
+            </button>
             <button 
               @click="selectAnswer(index, false)"
-              :class="['w-[30px] h-[30px] rounded-full border', 
-                       creatorAnswers[index] === false ? 'bg-[#2A2731] border-[#2A2731]' : 'bg-[#DDDAE3] border-[#DDDAE3]']"
+              :class="['w-[30px] h-[30px] rounded-full border flex items-center justify-center', 
+                      creatorAnswers[index] === false ? 'bg-primary border-primary' : 'bg-neutral-200 border-neutral-200']"
               :disabled="isSubmitted"
-            ></button>
+            >
+              <inline-svg 
+                src="assets/no-icon.svg" 
+                :class="[
+                  'w-4 h-4', 
+                  creatorAnswers[index] === false ? 'text-white' : 'text-neutral-300'
+                ]" 
+              />
+            </button>
           </div>
         </div>
       </div>
 
       <!-- Alert Box -->
-      <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-[#F6655A]">
-        
-        <inline-svg src="assets/info-icon.svg" style="color: #F6655A;width: 20px; height: 20px;"/>
+      <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-accent">
+        <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5"/>
         <span class="text-sm font-medium">Complete self review before publishing</span>
       </div>
 
@@ -106,12 +138,13 @@
         <button 
           @click="finishSurvey"
           :disabled="!allQuestionsAnswered || isLoading || isSubmitted"
-          class="w-[152px] h-[56px] bg-[#3C3844] rounded-full text-center text-[#EEECF1] text-2xl font-bold leading-9 disabled:bg-gray-100 disabled:text-neutral-400"
+          class="w-[152px] h-[56px] bg-primary-light rounded-full text-center text-neutral-100 text-2xl font-bold leading-9 disabled:bg-gray-100 disabled:text-neutral-300"
         >
           Publish
         </button>
       </div>
     </div>
+    <ToastView :message="toastMessage" :type="toastType" @hidden="clearToast" />
   </div>
 </template>
 
@@ -120,10 +153,13 @@ import { ref, computed } from 'vue';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
 import InlineSvg from 'vue-inline-svg';
+import ToastView from '@/components/ToastView.vue';
+
 export default {
   name: 'CreateView',
   components: {
     InlineSvg,
+    ToastView,
   },
   setup() {
     const surveyTitle = ref('Help me improve myself');
@@ -137,12 +173,16 @@ export default {
     const showSuccess = ref(false);
     const createdSurveyId = ref(null);
     const inputFocused = ref(false);
+    const toastMessage = ref('');
+    const toastType = ref('');
 
     const allQuestionsAnswered = computed(() => 
       questions.value.length > 0 &&
       creatorAnswers.value.length === questions.value.length &&
       creatorAnswers.value.every(answer => answer !== null && answer !== undefined)
     );
+
+    const isAddButtonDisabled = computed(() => !newQuestion.value.text.trim() || isSubmitted.value);
 
     function setQuestionType(type) {
       newQuestion.value.response_type = type;
@@ -175,6 +215,11 @@ export default {
       });
     }
 
+    function clearToast() {
+      toastMessage.value = '';
+      toastType.value = '';
+    }
+
     async function finishSurvey() {
       if (isSubmitted.value || !allQuestionsAnswered.value) return;
       
@@ -195,9 +240,14 @@ export default {
         isSubmitted.value = true;
         showSuccess.value = true;
         celebrateSuccess();
+        toastMessage.value = 'Survey created successfully!';
+        toastType.value = 'success';
       } catch (error) {
         console.error('Error creating survey:', error);
-        errorMessage.value = 'Error creating survey. Please try again.' + error;
+        errorMessage.value = 'Error creating survey. Please try again.';
+        toastMessage.value = 'Failed to create survey. Please try again.';
+        toastType.value = 'error';
+        isSubmitted.value = false; // Reset isSubmitted on error
       } finally {
         isLoading.value = false;
       }
@@ -216,10 +266,14 @@ export default {
       createdSurveyId,
       allQuestionsAnswered,
       inputFocused,
+      isAddButtonDisabled,
+      toastMessage,
+      toastType,
       setQuestionType,
       addQuestion,
       selectAnswer,
-      finishSurvey
+      finishSurvey,
+      clearToast
     };
   }
 }
