@@ -1,30 +1,8 @@
 <template>
   <div class="font-['IBM_Plex_Sans'] min-h-screen bg-white">
     <div class="max-w-4xl mx-auto px-4">
-      <!-- Title bar -->
-      <div class="flex justify-between items-center py-4">
-        <div class="flex items-center">
-          <img src="/assets/backwave.svg" alt="Backwave logo" class="w-16 h-16" />
-          <h1 class="text-5xl font-bold ml-2 text-black self-start mt-1">Backwave</h1>
-        </div>
-        <div class="flex items-center bg-gray-100 rounded-full h-12 self-center">
-          <input
-            v-model="creatorCode"
-            type="text"
-            placeholder="#creator code"
-            class="bg-transparent w-48 h-full px-4 text-xl font-regular text-green-400 focus:outline-none"
-          />
-          <div class="h-full px-1 flex items-center"> <!-- Padding for button -->
-            <button @click="handleAnalyze" class="bg-green-800 text-white h-[80%] aspect-square rounded-full flex items-center justify-center p-2">
-              <img src="/assets/analyze-icon.svg" alt="Analyze" class="w-full h-full object-contain brightness-0 invert" />
-            </button>
-          </div>
-        </div>
-      </div>
-
       <!-- Hero section -->
       <div class="mt-8 p-8 bg-neutral-100 rounded-3xl min-h-[420px] flex flex-col justify-end">
-        
         <inline-svg src="/assets/high-five.svg" class="text-neutral-700 w-24 h-24 mx-auto mb-6" />
         <h2 class="text-4xl font-bold text-center text-neutral-700 mb-1">
           Calibrate your self awareness
@@ -33,13 +11,13 @@
           Compare what you think about yourself, what others really look at you as
         </p>
         <div class="flex justify-center">
-          <button @click="$emit('create')" class="bg-neutral-800 text-green-400 text-xl font-bold px-8 py-2 rounded-full">
+          <router-link to="/create" class="bg-neutral-800 text-green-400 text-xl font-bold px-8 py-2 rounded-full">
             Create a review
-          </button>
+          </router-link>
         </div>
       </div>
 
-       <!-- Participate section -->
+      <!-- Participate section -->
       <div class="mt-12">
         <h3 class="text-xl font-semibold text-sky-950 text-left">Came here for a friend?</h3>
         <p class="text-lg text-sky-950 mb-3 text-left">
@@ -80,17 +58,13 @@ export default {
   components: {
     InlineSvg,
   },
-  emits: ['create', 'submit-code'],
+  emits: ['submit-code'],
   setup(props, { emit }) {
     const participateCode = ref('');
-    const creatorCode = ref('');
     const isLoading = ref(false);
     const errorMessage = ref('');
 
-    const handleAnalyze = () => {
-      // Implement creator code analysis logic here
-      console.log('Analyzing creator code:', creatorCode.value);
-    };
+
 
     const submitCode = async () => {
       isLoading.value = true;
@@ -114,10 +88,8 @@ export default {
 
     return {
       participateCode,
-      creatorCode,
       isLoading,
       errorMessage,
-      handleAnalyze,
       submitCode,
     };
   },

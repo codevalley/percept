@@ -1,7 +1,7 @@
 <template>
   <div class="font-['IBM_Plex_Sans'] min-h-screen bg-white">
     <SiteHeader initialPage="participate" @page-changed="handlePageChange" />
-    <div class="max-w-[768px] mx-auto px-4 pt-[176px]">
+    <div v-if="loadedSurveyData" class="max-w-[768px] mx-auto px-4 pt-[176px]">
       <!-- Combined Header and Question Section -->
       <div class="rounded-3xl overflow-hidden">
         <!-- Header Section -->
@@ -9,8 +9,8 @@
           <div class="flex items-start">
             <div class="w-14 h-14 bg-secondary rounded-full mr-5 flex-shrink-0"></div>
             <div>
-              <h1 class="text-neutral-600 text-2xl font-semibold leading-10 mb-2">{{ surveyData.title }}</h1>
-              <p class="text-neutral-600 text-lg font-normal leading-7">{{ surveyData.description }}</p>
+              <h1 class="text-neutral-600 text-2xl font-semibold leading-10 mb-2">{{ loadedSurveyData.title }}</h1>
+              <p class="text-neutral-600 text-lg font-normal leading-7">{{ loadedSurveyData.description }}</p>
             </div>
           </div>
         </div>
@@ -85,20 +85,21 @@
         </button>
       </div>
     </div>
+    <div v-else class="max-w-[768px] mx-auto px-4 pt-[176px] flex justify-center items-center">
+      <p class="text-2xl text-primary">Loading survey...</p>
+    </div>
   </div>
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import api from '@/services/api';
 import InlineSvg from 'vue-inline-svg';
-import SiteHeader from './SiteHeader.vue';
 
 export default {
   name: 'TakeSurvey',
   components: {
     InlineSvg,
-    SiteHeader,
   },
   props: {
     surveyId: {
@@ -107,83 +108,37 @@ export default {
     },
     surveyData: {
       type: Object,
-      required: true
+      default: null
     }
   },
-  setup(props, { emit }) {
-    const currentQuestionIndex = ref(0);
-    const answers = ref({});
-    const currentAnswer = ref(null);
-    const isSubmitting = ref(false);
+  setup(props) {
+    const loadedSurveyData = ref(null);
+    const isLoading = ref(true);
 
-    const currentQuestion = computed(() => props.surveyData.questions[currentQuestionIndex.value]);
-    const progress = computed(() => ((currentQuestionIndex.value + 1) / props.surveyData.questions.length) * 100);
-    const isLastQuestion = computed(() => currentQuestionIndex.value === props.surveyData.questions.length - 1);
-
-    function selectAnswer(value) {
-      currentAnswer.value = value;
-    }
-
-    function previousQuestion() {
-      if (currentQuestionIndex.value > 0) {
-        currentQuestionIndex.value--;
-        currentAnswer.value = answers.value[currentQuestion.value.id] || null;
-      }
-    }
-
-    async function nextQuestion() {
-      if (currentAnswer.value === null) return;
-
-      answers.value[currentQuestion.value.id] = currentAnswer.value;
-      
-      if (isLastQuestion.value) {
-        await submitSurvey();
+    onMounted(async () => {
+      if (props.surveyData) {
+        loadedSurveyData.value = props.surveyData;
+        isLoading.value = false;
       } else {
-        currentQuestionIndex.value++;
-        currentAnswer.value = answers.value[currentQuestion.value.id] || null;
+        try {
+          const response = await api.getSurvey(props.surveyId);
+          loadedSurveyData.value = response.data;
+        } catch (error) {
+          console.error('Error fetching survey:', error);
+          // Handle error (e.g., show error message)
+        } finally {
+          isLoading.value = false;
+        }
       }
-    }
+    });
 
-    async function submitSurvey() {
-      isSubmitting.value = true;
-      try {
-        const answersToSubmit = Object.entries(answers.value).map(([questionId, answer]) => ({
-          question_id: parseInt(questionId),
-          answer
-        }));
-        const response = await api.submitAnswers(props.surveyId, { answers: answersToSubmit });
-        emit('survey-completed', response.data);
-      } catch (error) {
-        console.error('Error submitting survey:', error);
-        emit('survey-error', 'Error submitting survey. Please try again.');
-      } finally {
-        isSubmitting.value = false;
-      }
-    }
-
-    const handlePageChange = (page) => {
-      console.log(`Page changed to: ${page}`);
-      // Here you would typically handle navigation, but since we don't have a router,
-      // we'll just log it for now. In a full app, you might emit an event to a parent
-      // component to handle the navigation.
-    };
+    // Rest of your component logic
 
     return {
-      currentQuestionIndex,
-      currentQuestion,
-      currentAnswer,
-      isSubmitting,
-      progress,
-      isLastQuestion,
-      selectAnswer,
-      previousQuestion,
-      nextQuestion,
-      handlePageChange
+      loadedSurveyData,
+      isLoading,
+      // Other returned values
     };
   }
 }
 </script>
-
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
-</style>

@@ -1,6 +1,6 @@
 <template>
   <div class="font-['IBM_Plex_Sans']  min-h-screen bg-white ">
-    <SiteHeader initialPage="create" @page-changed="handlePageChange" />
+ 
     <div class="max-w-[859px] mx-auto">
       <div class="flex items-start mb-4">
         <!-- Profile Icon -->
@@ -195,7 +195,6 @@ import { ref, computed } from 'vue';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
 import InlineSvg from 'vue-inline-svg';
-import SiteHeader from './SiteHeader.vue';
 import ToastView from '@/components/ToastView.vue';
 
 export default {
@@ -203,7 +202,6 @@ export default {
   components: {
     InlineSvg,
     ToastView,
-    SiteHeader,
   },
   setup() {
     const surveyTitle = ref('Help me improve myself');
