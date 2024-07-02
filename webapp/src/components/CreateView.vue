@@ -308,12 +308,6 @@ export default {
         toastType.value = 'error';
       });
     }
-    const handlePageChange = (page) => {
-      console.log(`Page changed to: ${page}`);
-      // Here you would typically handle navigation, but since we don't have a router,
-      // we'll just log it for now. In a full app, you might emit an event to a parent
-      // component to handle the navigation.
-    };
 
     return {
       surveyTitle,
@@ -338,7 +332,6 @@ export default {
       selectAnswer,
       finishSurvey,
       clearToast,
-      handlePageChange,
       copyToClipboard
     };
   }

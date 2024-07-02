@@ -1,6 +1,5 @@
 <template>
   <div class="font-['IBM_Plex_Sans'] min-h-screen bg-white">
-    <SiteHeader initialPage="participate" @page-changed="handlePageChange" />
     <div v-if="loadedSurveyData" class="max-w-[768px] mx-auto px-4 pt-[176px]">
       <!-- Combined Header and Question Section -->
       <div class="rounded-3xl overflow-hidden">
@@ -92,7 +91,7 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import api from '@/services/api';
 import InlineSvg from 'vue-inline-svg';
 
@@ -111,9 +110,17 @@ export default {
       default: null
     }
   },
-  setup(props) {
+  setup(props, { emit }) {
     const loadedSurveyData = ref(null);
+    const currentQuestionIndex = ref(0);
+    const answers = ref({});
+    const currentAnswer = ref(null);
+    const isSubmitting = ref(false);
     const isLoading = ref(true);
+
+    const currentQuestion = computed(() => loadedSurveyData.value?.questions[currentQuestionIndex.value]);
+    const progress = computed(() => ((currentQuestionIndex.value + 1) / loadedSurveyData.value?.questions.length) * 100);
+    const isLastQuestion = computed(() => currentQuestionIndex.value === loadedSurveyData.value?.questions.length - 1);
 
     onMounted(async () => {
       if (props.surveyData) {
@@ -125,20 +132,79 @@ export default {
           loadedSurveyData.value = response.data;
         } catch (error) {
           console.error('Error fetching survey:', error);
-          // Handle error (e.g., show error message)
+          emit('survey-error', 'Error loading survey. Please try again.');
         } finally {
           isLoading.value = false;
         }
       }
     });
 
-    // Rest of your component logic
+    function selectAnswer(value) {
+      currentAnswer.value = value;
+    }
+
+    function previousQuestion() {
+      if (currentQuestionIndex.value > 0) {
+        currentQuestionIndex.value--;
+        currentAnswer.value = answers.value[currentQuestion.value.id] || null;
+      }
+    }
+
+    async function nextQuestion() {
+      if (currentAnswer.value === null) return;
+
+      answers.value[currentQuestion.value.id] = currentAnswer.value;
+      
+      if (isLastQuestion.value) {
+        await submitSurvey();
+      } else {
+        currentQuestionIndex.value++;
+        currentAnswer.value = answers.value[currentQuestion.value.id] || null;
+      }
+    }
+
+    async function submitSurvey() {
+      isSubmitting.value = true;
+      try {
+        const answersToSubmit = Object.entries(answers.value).map(([questionId, answer]) => ({
+          question_id: parseInt(questionId),
+          answer
+        }));
+        const response = await api.submitAnswers(props.surveyId, { answers: answersToSubmit });
+        emit('survey-completed', response.data);
+      } catch (error) {
+        console.error('Error submitting survey:', error);
+        emit('survey-error', 'Error submitting survey. Please try again.');
+      } finally {
+        isSubmitting.value = false;
+      }
+    }
+
+    const handlePageChange = (page) => {
+      console.log(`Page changed to: ${page}`);
+      // Here you would typically handle navigation, but since we don't have a router,
+      // we'll just log it for now. In a full app, you might emit an event to a parent
+      // component to handle the navigation.
+    };
 
     return {
       loadedSurveyData,
+      currentQuestionIndex,
+      currentQuestion,
+      currentAnswer,
+      isSubmitting,
       isLoading,
-      // Other returned values
+      progress,
+      isLastQuestion,
+      selectAnswer,
+      previousQuestion,
+      nextQuestion,
+      handlePageChange
     };
   }
 }
 </script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+</style>
