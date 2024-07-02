@@ -125,7 +125,11 @@ def submit_answers(survey_id):
                 app.logger.warning(f"Invalid question ID: {answer['question_id']}")
                 return jsonify({'error': f"Invalid question ID: {answer['question_id']}"}), 400
             
+            
             question = valid_questions[answer['question_id']]
+            if not isinstance(question['response_scale_max'], (int)) :
+                question['response_scale_max'] = MINIMUM_RESPONSES
+            
             if question['response_type'] == 'scale':
                 if not isinstance(answer['answer'], (int, float)) or not (1 <= answer['answer'] <= question['response_scale_max']):
                     app.logger.warning(f"Invalid answer for scale question {answer['question_id']}: {answer['answer']}")
