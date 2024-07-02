@@ -8,8 +8,8 @@
         
         <!-- Header Section -->
         <div class="flex-grow">
-          <h1 class="text-primary text-4xl font-semibold leading-10  text-left">{{ surveyTitle }}</h1>
-          <p class="text-primary text-lg font-normal leading-7 text-left">{{ surveyDescription }}</p>
+          <h1 class="text-neutral-600 text-2xl font-semibold leading-10  text-left">{{ surveyTitle }}</h1>
+          <p class="text-neutral-600 text-lg font-normal leading-7 text-left">{{ surveyDescription }}</p>
         </div>
       </div>
 
@@ -23,7 +23,7 @@
               @keyup.enter="addQuestion"
               @focus="inputFocused = true"
               @blur="inputFocused = false"
-              class="w-full bg-transparent text-[34px] font-bold text-primary focus:outline-none"
+              class="w-full bg-transparent text-[28px] font-regular text-primary focus:outline-none"
               :placeholder="inputFocused ? '' : 'Enter your question here'"
               :disabled="isSubmitted"
             >

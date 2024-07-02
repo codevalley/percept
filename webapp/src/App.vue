@@ -1,7 +1,10 @@
 <template>
   <div id="app">
-    <Home v-if="currentView === 'home'" @participate="showParticipate" @create="showCreate" />
-    <Participate v-if="currentView === 'participate'" @submit-code="handleSurveyCode" />
+    <Home 
+      v-if="currentView === 'home'" 
+      @create="showCreate" 
+      @submit-code="handleSurveyCode"
+    />
     <TakeSurvey 
       v-if="currentView === 'takeSurvey'" 
       :surveyId="surveyId" 
@@ -26,7 +29,6 @@
 
 <script>
 import Home from './components/HomeView.vue';
-import Participate from './components/ParticipateView.vue';
 import TakeSurvey from './components/TakeSurvey.vue';
 import ResultsView from './components/ResultsView.vue';
 import Create from './components/CreateView.vue';
@@ -36,7 +38,6 @@ export default {
   name: 'App',
   components: {
     Home,
-    Participate,
     TakeSurvey,
     ResultsView,
     Create,
@@ -53,9 +54,6 @@ export default {
     }
   },
   methods: {
-    showParticipate() {
-      this.currentView = 'participate';
-    },
     showCreate() {
       this.currentView = 'create';
     },
@@ -94,11 +92,9 @@ export default {
 
 <style>
 #app {
-  font-family: Arial, sans-serif;
+  font-family: 'IBM Plex Sans', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>

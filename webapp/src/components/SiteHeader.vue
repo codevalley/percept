@@ -1,5 +1,5 @@
 <template>
-  <header class="max-w-[859px] mx-auto relative font-['IBM_Plex_Sans'] mb-12">
+  <header class="max-w-[859px] mx-auto relative font-['IBM_Plex_Sans'] mb-16">
     <div class="max-w-6xl mx-auto px-4 flex items-center justify-between h-20">
       <div class="flex items-center">
         <img src="/assets/backwave.svg" alt="Backwave logo" class="w-16 h-16" />
