@@ -173,15 +173,21 @@ export default {
           answer
         }));
         const response = await api.submitAnswers(props.surveyId, { answers: answersToSubmit });
-        // Navigate to ResultView with the response data
+        
+        if (!response.data.user_code) {
+          throw new Error('User code not found in API response');
+        }
+        
         router.push({
           name: 'Results',
-          params: { userCode: response.data.user_code },
-          state: { surveyResults: response.data }
+          params: { 
+            surveyId: props.surveyId,
+            userCode: response.data.user_code 
+          }
         });
       } catch (error) {
         console.error('Error submitting survey:', error);
-        // Handle error (e.g., show an error message)
+        emit('survey-error', 'Error submitting survey. Please try again.');
       } finally {
         isSubmitting.value = false;
       }

@@ -46,39 +46,33 @@ import api from '@/services/api';
 
 export default {
   name: 'ResultsView',
-  props: {
-    userCode: {
-      type: String,
-      required: true
-    }
-  },
-  setup(props) {
+  setup() {
     const route = useRoute();
     const results = ref(null);
     const loading = ref(true);
     const error = ref(null);
 
     const fetchResults = async () => {
-      try {
-        const response = await api.getSurveyResults(props.userCode);
-        results.value = response.data;
+      const { surveyId, userCode } = route.params;
+      if (!surveyId || !userCode) {
+        error.value = 'Survey ID or User code is missing. Unable to fetch results.';
         loading.value = false;
+        return;
+      }
+
+      try {
+        const response = await api.getSurveyResults(surveyId, userCode);
+        results.value = response.data;
       } catch (err) {
         console.error('Error fetching results:', err);
         error.value = 'Failed to load results. Please try again.';
+      } finally {
         loading.value = false;
       }
     };
 
     onMounted(() => {
-      // Check if we have results in the route's state
-      if (route.params.state && route.params.state.surveyResults) {
-        results.value = route.params.state.surveyResults;
-        loading.value = false;
-      } else {
-        // If not, fetch the results using the API
-        fetchResults();
-      }
+      fetchResults();
     });
 
     return {

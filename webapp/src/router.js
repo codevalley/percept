@@ -22,7 +22,7 @@ const routes = [
     props: true
   },
   {
-    path: '/results/:userCode',
+    path: '/results/:surveyId/:userCode',
     name: 'Results',
     component: ResultsView,
     props: true
