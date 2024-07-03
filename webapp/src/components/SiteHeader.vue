@@ -6,7 +6,6 @@
           <img src="/assets/backwave.svg" alt="Backwave logo" class="w-16 h-16" />
           <h1 class="text-5xl font-bold ml-2 text-black self-start mt-1">Backwave</h1>
         </div>
-
         <nav class="flex items-center space-x-8">
           <div
             @click="toggleTab('participate')"
@@ -36,10 +35,10 @@
             <div v-if="currentTab === 'analyze'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
           </div>
         </nav>
-      
       </div>
       
       <div v-if="activeTab === 'participate'" class="mt-4 flex items-center bg-gray-100 rounded-full w-[420px]">
+        <!-- Participate input box -->
         <img src="/assets/hash-icon.svg" alt="Question" class="w-10 h-10 ml-4 mr-2" />
         <input
           v-model="participateCode"
@@ -58,6 +57,7 @@
       </div>
 
       <div v-if="activeTab === 'analyze'" class="mt-4 flex items-center bg-gray-100 rounded-full w-[420px]">
+        <!-- Analyze input box -->
         <img src="/assets/analyze-icon.svg" alt="Analyze" class="w-10 h-10 ml-4 mr-2" />
         <input
           v-model="creatorCode"
@@ -107,7 +107,7 @@ export default {
 
     const navigateTo = (path) => {
       router.push(path);
-      activeTab.value = null;
+      activeTab.value = path === '/create' ? 'create' : null;
     };
 
     const toggleTab = (tab) => {
