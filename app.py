@@ -54,7 +54,7 @@ def create_survey():
                     'id': i + 1,  # Simple incrementing ID
                     'text': q['text'],
                     'response_type': q['response_type'],
-                    'response_scale_max': q.get('response_scale_max'),
+                    'response_scale_max': q.get('response_scale_max', MINIMUM_RESPONSES),  # Default value added
                     'creator_answer': q['creator_answer']
                 } for i, q in enumerate(data['questions'])
             ],
@@ -125,11 +125,7 @@ def submit_answers(survey_id):
                 app.logger.warning(f"Invalid question ID: {answer['question_id']}")
                 return jsonify({'error': f"Invalid question ID: {answer['question_id']}"}), 400
             
-            
             question = valid_questions[answer['question_id']]
-            if not isinstance(question['response_scale_max'], (int)) :
-                question['response_scale_max'] = MINIMUM_RESPONSES
-            
             if question['response_type'] == 'scale':
                 if not isinstance(answer['answer'], (int, float)) or not (1 <= answer['answer'] <= question['response_scale_max']):
                     app.logger.warning(f"Invalid answer for scale question {answer['question_id']}: {answer['answer']}")
@@ -169,6 +165,23 @@ def submit_answers(survey_id):
 @app.route('/api/v1/surveys/<int:survey_id>/results', methods=['GET'])
 def get_survey_results(survey_id):
     user_code = request.args.get('user_code')
+    return process_results(survey_id, user_code)
+
+@app.route('/api/v1/surveys/results', methods=['GET'])
+def get_results_by_user_code():
+    user_code = request.args.get('user_code')
+    if not user_code:
+        return jsonify({'error': 'User code is required'}), 400
+    
+    # Find the survey_id based on the user_code
+    answer = mongo.db.answers.find_one({'user_code': int(user_code)})
+    if not answer:
+        return jsonify({'error': 'No survey found for this user code'}), 404
+    
+    survey_id = answer['survey_id']
+    return process_results(survey_id, user_code)
+
+def process_results(survey_id, user_code):
     logging.info(f"Getting results for survey {survey_id}, user_code {user_code}")
     
     if not user_code:

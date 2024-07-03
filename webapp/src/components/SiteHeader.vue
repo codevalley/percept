@@ -17,14 +17,14 @@
             <div v-if="activeTab === 'participate'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
           </div>
           <div
-            @click="navigateTo('/create')"
-            class="flex items-center relative cursor-pointer"
-            :class="{ 'text-zinc-900': $route.path === '/create', 'text-green-800': $route.path !== '/create' }"
-          >
-            <inline-svg src="/assets/yes-icon.svg" class="w-7 h-7 mr-2" />
-            <span class="text-xl font-bold leading-9">Create</span>
-            <div v-if="$route.path === '/create'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
-          </div>
+              @click="navigateTo('/create')"
+              class="flex items-center relative cursor-pointer"
+              :class="{ 'text-zinc-900': activeTab === 'create', 'text-green-800': activeTab !== 'create' }"
+            >
+              <inline-svg src="/assets/yes-icon.svg" class="w-7 h-7 mr-2" />
+              <span class="text-xl font-bold leading-9">Create</span>
+              <div v-if="activeTab === 'create'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
+            </div>
           <div
             @click="toggleTab('analyze')"
             class="flex items-center relative cursor-pointer"
@@ -38,7 +38,7 @@
       </div>
       
       <div v-if="activeTab === 'participate'" class="mt-4 flex items-center bg-gray-100 rounded-full w-[420px]">
-        <img src="/assets/question-icon.svg" alt="Question" class="w-10 h-10 ml-4 mr-2" />
+        <img src="/assets/hash-icon.svg" alt="Question" class="w-10 h-10 ml-4 mr-2" />
         <input
           v-model="participateCode"
           type="text"
@@ -56,14 +56,20 @@
       </div>
 
       <div v-if="activeTab === 'analyze'" class="mt-4 flex items-center bg-gray-100 rounded-full w-[420px]">
+        <img src="/assets/analyze-icon.svg" alt="Analyze" class="w-10 h-10 ml-4 mr-2" />
         <input
           v-model="creatorCode"
           type="text"
-          placeholder="#creator code"
-          class="bg-transparent w-full h-12 px-4 text-xl font-regular text-green-400 focus:outline-none rounded-l-full"
+          placeholder="Enter creator code"
+          class="bg-transparent text-xl font-regular text-zinc-400 flex-grow px-2 py-2 focus:outline-none"
         />
-        <button @click="handleAnalyze" class="bg-green-800 text-white h-12 w-12 rounded-full flex items-center justify-center">
-          <inline-svg src="/assets/analyze-icon.svg" class="w-6 h-6 text-white" />
+        <button
+          @click="handleAnalyze"
+          :disabled="isLoading"
+          class="bg-green-800 text-white text-xl font-bold px-8 py-2 rounded-full"
+        >
+          <span v-if="!isLoading">Analyze</span>
+          <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
         </button>
       </div>
     </div>
@@ -92,7 +98,7 @@ export default {
 
     const navigateTo = (path) => {
       router.push(path);
-      activeTab.value = null;
+      activeTab.value = path === '/create' ? 'create' : null;
     };
 
     const toggleTab = (tab) => {
@@ -122,12 +128,27 @@ export default {
       }
     };
 
-    const handleAnalyze = () => {
-      router.push({ 
-        name: 'Results', 
-        params: { userCode: creatorCode.value }
-      });
-      activeTab.value = null;
+    const handleAnalyze = async () => {
+      isLoading.value = true;
+      errorMessage.value = '';
+      try {
+        const response = await api.getSurveyResultsByUserCode(creatorCode.value);
+        if (response.data) {
+          router.push({ 
+            name: 'Results', 
+            params: { userCode: creatorCode.value },
+            query: { fromAnalyze: 'true' }
+          });
+          activeTab.value = null;
+        } else {
+          throw new Error('Invalid results data received');
+        }
+      } catch (error) {
+        console.error('Error fetching results:', error);
+        errorMessage.value = 'Failed to load results. Please check the creator code and try again.';
+      } finally {
+        isLoading.value = false;
+      }
     };
 
     return {

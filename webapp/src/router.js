@@ -22,8 +22,14 @@ const routes = [
     props: true
   },
   {
-    path: '/results/:surveyId/:userCode',
+    path: '/results/:userCode',
     name: 'Results',
+    component: ResultsView,
+    props: true
+  },
+  {
+    path: '/results/:surveyId/:userCode',
+    name: 'SurveyResults',
     component: ResultsView,
     props: true
   }

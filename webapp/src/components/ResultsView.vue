@@ -54,14 +54,21 @@ export default {
 
     const fetchResults = async () => {
       const { surveyId, userCode } = route.params;
-      if (!surveyId || !userCode) {
-        error.value = 'Survey ID or User code is missing. Unable to fetch results.';
+      const fromAnalyze = route.query.fromAnalyze === 'true';
+
+      if (!userCode) {
+        error.value = 'User code is missing. Unable to fetch results.';
         loading.value = false;
         return;
       }
 
       try {
-        const response = await api.getSurveyResults(surveyId, userCode);
+        let response;
+        if (fromAnalyze || !surveyId) {
+          response = await api.getSurveyResultsByUserCode(userCode);
+        } else {
+          response = await api.getSurveyResults(surveyId, userCode);
+        }
         results.value = response.data;
       } catch (err) {
         console.error('Error fetching results:', err);

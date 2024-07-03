@@ -31,4 +31,7 @@ export default {
   getSurveyResults(surveyId, userCode) {
     return api.get(`${API_URL}/surveys/${surveyId}/results?user_code=${userCode}`);
   },
+  getSurveyResultsByUserCode(userCode) {
+    return api.get(`${API_URL}/surveys/results?user_code=${userCode}`);
+  },
 };
