@@ -40,42 +40,52 @@
 </template>
 
 <script>
+import { ref, onMounted } from 'vue';
+import { useRoute } from 'vue-router';
 import api from '@/services/api';
 
 export default {
   name: 'ResultsView',
   props: {
-    surveyId: {
-      type: String,
-      required: true
-    },
     userCode: {
       type: String,
       required: true
     }
   },
-  data() {
-    return {
-      results: null,
-      loading: true,
-      error: null
-    };
-  },
-  mounted() {
-    this.fetchResults();
-  },
-  methods: {
-    async fetchResults() {
+  setup(props) {
+    const route = useRoute();
+    const results = ref(null);
+    const loading = ref(true);
+    const error = ref(null);
+
+    const fetchResults = async () => {
       try {
-        const response = await api.getSurveyResults(this.surveyId, this.userCode);
-        this.results = response.data;
-        this.loading = false;
-      } catch (error) {
-        console.error('Error fetching results:', error);
-        this.error = 'Failed to load results. Please try again.';
-        this.loading = false;
+        const response = await api.getSurveyResults(props.userCode);
+        results.value = response.data;
+        loading.value = false;
+      } catch (err) {
+        console.error('Error fetching results:', err);
+        error.value = 'Failed to load results. Please try again.';
+        loading.value = false;
       }
-    }
+    };
+
+    onMounted(() => {
+      // Check if we have results in the route's state
+      if (route.params.state && route.params.state.surveyResults) {
+        results.value = route.params.state.surveyResults;
+        loading.value = false;
+      } else {
+        // If not, fetch the results using the API
+        fetchResults();
+      }
+    });
+
+    return {
+      results,
+      loading,
+      error
+    };
   }
 }
 </script>

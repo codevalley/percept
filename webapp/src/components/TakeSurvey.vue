@@ -92,6 +92,7 @@
 
 <script>
 import { ref, computed, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import api from '@/services/api';
 import InlineSvg from 'vue-inline-svg';
 
@@ -111,6 +112,7 @@ export default {
     }
   },
   setup(props, { emit }) {
+    const router = useRouter();
     const loadedSurveyData = ref(null);
     const currentQuestionIndex = ref(0);
     const answers = ref({});
@@ -171,10 +173,15 @@ export default {
           answer
         }));
         const response = await api.submitAnswers(props.surveyId, { answers: answersToSubmit });
-        emit('survey-completed', response.data);
+        // Navigate to ResultView with the response data
+        router.push({
+          name: 'Results',
+          params: { userCode: response.data.user_code },
+          state: { surveyResults: response.data }
+        });
       } catch (error) {
         console.error('Error submitting survey:', error);
-        emit('survey-error', 'Error submitting survey. Please try again.');
+        // Handle error (e.g., show an error message)
       } finally {
         isSubmitting.value = false;
       }
@@ -198,6 +205,7 @@ export default {
       isLastQuestion,
       selectAnswer,
       previousQuestion,
+      submitSurvey,
       nextQuestion,
       handlePageChange
     };
