@@ -6,35 +6,37 @@
           <img src="/assets/backwave.svg" alt="Backwave logo" class="w-16 h-16" />
           <h1 class="text-5xl font-bold ml-2 text-black self-start mt-1">Backwave</h1>
         </div>
+
         <nav class="flex items-center space-x-8">
           <div
             @click="toggleTab('participate')"
             class="flex items-center relative cursor-pointer"
-            :class="{ 'text-zinc-900': activeTab === 'participate', 'text-green-800': activeTab !== 'participate' }"
+            :class="{ 'text-zinc-900': currentTab === 'participate', 'text-green-800': currentTab !== 'participate' }"
           >
             <inline-svg src="/assets/hash-icon.svg" class="w-7 h-7 mr-2" />
             <span class="text-xl font-bold leading-9">Participate</span>
-            <div v-if="activeTab === 'participate'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
+            <div v-if="currentTab === 'participate'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
           </div>
           <div
-              @click="navigateTo('/create')"
-              class="flex items-center relative cursor-pointer"
-              :class="{ 'text-zinc-900': activeTab === 'create', 'text-green-800': activeTab !== 'create' }"
-            >
-              <inline-svg src="/assets/yes-icon.svg" class="w-7 h-7 mr-2" />
-              <span class="text-xl font-bold leading-9">Create</span>
-              <div v-if="activeTab === 'create'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
-            </div>
+            @click="navigateTo('/create')"
+            class="flex items-center relative cursor-pointer"
+            :class="{ 'text-zinc-900': currentTab === 'create', 'text-green-800': currentTab !== 'create' }"
+          >
+            <inline-svg src="/assets/yes-icon.svg" class="w-7 h-7 mr-2" />
+            <span class="text-xl font-bold leading-9">Create</span>
+            <div v-if="currentTab === 'create'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
+          </div>
           <div
             @click="toggleTab('analyze')"
             class="flex items-center relative cursor-pointer"
-            :class="{ 'text-zinc-900': activeTab === 'analyze', 'text-green-800': activeTab !== 'analyze' }"
+            :class="{ 'text-zinc-900': currentTab === 'analyze', 'text-green-800': currentTab !== 'analyze' }"
           >
             <inline-svg src="/assets/analyze-icon.svg" class="w-7 h-7 mr-2" />
             <span class="text-xl font-bold leading-9">Analyze</span>
-            <div v-if="activeTab === 'analyze'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
+            <div v-if="currentTab === 'analyze'" class="w-full h-0.5 bg-black absolute bottom-[-4px] left-0"></div>
           </div>
         </nav>
+      
       </div>
       
       <div v-if="activeTab === 'participate'" class="mt-4 flex items-center bg-gray-100 rounded-full w-[420px]">
@@ -77,7 +79,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import InlineSvg from 'vue-inline-svg';
 import api from '@/services/api';
@@ -96,9 +98,16 @@ export default {
     const isLoading = ref(false);
     const errorMessage = ref('');
 
+    const currentTab = computed(() => {
+      if (route.name === 'Results') return 'analyze';
+      if (route.name === 'TakeSurvey') return 'participate';
+      if (route.name === 'Create') return 'create';
+      return null;
+    });
+
     const navigateTo = (path) => {
       router.push(path);
-      activeTab.value = path === '/create' ? 'create' : null;
+      activeTab.value = null;
     };
 
     const toggleTab = (tab) => {
@@ -153,6 +162,7 @@ export default {
 
     return {
       activeTab,
+      currentTab,
       participateCode,
       creatorCode,
       isLoading,
