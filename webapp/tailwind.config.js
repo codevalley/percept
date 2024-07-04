@@ -1,28 +1,21 @@
-const colors = require('tailwindcss/colors')
-
 module.exports = {
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: '#2A2731',
-          light: '#3C3844',
-        },
-        secondary: '#787885',
+        primary: '#1F2937',
+        secondary: '#6B7280',
         accent: {
-          DEFAULT: '#F6655A',
-          green: {
-            DEFAULT: '#2B662E',
-            light: '#CBE5CC',
-          },
+          DEFAULT: '#BE185D',
+          green: '#D8F89D',
         },
         neutral: {
-          100: '#EEECF1',
-          200: '#DDDAE3',
-          300: '#9590A0',
-          400: '#F1F2F4',
-          500: '#F7F7F8',
+          100: '#F3F4F6',
+          200: '#E5E7EB',
+          300: '#D1D5DB',
+          400: '#9CA3AF',
+          500: '#6B7280',
+          600: '#4B5563',
         },
       },
       fontFamily: {
@@ -31,4 +24,4 @@ module.exports = {
     },
   },
   plugins: [],
-}
+};

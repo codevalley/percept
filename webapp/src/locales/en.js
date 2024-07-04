@@ -1,0 +1,21 @@
+export default {
+    createView: {
+      title: 'Help me improve myself',
+      description: 'Share feedback about myself to improve my awareness',
+      inputPlaceholder: 'Enter your question here',
+      ratingButton: 'Rating',
+      yesNoButton: 'Yes/No',
+      addButton: 'Add',
+      suggestButton: 'Suggest',
+      publishButton: 'Publish',
+      alertMessage: 'Complete self review before publishing',
+      publishedMessage: 'The review is published and live!',
+      reviewCodeLabel: 'Review code',
+      reviewLinkLabel: 'Review Link',
+      copyUrlButton: 'Copy URL',
+      toastSuccess: 'Survey created successfully!',
+      toastError: 'Failed to create survey. Please try again.',
+      copySuccess: 'Copied to clipboard!',
+      copyError: 'Failed to copy to clipboard',
+    },
+  };
