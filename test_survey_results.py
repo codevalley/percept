@@ -137,6 +137,7 @@ class TestSurveyResults(unittest.TestCase):
                                     data=json.dumps(invalid_data),
                                     content_type='application/json')
         self.assertEqual(response.status_code, 400)
+
     def test_creator_results(self):
         response = self.client.get(f'/api/v1/surveys/{self.survey_id}/results?user_code={self.creator_code}')
         self.assertEqual(response.status_code, 200)
@@ -151,8 +152,8 @@ class TestSurveyResults(unittest.TestCase):
             self.assertIn('distribution', question)
         
         self.assertIn('overall_statistics', data)
-        self.assertIn('highest_rated_question', data['overall_statistics'])
-        self.assertIn('lowest_rated_question', data['overall_statistics'])
+        self.assertIn('average_deviation_from_aggregate', data['overall_statistics'])
+        self.assertIn('overall_deviation', data['overall_statistics'])
 
     def test_participant_results(self):
         participant_code = self.participant_codes[0]
@@ -172,17 +173,35 @@ class TestSurveyResults(unittest.TestCase):
         
         self.assertIn('overall_statistics', data)
         self.assertIn('average_deviation_from_aggregate', data['overall_statistics'])
+        self.assertIn('deviation_from_creator', data['overall_statistics'])
+        self.assertIn('deviation_from_others', data['overall_statistics'])
+        self.assertIn('overall_deviation', data['overall_statistics'])
 
     def test_invalid_user_code(self):
         response = self.client.get(f'/api/v1/surveys/{self.survey_id}/results?user_code=999999')
+        self.assertEqual(response.status_code, 404)
+
+    def test_nonexistent_survey(self):
+        response = self.client.get(f'/api/v1/surveys/999999/results?user_code={self.creator_code}')
+        self.assertEqual(response.status_code, 404)
+
+    def test_get_results_by_user_code(self):
+        participant_code = self.participant_codes[0]
+        
+        response = self.client.get(f'/api/v1/surveys/results?user_code={participant_code}')
         self.assertEqual(response.status_code, 200)
         
         data = json.loads(response.data)
         self.assertEqual(data['user_type'], 'participant')
-        self.assertNotIn('total_responses', data)
+        self.assertEqual(len(data['questions']), 4)
+        self.assertIn('overall_statistics', data)
+        self.assertIn('average_deviation_from_aggregate', data['overall_statistics'])
+        self.assertIn('deviation_from_creator', data['overall_statistics'])
+        self.assertIn('deviation_from_others', data['overall_statistics'])
+        self.assertIn('overall_deviation', data['overall_statistics'])
 
-    def test_nonexistent_survey(self):
-        response = self.client.get(f'/api/v1/surveys/999999/results?user_code={self.creator_code}')
+    def test_get_results_by_invalid_user_code(self):
+        response = self.client.get('/api/v1/surveys/results?user_code=999999')
         self.assertEqual(response.status_code, 404)
 
 if __name__ == '__main__':
