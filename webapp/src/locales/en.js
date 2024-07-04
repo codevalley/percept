@@ -18,4 +18,14 @@ export default {
       copySuccess: 'Copied to clipboard!',
       copyError: 'Failed to copy to clipboard',
     },
+    homeView: {
+      title: 'Calibrate your self awareness',
+      subtitle: 'Compare what you think about yourself, what others really look at you as',
+      createButton: 'Create a review',
+      participateTitle: 'Came here for a friend?',
+      participateSubtitle: 'Share some valuable feedback to the creator and see what others are saying',
+      participatePlaceholder: 'Enter review code',
+      participateButton: 'Participate',
+      errorMessage: 'Invalid survey code or survey not found. Please try again.',
+    },
   };
