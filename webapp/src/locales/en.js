@@ -48,4 +48,11 @@ export default {
       errorLoadingSurvey: 'Failed to load survey. Please check the code and try again.',
       errorLoadingResults: 'Failed to load results. Please check the creator code and try again.',
     },
+    toast: {
+      surveyCreated: 'Survey created successfully!',
+      surveyCreationFailed: 'Failed to create survey. Please try again.',
+      copiedToClipboard: 'Copied to clipboard!',
+      copyFailed: 'Failed to copy to clipboard',
+      // Add more toast messages as needed
+    },
   };

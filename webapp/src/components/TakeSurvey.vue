@@ -1,10 +1,10 @@
 <template>
   <div class="font-sans min-h-screen bg-white">
-    <div v-if="loadedSurveyData" class="max-w-[768px] mx-auto pt-[176px]">
+    <div v-if="loadedSurveyData" class="max-w-[768px] mx-auto pt-16">
       <!-- Combined Header and Question Section -->
       <div class="rounded-3xl overflow-hidden">
         <!-- Header Section -->
-        <div class="bg-neutral-100  p-7">
+        <div class="bg-neutral-100 p-7">
           <div class="flex items-start">
             <div class="w-12 h-12 bg-secondary rounded-full mr-5 mt-3 flex-shrink-0"></div>
             <div>
@@ -18,17 +18,17 @@
         <div v-if="currentQuestion" class="bg-accent-green p-7 relative">
           <!-- Progress Bar -->
           <div class="w-full h-2.5 bg-neutral-200 absolute top-0 left-0 right-0">
-            <div class="h-full bg-primary transition-all duration-300 ease-in-out" :style="{ width: `${progress}%` }"></div>
+            <div class="h-full bg-accent transition-all duration-300 ease-in-out" :style="{ width: `${progress}%` }"></div>
           </div>
 
           <!-- Question -->
-          <div class="flex items-center mb-6 ">
+          <div class="flex items-center mb-6">
             <inline-svg src="assets/question-icon.svg" class="w-7 h-7 mr-4 text-primary"/>
             <p class="text-primary text-2xl font-bold leading-9">{{ currentQuestion.text }}</p>
           </div>
 
           <!-- Answer Options -->
-          <div class="flex justify-center space-x-5 mb-4">
+          <div class="flex justify-center space-x-5 mb-16">
             <template v-if="currentQuestion.response_type === 'scale'">
               <button 
                 v-for="n in (currentQuestion.response_scale_max || 5)" 
@@ -63,28 +63,34 @@
               </button>
             </template>
           </div>
+
+          <!-- Navigation Buttons -->
+          <div class="absolute bottom-4 left-4 right-4 flex justify-between">
+            <button 
+              @click="previousQuestion" 
+              v-if="currentQuestionIndex > 0"
+              class="px-6 py-2 bg-primary text-white rounded-full"
+            >
+              {{ $t('takeSurvey.previousButton') }}
+            </button>
+            <div class="flex-grow"></div> <!-- This will push the next button to the right -->
+            <button 
+              @click="nextQuestion" 
+              :disabled="currentAnswer === null || isSubmitting"
+              :class="[
+                'px-6 py-2 rounded-full transition-colors',
+                (currentAnswer === null || isSubmitting) 
+                  ? 'bg-white text-neutral-300  cursor-not-allowed' 
+                  : 'bg-primary text-white'
+              ]"
+            >
+              {{ isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton') }}
+            </button>
+          </div>
         </div>
       </div>
-
-      <!-- Navigation Buttons -->
-      <div class="flex justify-between mt-6">
-        <button 
-          @click="previousQuestion" 
-          v-if="currentQuestionIndex > 0"
-          class="px-6 py-2 bg-primary text-white rounded-full"
-        >
-          {{ $t('takeSurvey.previousButton') }}
-        </button>
-        <button 
-          @click="nextQuestion" 
-          :disabled="currentAnswer === null || isSubmitting"
-          class="px-6 py-2 bg-primary text-white rounded-full ml-auto"
-        >
-          {{ isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton') }}
-        </button>
-      </div>
     </div>
-    <div v-else class="max-w-[768px] mx-auto px-4 pt-[176px] flex justify-center items-center">
+    <div v-else class="max-w-[768px] mx-auto px-4 pt-16 flex justify-center items-center">
       <p class="text-2xl text-primary">{{ $t('takeSurvey.loadingMessage') }}</p>
     </div>
   </div>

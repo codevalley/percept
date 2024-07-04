@@ -7,54 +7,68 @@
     leave-from-class="transform translate-y-0 opacity-100"
     leave-to-class="transform translate-y-2 opacity-0"
   >
-    <div v-if="isVisible" 
-         class="fixed top-5 right-5 px-6 py-3 rounded-md font-bold text-white shadow-lg z-50"
-         :class="[
-           type === 'success' ? 'bg-green-500' : 'bg-red-500'
-         ]">
-      {{ message }}
+    <div 
+      v-if="isVisible" 
+      class="fixed top-5 right-5 px-6 py-3 rounded-md font-bold text-white shadow-lg z-50"
+      :class="[
+        type === 'success' ? 'bg-accent-green' : 'bg-accent',
+      ]"
+    >
+      {{ $t(message) }}
     </div>
   </Transition>
 </template>
 
 <script>
+import { ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
+
 export default {
   name: 'ToastView',
   props: {
-    message: String,
+    message: {
+      type: String,
+      required: true
+    },
     type: {
       type: String,
-      default: 'success'
+      default: 'success',
+      validator: (value) => ['success', 'error'].includes(value)
     },
     duration: {
       type: Number,
       default: 3000
     }
   },
-  data() {
-    return {
-      isVisible: false
-    }
-  },
-  watch: {
-    message(newVal) {
-      if (newVal) {
-        this.showToast();
-      }
-    }
-  },
-  methods: {
-    showToast() {
-      console.log('Showing toast:', this.message, this.type);
-      this.isVisible = true;
+  emits: ['hidden'],
+  setup(props, { emit }) {
+    const { t } = useI18n();
+    const isVisible = ref(false);
+
+    const showToast = () => {
+      console.log('Showing toast:', t(props.message), props.type);
+      isVisible.value = true;
       setTimeout(() => {
-        this.hideToast();
-      }, this.duration);
-    },
-    hideToast() {
-      this.isVisible = false;
-      this.$emit('hidden');
-    }
+        hideToast();
+      }, props.duration);
+    };
+
+    const hideToast = () => {
+      isVisible.value = false;
+      emit('hidden');
+    };
+
+    watch(() => props.message, (newVal) => {
+      if (newVal) {
+        showToast();
+      }
+    });
+
+    return {
+      isVisible,
+      showToast,
+      hideToast
+    };
   }
-}
+};
 </script>
