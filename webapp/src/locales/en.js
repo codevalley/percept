@@ -28,4 +28,12 @@ export default {
       participateButton: 'Participate',
       errorMessage: 'Invalid survey code or survey not found. Please try again.',
     },
+    takeSurvey: {
+      previousButton: 'Previous',
+      nextButton: 'Next',
+      finishButton: 'Finish',
+      loadingMessage: 'Loading survey...',
+      errorLoading: 'Error loading survey. Please try again.',
+      errorSubmitting: 'Error submitting survey. Please try again.',
+    },
   };

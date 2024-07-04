@@ -1,5 +1,5 @@
 <template>
-  <div class="font-['IBM_Plex_Sans'] min-h-screen bg-white">
+  <div class="font-sans min-h-screen bg-white">
     <div v-if="loadedSurveyData" class="max-w-[768px] mx-auto px-4 pt-[176px]">
       <!-- Combined Header and Question Section -->
       <div class="rounded-3xl overflow-hidden">
@@ -8,17 +8,17 @@
           <div class="flex items-start">
             <div class="w-14 h-14 bg-secondary rounded-full mr-5 flex-shrink-0"></div>
             <div>
-              <h1 class="text-neutral-600 text-2xl font-semibold leading-10 mb-2">{{ loadedSurveyData.title }}</h1>
-              <p class="text-neutral-600 text-lg font-normal leading-7">{{ loadedSurveyData.description }}</p>
+              <h1 class="text-primary text-2xl font-semibold leading-10 mb-2">{{ loadedSurveyData.title }}</h1>
+              <p class="text-primary text-lg font-normal leading-7">{{ loadedSurveyData.description }}</p>
             </div>
           </div>
         </div>
 
         <!-- Question Section -->
-        <div v-if="currentQuestion" class="bg-[#D8F89D] p-7 relative">
+        <div v-if="currentQuestion" class="bg-accent-green p-7 relative">
           <!-- Progress Bar -->
           <div class="w-full h-2.5 bg-neutral-200 absolute top-0 left-0 right-0">
-            <div class="h-full bg-accent-green transition-all duration-300 ease-in-out" :style="{ width: `${progress}%` }"></div>
+            <div class="h-full bg-primary transition-all duration-300 ease-in-out" :style="{ width: `${progress}%` }"></div>
           </div>
 
           <!-- Question -->
@@ -73,19 +73,19 @@
           v-if="currentQuestionIndex > 0"
           class="px-6 py-2 bg-primary text-white rounded-full"
         >
-          Previous
+          {{ $t('takeSurvey.previousButton') }}
         </button>
         <button 
           @click="nextQuestion" 
           :disabled="currentAnswer === null || isSubmitting"
           class="px-6 py-2 bg-primary text-white rounded-full ml-auto"
         >
-          {{ isLastQuestion ? 'Finish' : 'Next' }}
+          {{ isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton') }}
         </button>
       </div>
     </div>
     <div v-else class="max-w-[768px] mx-auto px-4 pt-[176px] flex justify-center items-center">
-      <p class="text-2xl text-primary">Loading survey...</p>
+      <p class="text-2xl text-primary">{{ $t('takeSurvey.loadingMessage') }}</p>
     </div>
   </div>
 </template>
@@ -93,6 +93,7 @@
 <script>
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
 import InlineSvg from 'vue-inline-svg';
 
@@ -112,6 +113,7 @@ export default {
     }
   },
   setup(props, { emit }) {
+    const { t } = useI18n();
     const router = useRouter();
     const loadedSurveyData = ref(null);
     const currentQuestionIndex = ref(0);
@@ -134,7 +136,7 @@ export default {
           loadedSurveyData.value = response.data;
         } catch (error) {
           console.error('Error fetching survey:', error);
-          emit('survey-error', 'Error loading survey. Please try again.');
+          emit('survey-error', t('takeSurvey.errorLoading'));
         } finally {
           isLoading.value = false;
         }
@@ -187,18 +189,11 @@ export default {
         });
       } catch (error) {
         console.error('Error submitting survey:', error);
-        emit('survey-error', 'Error submitting survey. Please try again.');
+        emit('survey-error', t('takeSurvey.errorSubmitting'));
       } finally {
         isSubmitting.value = false;
       }
     }
-
-    const handlePageChange = (page) => {
-      console.log(`Page changed to: ${page}`);
-      // Here you would typically handle navigation, but since we don't have a router,
-      // we'll just log it for now. In a full app, you might emit an event to a parent
-      // component to handle the navigation.
-    };
 
     return {
       loadedSurveyData,
@@ -211,9 +206,7 @@ export default {
       isLastQuestion,
       selectAnswer,
       previousQuestion,
-      submitSurvey,
       nextQuestion,
-      handlePageChange
     };
   }
 }
