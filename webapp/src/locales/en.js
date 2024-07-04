@@ -36,4 +36,16 @@ export default {
       errorLoading: 'Error loading survey. Please try again.',
       errorSubmitting: 'Error submitting survey. Please try again.',
     },
+    header: {
+      title: 'Backwave',
+      participate: 'Participate',
+      create: 'Create',
+      analyze: 'Analyze',
+      participatePlaceholder: 'Enter review code',
+      participateButton: 'Participate',
+      analyzePlaceholder: 'Enter creator code',
+      analyzeButton: 'Analyze',
+      errorLoadingSurvey: 'Failed to load survey. Please check the code and try again.',
+      errorLoadingResults: 'Failed to load results. Please check the creator code and try again.',
+    },
   };

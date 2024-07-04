@@ -214,16 +214,16 @@ export default {
     );
 
     const suggestedQuestions = [
-      { text: "How well do you communicate your ideas?", response_type: "scale" },
-      { text: "Are you open to feedback from others?", response_type: "boolean" },
-      { text: "How effectively do you manage your time?", response_type: "scale" },
-      { text: "Do you actively listen to your colleagues?", response_type: "boolean" },
-      { text: "How well do you handle stress and pressure?", response_type: "scale" },
-      { text: "Are you proactive in solving problems?", response_type: "boolean" },
-      { text: "How would you rate your leadership skills?", response_type: "scale" },
-      { text: "Do you consistently meet deadlines?", response_type: "boolean" },
-      { text: "How adaptable are you to change?", response_type: "scale" },
-      { text: "Do you take responsibility for your mistakes?", response_type: "boolean" }
+      { text: "How well do I communicate my ideas?", response_type: "scale" },
+      { text: "Am I open to feedback from others?", response_type: "boolean" },
+      { text: "How effectively do I manage my time?", response_type: "scale" },
+      { text: "Do I actively listen to you and other colleagues?", response_type: "boolean" },
+      { text: "How well do I handle stress and pressure?", response_type: "scale" },
+      { text: "Am I proactive in solving problems?", response_type: "boolean" },
+      { text: "How would I rate my leadership skills?", response_type: "scale" },
+      { text: "Do I consistently meet deadlines?", response_type: "boolean" },
+      { text: "How adaptable am I to change?", response_type: "scale" },
+      { text: "Do I take responsibility for my mistakes?", response_type: "boolean" }
     ];
 
     function setQuestionType(type) {

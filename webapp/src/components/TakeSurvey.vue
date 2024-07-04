@@ -1,14 +1,14 @@
 <template>
   <div class="font-sans min-h-screen bg-white">
-    <div v-if="loadedSurveyData" class="max-w-[768px] mx-auto px-4 pt-[176px]">
+    <div v-if="loadedSurveyData" class="max-w-[768px] mx-auto pt-[176px]">
       <!-- Combined Header and Question Section -->
       <div class="rounded-3xl overflow-hidden">
         <!-- Header Section -->
-        <div class="bg-neutral-100 p-7">
+        <div class="bg-neutral-100  p-7">
           <div class="flex items-start">
-            <div class="w-14 h-14 bg-secondary rounded-full mr-5 flex-shrink-0"></div>
+            <div class="w-12 h-12 bg-secondary rounded-full mr-5 mt-3 flex-shrink-0"></div>
             <div>
-              <h1 class="text-primary text-2xl font-semibold leading-10 mb-2">{{ loadedSurveyData.title }}</h1>
+              <h1 class="text-primary text-2xl font-semibold leading-10">{{ loadedSurveyData.title }}</h1>
               <p class="text-primary text-lg font-normal leading-7">{{ loadedSurveyData.description }}</p>
             </div>
           </div>
@@ -22,13 +22,13 @@
           </div>
 
           <!-- Question -->
-          <div class="flex items-center mb-12 mt-6">
+          <div class="flex items-center mb-6 ">
             <inline-svg src="assets/question-icon.svg" class="w-7 h-7 mr-4 text-primary"/>
             <p class="text-primary text-2xl font-bold leading-9">{{ currentQuestion.text }}</p>
           </div>
 
           <!-- Answer Options -->
-          <div class="flex justify-center space-x-5 mb-6">
+          <div class="flex justify-center space-x-5 mb-4">
             <template v-if="currentQuestion.response_type === 'scale'">
               <button 
                 v-for="n in (currentQuestion.response_scale_max || 5)" 
@@ -50,7 +50,7 @@
                   currentAnswer === true ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
                 ]"
               >
-                <inline-svg src="assets/yes-icon.svg" class="w-8 h-8" :class="currentAnswer === true ? 'text-white' : 'text-primary'"/>
+                <inline-svg src="/assets/yes-icon.svg" class="w-8 h-8" :class="currentAnswer === true ? 'text-white' : 'text-primary'"/>
               </button>
               <button 
                 @click="selectAnswer(false)"
@@ -59,7 +59,7 @@
                   currentAnswer === false ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
                 ]"
               >
-                <inline-svg src="assets/no-icon.svg" class="w-8 h-8" :class="currentAnswer === false ? 'text-white' : 'text-primary'"/>
+                <inline-svg src="/assets/no-icon.svg" class="w-8 h-8" :class="currentAnswer === false ? 'text-white' : 'text-primary'"/>
               </button>
             </template>
           </div>
