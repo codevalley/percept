@@ -115,7 +115,7 @@ export default {
     },
     surveyData: {
       type: Object,
-      default: null
+      required: true
     }
   },
   setup(props, { emit }) {

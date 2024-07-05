@@ -32,7 +32,7 @@
             class="bg-transparent text-xl font-regular text-neutral-400 flex-grow px-2 py-2 focus:outline-none"
           />
           <button
-            @click="submitCode"
+            @click="submitParticipateCode"
             :disabled="isLoading"
             class="bg-primary text-accent-green text-xl font-bold px-8 py-2 rounded-full"
           >
@@ -51,6 +51,7 @@
 <script>
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 import api from '@/services/api';
 import InlineSvg from 'vue-inline-svg';
 
@@ -59,22 +60,26 @@ export default {
   components: {
     InlineSvg,
   },
-  emits: ['submit-code'],
-  setup(props, { emit }) {
+  setup() {
     const { t } = useI18n();
+    const router = useRouter();
     const participateCode = ref('');
     const isLoading = ref(false);
     const errorMessage = ref('');
 
-    const submitCode = async () => {
+    const submitParticipateCode = async () => {
       isLoading.value = true;
       errorMessage.value = '';
       try {
-        console.log('Fetching survey with code:', participateCode.value);
         const response = await api.getSurvey(participateCode.value);
-        console.log('Received survey data:', response.data);
         if (response.data && response.data.questions) {
-          emit('submit-code', { surveyId: participateCode.value, surveyData: response.data });
+          console.log('Navigating to TakeSurvey');
+          await router.push({
+            name: 'TakeSurvey',
+            params: { surveyId: participateCode.value },
+            props: { surveyData: response.data }
+          });
+          console.log('Navigation completed');
         } else {
           throw new Error('Invalid survey data received');
         }
@@ -86,11 +91,12 @@ export default {
       }
     };
 
+
     return {
       participateCode,
       isLoading,
       errorMessage,
-      submitCode,
+      submitParticipateCode,
     };
   },
 };
