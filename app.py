@@ -45,8 +45,10 @@ def create_survey():
         return jsonify({'error': 'Invalid request data'}), 400
     
     try:
+        survey_id = generate_unique_id()
+        user_code = generate_unique_id()  # Generate a separate ID for user_code
         survey = {
-            'survey_id': generate_unique_id(),
+            'survey_id': survey_id,
             'title': data['title'],
             'description': data.get('description', ''),
             'questions': [
@@ -54,20 +56,20 @@ def create_survey():
                     'id': i + 1,  # Simple incrementing ID
                     'text': q['text'],
                     'response_type': q['response_type'],
-                    'response_scale_max': q.get('response_scale_max', MINIMUM_RESPONSES),  # Default value added
+                    'response_scale_max': q.get('response_scale_max', MINIMUM_RESPONSES),
                     'creator_answer': q['creator_answer']
                 } for i, q in enumerate(data['questions'])
             ],
-            'user_code': generate_unique_id()
+            'user_code': user_code  # Use the separate user_code
         }
         result = mongo.db.surveys.insert_one(survey)
-        app.logger.debug(f"Survey created with ID: {survey['survey_id']}")
+        app.logger.debug(f"Survey created with ID: {survey_id}")
         
         response = jsonify({
-            'survey_id': survey['survey_id'],
-            'share_link': f"/surveys/{survey['survey_id']}",
-            'user_code': survey['user_code'],
-            'questions': [{'id': q['id'], 'text': q['text']} for q in survey['questions']]  # Return question IDs
+            'survey_id': survey_id,
+            'share_link': f"/surveys/{survey_id}",
+            'user_code': user_code,
+            'questions': [{'id': q['id'], 'text': q['text']} for q in survey['questions']]
         })
         app.logger.debug(f"Sending response: {response.get_data(as_text=True)}")
         return response, 201
@@ -173,14 +175,18 @@ def get_results_by_user_code():
     if not user_code:
         return jsonify({'error': 'User code is required'}), 400
     
-    # Find the survey_id based on the user_code
-    answer = mongo.db.answers.find_one({'user_code': int(user_code)})
-    if not answer:
-        return jsonify({'error': 'No survey found for this user code'}), 404
+    # Try to find the survey based on the user_code (for creators)
+    survey = mongo.db.surveys.find_one({'user_code': int(user_code)})
+    if survey:
+        return process_results(survey['survey_id'], user_code)
     
-    survey_id = answer['survey_id']
-    return process_results(survey_id, user_code)
-
+    # If not found in surveys, look in answers (for participants)
+    answer = mongo.db.answers.find_one({'user_code': int(user_code)})
+    if answer:
+        return process_results(answer['survey_id'], user_code)
+    
+    return jsonify({'error': 'No survey found for this user code'}), 404
+    
 def process_results(survey_id, user_code):
     logging.info(f"Getting results for survey {survey_id}, user_code {user_code}")
     
