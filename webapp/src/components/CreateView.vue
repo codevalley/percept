@@ -148,7 +148,7 @@
           The review is published and live!
         </div>
 
-        <div class="flex items-center justify-start space-x-4">
+        <div class="flex items-center justify-start space-x-4 mb-4">
           <div class="flex items-center space-x-4">
             <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review code</span>
             <button
@@ -164,6 +164,28 @@
             <button
               class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
               @click="copyToClipboard(surveyLink)">
+              <span class="text-base font-medium mr-2">Copy URL</span>
+              <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-start space-x-4">
+          <div class="flex items-center space-x-4">
+            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
+            <button
+              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+              @click="copyToClipboard(userCode)">
+              <span class="text-base font-medium mr-2">{{ userCode }}</span>
+              <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+            </button>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
+            <button
+              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+              @click="copyToClipboard(resultsLink)">
               <span class="text-base font-medium mr-2">Copy URL</span>
               <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
             </button>
@@ -206,6 +228,8 @@ export default {
     const inputFocused = ref(false);
     const toastMessage = ref('');
     const toastType = ref('');
+    const userCode = ref('');
+    const resultsLink = ref('');
 
     const allQuestionsAnswered = computed(() =>
       questions.value.length > 0 &&
@@ -310,6 +334,8 @@ export default {
         console.log('Survey created', response.data);
         surveyCode.value = response.data.survey_id;
         surveyLink.value = response.data.share_link;
+        userCode.value = response.data.user_code;
+        resultsLink.value = `/results/${surveyCode.value}/${userCode.value}`;
         isSubmitted.value = true;
         isPublished.value = true;
         showSuccess.value = true;
@@ -365,6 +391,8 @@ export default {
       selectAnswer,
       finishSurvey,
       clearToast,
+      userCode,
+      resultsLink,
       copyToClipboard
     };
   }
