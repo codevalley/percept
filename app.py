@@ -7,12 +7,18 @@ from flask_cors import CORS
 import time
 import os
 import logging
+import uuid
+
+from snowflake import Snowflake53
+
 
 app = Flask(__name__)
 
 # Add the CORS configuration here
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:8080"}})
 
+# Initialize the generator with a random number 
+snowflake = Snowflake53(1,1)
 
 # Constants
 MINIMUM_RESPONSES = 5
@@ -28,7 +34,7 @@ else:
 mongo = PyMongo(app)
 
 def generate_unique_id():
-    return int(time.time() * 1000)
+    return snowflake.generate()
 
 @app.route('/')
 def home():
@@ -215,10 +221,24 @@ def process_results(survey_id, user_code):
 
     logging.info(f"Creator ID is: {survey['user_code']}")
     
+    current_responses = len(answers)
     # Check for minimum responses for creator
-    if is_creator and len(answers) < MINIMUM_RESPONSES:
-        logging.warning(f"Insufficient data for creator. Only {len(answers)} responses.")
-        return jsonify({'error': 'Insufficient data'}), 400
+    if current_responses < MINIMUM_RESPONSES:
+        if is_creator:
+            response = {
+                'status': 'incomplete',
+                'current_responses': current_responses,
+                'minimum_responses': MINIMUM_RESPONSES,
+                'remaining_responses': MINIMUM_RESPONSES - current_responses,
+                'is_creator': True
+            }
+        else:
+            response = {
+                'status': 'incomplete',
+                'is_creator': False
+            }
+        
+        return jsonify(response), 202
 
     # Calculate statistics
     results = calculate_survey_statistics(survey, answers, int(user_code), is_creator)
