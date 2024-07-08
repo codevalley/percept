@@ -4,6 +4,81 @@
     <div v-if="loading" class="text-lg text-primary">Loading results...</div>
     <div v-else-if="error" class="text-lg text-accent">{{ error }}</div>
     <div v-else-if="results">
+      <!-- Share Links Section - Always show for both complete and incomplete results -->
+      <div class="bg-accent-green rounded-[25px] p-7 mb-8">
+        <div class="w-full text-primary text-2xl font-bold leading-9 mb-6 text-left">
+          {{ results.user_type === 'creator' ? 'Your Survey Information' : 'Your Results Information' }}
+        </div>
+
+        <div v-if="results.user_type === 'creator'" class="flex flex-col space-y-4">
+          <div class="flex items-center justify-start space-x-4">
+            <div class="flex items-center space-x-4">
+              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review code</span>
+              <button
+                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+                @click="copyToClipboard(surveyId)">
+                <span class="text-base font-medium mr-2">{{ surveyId }}</span>
+                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+              </button>
+            </div>
+
+            <div class="flex items-center space-x-4">
+              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review Link</span>
+              <button
+                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+                @click="copyToClipboard(surveyLink)">
+                <span class="text-base font-medium mr-2">Copy URL</span>
+                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-start space-x-4">
+            <div class="flex items-center space-x-4">
+              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
+              <button
+                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+                @click="copyToClipboard(userCode)">
+                <span class="text-base font-medium mr-2">{{ userCode }}</span>
+                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+              </button>
+            </div>
+
+            <div class="flex items-center space-x-4">
+              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
+              <button
+                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+                @click="copyToClipboard(resultsLink)">
+                <span class="text-base font-medium mr-2">Copy URL</span>
+                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex items-center justify-start space-x-4">
+          <div class="flex items-center space-x-4">
+            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
+            <button
+              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+              @click="copyToClipboard(userCode)">
+              <span class="text-base font-medium mr-2">{{ userCode }}</span>
+              <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+            </button>
+          </div>
+
+          <div class="flex items-center space-x-4">
+            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
+            <button
+              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+              @click="copyToClipboard(resultsLink)">
+              <span class="text-base font-medium mr-2">Copy URL</span>
+              <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Incomplete Results Section -->
       <div v-if="results.status === 'incomplete'" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
         <p class="font-bold">Results Not Available Yet</p>
@@ -20,81 +95,6 @@
 
       <!-- Complete Results Section -->
       <template v-else>
-        <!-- New section for links and codes -->
-        <div class="bg-accent-green rounded-[25px] p-7 mb-8">
-          <div class="w-full text-primary text-2xl font-bold leading-9 mb-6 text-left">
-            {{ results.user_type === 'creator' ? 'Your Survey Information' : 'Your Results Information' }}
-          </div>
-
-          <div v-if="results.user_type === 'creator'" class="flex flex-col space-y-4">
-            <div class="flex items-center justify-start space-x-4">
-              <div class="flex items-center space-x-4">
-                <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review code</span>
-                <button
-                  class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                  @click="copyToClipboard(surveyId)">
-                  <span class="text-base font-medium mr-2">{{ surveyId }}</span>
-                  <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-                </button>
-              </div>
-
-              <div class="flex items-center space-x-4">
-                <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review Link</span>
-                <button
-                  class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                  @click="copyToClipboard(surveyLink)">
-                  <span class="text-base font-medium mr-2">Copy URL</span>
-                  <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-                </button>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-start space-x-4">
-              <div class="flex items-center space-x-4">
-                <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
-                <button
-                  class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                  @click="copyToClipboard(userCode)">
-                  <span class="text-base font-medium mr-2">{{ userCode }}</span>
-                  <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-                </button>
-              </div>
-
-              <div class="flex items-center space-x-4">
-                <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
-                <button
-                  class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                  @click="copyToClipboard(resultsLink)">
-                  <span class="text-base font-medium mr-2">Copy URL</span>
-                  <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div v-else class="flex items-center justify-start space-x-4">
-            <div class="flex items-center space-x-4">
-              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
-              <button
-                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                @click="copyToClipboard(userCode)">
-                <span class="text-base font-medium mr-2">{{ userCode }}</span>
-                <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-              </button>
-            </div>
-
-            <div class="flex items-center space-x-4">
-              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
-              <button
-                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                @click="copyToClipboard(resultsLink)">
-                <span class="text-base font-medium mr-2">Copy URL</span>
-                <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-              </button>
-            </div>
-          </div>
-        </div>
-
         <!-- Overall Statistics -->
         <div class="bg-neutral-100 p-6 rounded-lg mb-8">
           <h2 class="text-2xl font-semibold text-primary mb-4">Overall Statistics</h2>
