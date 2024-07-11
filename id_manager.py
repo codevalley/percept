@@ -19,6 +19,7 @@ class IDManager:
     def initialize_reserve(self, count=1000):
         """Initialize the reserve with a given count of generated IDs."""
         new_ids = self.generate_new_ids(count)
+        print(new_ids)
         self.reserve.insert_many([{'_id': id, 'status': 'available'} for id in new_ids], ordered=False)
 
     def get_ids(self, count=1, preferred=None):
@@ -60,33 +61,53 @@ class IDManager:
     def replenish_reserve(self, count):
         """Add new IDs to the reserve."""
         new_ids = self.generate_new_ids(count)
+        print(new_ids)
         self.reserve.insert_many([{'_id': id, 'status': 'available'} for id in new_ids], ordered=False)
 
     def generate_new_ids(self, count):
         """Generate new unique IDs using noun-adjective combinations."""
         new_ids = set()
-        while len(new_ids) < count:
-            new_id = self.generate_noun_adjective_pair()
-            if not self.reserve.find_one({'_id': new_id}):
-                new_ids.add(new_id)
-        return list(new_ids)
+        attempts = 0
+        max_attempts = 5  # Maximum number of attempts to generate required IDs
 
-def generate_noun_adjective_pair(self):
-        """Generate a noun-adjective pair using WordNet."""
-        adj_count = 10  # Number of adjectives to fetch
-        noun_count = 10  # Number of nouns to fetch
+        while len(new_ids) < count and attempts < max_attempts:
+            # Generate more combinations than needed to increase chances of finding unique IDs
+            combinations = self.generate_noun_adjective_pairs(count * 2)
+            
+            # Check which combinations are not in the database and add them to new_ids
+            existing_ids = set(doc['_id'] for doc in self.reserve.find({'_id': {'$in': combinations}}))
+            new_ids.update(set(combinations) - existing_ids)
+
+            # If we have enough IDs, break the loop
+            if len(new_ids) >= count:
+                break
+
+            attempts += 1
+
+        if len(new_ids) == 0:
+            raise ValueError(f"Unable to generate any unique IDs after {max_attempts} attempts")
+
+        if len(new_ids) < count:
+            print(f"Warning: Only generated {len(new_ids)} unique IDs out of {count} requested")
+
+        return list(new_ids)[:count]
+
+def generate_noun_adjective_pairs(self, count=100):
+        """Generate multiple noun-adjective pairs using WordNet."""
+        adj_count = min(count, 20)  # Number of adjectives to fetch
+        noun_count = min(count, 20)  # Number of nouns to fetch
         
         adjectives = [self.get_random_lemma(wn.ADJ) for _ in range(adj_count)]
         nouns = [self.get_random_lemma(wn.NOUN) for _ in range(noun_count)]
         
-        combinations = []
-        for adj in adjectives:
-            for noun in nouns:
-                pair = f"{adj}-{noun}"
-                if self.is_safe_word(pair):
-                    combinations.append(pair)
+        combinations = [
+            f"{adj}-{noun}" for adj in adjectives for noun in nouns
+            if self.is_safe_word(f"{adj}-{noun}")
+        ]
         
-        return random.choice(combinations) if combinations else self.generate_noun_adjective_pair()
+        # Shuffle the combinations and return up to the requested count
+        random.shuffle(combinations)
+        return combinations[:count]
 
 def get_random_lemma(self, pos):
     """Get a random adjective from WordNet."""
