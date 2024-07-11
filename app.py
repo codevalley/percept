@@ -4,10 +4,10 @@ from statistics import StatisticsError, mean, stdev
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-import time
+from petname import generate
 import os
 import logging
-import uuid
+
 
 from snowflake import Snowflake53
 
@@ -22,7 +22,7 @@ snowflake = Snowflake53(1,1)
 
 # Constants
 MINIMUM_RESPONSES = 5
-
+TAG_SUGGESTIONS = 5
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -39,6 +39,42 @@ def generate_unique_id():
 @app.route('/')
 def home():
     return "Welcome to the Percept API", 200
+
+def generate_tag(words=2, separator='-'):
+    """Generate a random tag using petname library."""
+    return generate(words, separator)
+
+def is_tag_available(tag):
+    """Check if a tag is available (not already in use)."""
+    # Check against surveys collection
+    survey = mongo.db.surveys.find_one({'tag': tag})
+    if survey:
+        return False
+    # Check against answers collection
+    answer = mongo.db.answers.find_one({'user_tag': tag})
+    if answer:
+        return False
+    return True
+
+@app.route('/api/v1/tags', methods=['GET'])
+def get_tags():
+    preferred = request.args.get('tag')
+    count = int(request.args.get('count', TAG_SUGGESTIONS))  # Default to 5 if not specified
+
+    tags = []
+
+    if preferred:
+        if is_tag_available(preferred):
+            tags.append(preferred)
+
+    while len(tags) < count:
+        new_tag = generate_tag()
+        if is_tag_available(new_tag) and new_tag not in tags:
+            tags.append(new_tag)
+
+    return jsonify({
+        'tags': tags
+    })
 
 @app.route('/api/v1/surveys', methods=['POST'])
 def create_survey():
