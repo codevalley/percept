@@ -7,7 +7,7 @@ from flask_cors import CORS
 from petname import generate
 import os
 import logging
-
+from id_manager import IDManager
 
 from snowflake import Snowflake53
 
@@ -22,7 +22,8 @@ snowflake = Snowflake53(1,1)
 
 # Constants
 MINIMUM_RESPONSES = 5
-TAG_SUGGESTIONS = 5
+ID_SUGGESTIONS = 5
+INITIAL_ID_RESERVE = 100  # Number of IDs to generate initially
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -33,49 +34,44 @@ else:
     app.config["MONGO_URI"] = os.environ.get("MONGO_URI", "mongodb://localhost:27017/percept")
 mongo = PyMongo(app)
 
+# Initialize IDManager
+id_manager = IDManager(mongo.db)
+
 def generate_unique_id():
     return snowflake.generate()
+
+# Initialize the ID reserve
+with app.app_context():
+    id_manager.initialize_reserve(INITIAL_ID_RESERVE)
+    app.logger.info(f"Initialized ID reserve with {INITIAL_ID_RESERVE} IDs")
 
 @app.route('/')
 def home():
     return "Welcome to the Percept API", 200
 
-def generate_tag(words=2, separator='-'):
-    """Generate a random tag using petname library."""
-    return generate(words, separator)
+@app.route('/api/v1/ids/check', methods=['GET'])
+def check_id():
+    id_to_check = request.args.get('id')
+    if not id_to_check:
+        return jsonify({'error': 'No ID provided'}), 400
 
-def is_tag_available(tag):
-    """Check if a tag is available (not already in use)."""
-    # Check against surveys collection
-    survey = mongo.db.surveys.find_one({'tag': tag})
-    if survey:
-        return False
-    # Check against answers collection
-    answer = mongo.db.answers.find_one({'user_tag': tag})
-    if answer:
-        return False
-    return True
-
-@app.route('/api/v1/tags', methods=['GET'])
-def get_tags():
-    preferred = request.args.get('tag')
-    count = int(request.args.get('count', TAG_SUGGESTIONS))  # Default to 5 if not specified
-
-    tags = []
-
-    if preferred:
-        if is_tag_available(preferred):
-            tags.append(preferred)
-
-    while len(tags) < count:
-        new_tag = generate_tag()
-        if is_tag_available(new_tag) and new_tag not in tags:
-            tags.append(new_tag)
-
+    available = id_manager.is_id_available(id_to_check)
     return jsonify({
-        'tags': tags
+        'id': id_to_check,
+        'available': available
     })
 
+@app.route('/api/v1/ids', methods=['GET'])
+def get_ids():
+    preferred = request.args.get('id')
+    count = int(request.args.get('count', ID_SUGGESTIONS))
+
+    ids = id_manager.get_ids(count, preferred)
+
+    return jsonify({
+        'ids': ids
+    })
+       
 @app.route('/api/v1/surveys', methods=['POST'])
 def create_survey():
     app.logger.debug("Received POST request to /api/v1/surveys")
@@ -87,25 +83,29 @@ def create_survey():
         return jsonify({'error': 'Invalid request data'}), 400
     
     try:
-        survey_id = generate_unique_id()
-        user_code = generate_unique_id()  # Generate a separate ID for user_code
+        survey_id = id_manager.get_id()
+        user_code = id_manager.get_id()
         survey = {
             'survey_id': survey_id,
             'title': data['title'],
             'description': data.get('description', ''),
             'questions': [
                 {
-                    'id': i + 1,  # Simple incrementing ID
+                    'id': i + 1,
                     'text': q['text'],
                     'response_type': q['response_type'],
                     'response_scale_max': q.get('response_scale_max', MINIMUM_RESPONSES),
                     'creator_answer': q['creator_answer']
                 } for i, q in enumerate(data['questions'])
             ],
-            'user_code': user_code  # Use the separate user_code
+            'user_code': user_code
         }
         result = mongo.db.surveys.insert_one(survey)
         app.logger.debug(f"Survey created with ID: {survey_id}")
+        
+        # Mark the IDs as used
+        id_manager.mark_id_as_used(survey_id)
+        id_manager.mark_id_as_used(user_code)
         
         response = jsonify({
             'survey_id': survey_id,
@@ -141,7 +141,7 @@ def get_survey(survey_id):
         ]
     })
 
-@app.route('/api/v1/surveys/<int:survey_id>/answers', methods=['POST'])
+@app.route('/api/v1/surveys/<string:survey_id>/answers', methods=['POST'])
 def submit_answers(survey_id):
     app.logger.debug(f"Received POST request to submit answers for survey ID: {survey_id}")
     data = request.json
@@ -180,14 +180,17 @@ def submit_answers(survey_id):
                     return jsonify({'error': f"Invalid answer for question {answer['question_id']}: must be a boolean"}), 400
         
         # Store the answers
-        user_code = generate_unique_id()  # Generate a new user_code for each submission
+        user_code = id_manager.get_id()
         answer_submission = {
             'survey_id': survey_id,
             'user_code': user_code,
             'answers': {str(answer['question_id']): answer['answer'] for answer in data['answers']},
-            'submitted_at': generate_unique_id()
+            'submitted_at': snowflake.generate()
         }
         result = mongo.db.answers.insert_one(answer_submission)
+        
+        # Mark the user_code as used
+        id_manager.mark_id_as_used(user_code)
         
         # Calculate deviations (placeholder logic - you'll need to implement the actual calculation)
         deviation_from_creator = 0.5  # placeholder

@@ -3,9 +3,11 @@
 import random
 import nltk
 from nltk.corpus import wordnet as wn
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from pymongo.errors import DuplicateKeyError
 
-#nltk.download('wordnet', quiet=True)
+nltk.download('words', quiet=True)
+nltk.download('vader_lexicon', quiet=True)
 
 MIN_LEMMA_LEN = 3
 MAX_LEMMA_LEN = 10
@@ -15,7 +17,8 @@ class IDManager:
         self.db = db
         self.reserve = self.db[collection_name]
         self.min_reserve = min_reserve
-
+        self.sia = SentimentIntensityAnalyzer()
+    
     def initialize_reserve(self, count=1000):
         """Initialize the reserve with a given count of generated IDs."""
         new_ids = self.generate_new_ids(count)
@@ -92,7 +95,7 @@ class IDManager:
 
         return list(new_ids)[:count]
 
-def generate_noun_adjective_pairs(self, count=100):
+    def generate_noun_adjective_pairs(self, count=100):
         """Generate multiple noun-adjective pairs using WordNet."""
         adj_count = min(count, 20)  # Number of adjectives to fetch
         noun_count = min(count, 20)  # Number of nouns to fetch
@@ -109,18 +112,18 @@ def generate_noun_adjective_pairs(self, count=100):
         random.shuffle(combinations)
         return combinations[:count]
 
-def get_random_lemma(self, pos):
-    """Get a random adjective from WordNet."""
-    while True:
-        words = list(wn.all_synsets(pos))
-        word = random.choice(words).lemmas()[0].name().replace('_', '-')
-        if MIN_LEMMA_LEN <= len(word) <= MAX_LEMMA_LEN:
-            return word.lower()
+    def get_random_lemma(self, pos):
+        """Get a random lemma from WordNet."""
+        while True:
+            words = list(wn.all_synsets(pos))
+            word = random.choice(words).lemmas()[0].name().replace('_', '-')
+            if MIN_LEMMA_LEN <= len(word) <= MAX_LEMMA_LEN:
+                return word.lower()
 
-def is_safe_word(self, word):
-    """Check if a word is safe (you can expand this method as needed)."""
-    # This is a basic check. You might want to add more sophisticated filters.
-    return word.replace('-', '').isalpha()
+    def is_safe_word(self, word):
+        """Check if a word is safe using VADER sentiment analysis."""
+        sentiment_score = self.sia.polarity_scores(word)['compound']
+        return sentiment_score >= 0
 
 # Usage in your main application:
 # id_manager = IDManager(mongo.db)
