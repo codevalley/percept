@@ -322,7 +322,16 @@ export default {
       isLoading.value = true;
       errorMessage.value = '';
       try {
+        // Fetch IDs for the survey and user
+        // You might want to add logic here to determine a preferred survey ID if needed
+        const getRandomIds = await api.getIds(5, null); // or use a preferred ID if you have one
+
+        const surveyId = getRandomIds.data.ids[0];
+        const userId = getRandomIds.data.ids[1];
+
         const surveyData = {
+          survey_id: surveyId,
+          user_code: userId,
           title: surveyTitle.value,
           description: surveyDescription.value,
           questions: questions.value.map((q, index) => ({
@@ -330,6 +339,7 @@ export default {
             creator_answer: creatorAnswers.value[index]
           }))
         };
+
         const response = await api.createSurvey(surveyData);
         console.log('Survey created', response.data);
         surveyCode.value = response.data.survey_id;
