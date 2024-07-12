@@ -129,6 +129,7 @@ def get_survey(survey_id):
     
     app.logger.debug(f"Found survey: {survey}")
     return jsonify({
+        'survey_id': survey['survey_id'],  # Include survey_id in the response
         'title': survey['title'],
         'description': survey.get('description', ''),
         'questions': [
@@ -209,7 +210,7 @@ def submit_answers(survey_id):
         app.logger.error(f"Error submitting answers: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
     
-@app.route('/api/v1/surveys/<int:survey_id>/results', methods=['GET'])
+@app.route('/api/v1/surveys/<string:survey_id>/results', methods=['GET'])
 def get_survey_results(survey_id):
     user_code = request.args.get('user_code')
     return process_results(survey_id, user_code)
