@@ -33,6 +33,7 @@ export default {
       nextButton: 'Next',
       finishButton: 'Finish',
       loadingMessage: 'Loading survey...',
+      submittingButton: 'Publishing...',
       errorLoading: 'Error loading survey. Please try again.',
       errorSubmitting: 'Error submitting survey. Please try again.',
     },

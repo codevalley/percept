@@ -80,11 +80,19 @@
               :class="[
                 'px-6 py-2 rounded-full transition-colors',
                 (currentAnswer === null || isSubmitting) 
-                  ? 'bg-white text-neutral-300  cursor-not-allowed' 
+                  ? 'bg-white text-neutral-300 cursor-not-allowed' 
                   : 'bg-primary text-white'
               ]"
             >
-              {{ isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton') }}
+              <span v-if="!isSubmitting">
+                {{ isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton') }}
+              </span>
+              <span v-else class="flex items-center">
+                <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                  <!-- Add your loading spinner SVG here -->
+                </svg>
+                {{ $t('takeSurvey.submittingButton') }}
+              </span>
             </button>
           </div>
         </div>
@@ -142,7 +150,22 @@ export default {
           loadedSurveyData.value = response.data;
         } catch (error) {
           console.error('Error fetching survey:', error);
-          emit('survey-error', t('takeSurvey.errorLoading'));
+          if (error.response) {
+            switch (error.response.status) {
+              case 404:
+                emit('survey-error', t('takeSurvey.surveyNotFound'));
+                break;
+              case 403:
+                emit('survey-error', t('takeSurvey.surveyAccessDenied'));
+                break;
+              default:
+                emit('survey-error', t('takeSurvey.errorLoading'));
+            }
+          } else if (error.request) {
+            emit('survey-error', t('takeSurvey.networkError'));
+          } else {
+            emit('survey-error', t('takeSurvey.errorLoading'));
+          }
         } finally {
           isLoading.value = false;
         }
@@ -177,7 +200,7 @@ export default {
       isSubmitting.value = true;
       try {
         const answersToSubmit = Object.entries(answers.value).map(([questionId, answer]) => ({
-          question_id: parseInt(questionId),
+          question_id: questionId, // Remove parseInt here
           answer
         }));
         const response = await api.submitAnswers(props.surveyId, { answers: answersToSubmit });

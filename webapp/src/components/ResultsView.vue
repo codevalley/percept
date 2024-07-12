@@ -174,7 +174,7 @@ export default {
     const resultsLink = computed(() => {
       return (surveyId.value && userCode.value) ? `/results/${surveyId.value}/${userCode.value}` : '';
     });
-
+    //TODO: Extract strings
     const handleError = (err) => {
       console.error('Error fetching results:', err);
       if (err.response) {

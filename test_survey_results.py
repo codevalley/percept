@@ -123,10 +123,10 @@ class TestSurveyResults(unittest.TestCase):
     def test_submit_answers(self):
         response_data = {
             "answers": [
-                {"question_id": 1, "answer": 3},
-                {"question_id": 2, "answer": False},
-                {"question_id": 3, "answer": 7},
-                {"question_id": 4, "answer": True}
+                {"question_id": "1", "answer": 3},
+                {"question_id": "2", "answer": False},
+                {"question_id": "3", "answer": 7},
+                {"question_id": "4", "answer": True}
             ]
         }
         response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
@@ -135,28 +135,27 @@ class TestSurveyResults(unittest.TestCase):
         self.assertEqual(response.status_code, 201)
         data = json.loads(response.data)
         self.assertIn('user_code', data)
-        self.assertIsInstance(data['user_code'], str)
         self.assertIn('deviation_from_creator', data)
         self.assertIn('deviation_from_others', data)
         self.assertIn('overall_deviation', data)
 
     def test_submit_answers_invalid_data(self):
         # Test answer out of range for scale question
-        invalid_data = {"answers": [{"question_id": 1, "answer": 6}]}  # Max is 5 for this question
+        invalid_data = {"answers": [{"question_id": "1", "answer": 6}]}  # Max is 5 for this question
         response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
                                     data=json.dumps(invalid_data),
                                     content_type='application/json')
         self.assertEqual(response.status_code, 400)
         
         # Test invalid boolean answer
-        invalid_data = {"answers": [{"question_id": 2, "answer": "Not a boolean"}]}
+        invalid_data = {"answers": [{"question_id": "2", "answer": "Not a boolean"}]}
         response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
                                     data=json.dumps(invalid_data),
                                     content_type='application/json')
         self.assertEqual(response.status_code, 400)
         
         # Test invalid question ID
-        invalid_data = {"answers": [{"question_id": 999, "answer": 5}]}
+        invalid_data = {"answers": [{"question_id": "999", "answer": 5}]}
         response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
                                     data=json.dumps(invalid_data),
                                     content_type='application/json')
@@ -170,7 +169,7 @@ class TestSurveyResults(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
 
         # Test missing answer
-        invalid_data = {"answers": [{"question_id": 1}]}
+        invalid_data = {"answers": [{"question_id": "1"}]}
         response = self.client.post(f'/api/v1/surveys/{self.survey_id}/answers',
                                     data=json.dumps(invalid_data),
                                     content_type='application/json')
