@@ -72,10 +72,10 @@
           <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
         </button>
       </div>
+       <!-- Add error message display -->
+      <ToastView :message="toastMessage" :type="toastType" @hidden="clearToast" />
     </div>
   </header>
-  <!-- Add error message display -->
-  <div v-if="errorMessage" class="mt-2 text-red-500">{{ errorMessage }}</div>
 </template>
 
 <script>
@@ -84,11 +84,13 @@ import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import InlineSvg from 'vue-inline-svg';
 import api from '@/services/api';
+import ToastView from '@/components/ToastView.vue';
 
 export default {
   name: 'SiteHeader',
   components: {
     InlineSvg,
+    ToastView,
   },
   setup() {
     const { t } = useI18n();
@@ -99,6 +101,8 @@ export default {
     const creatorCode = ref('');
     const isLoading = ref(false);
     const errorMessage = ref('');
+    const toastMessage = ref('');
+    const toastType = ref('');
 
     const currentTab = computed(() => {
       if (route.name === 'Results' || activeTab.value === 'analyze') return 'analyze';
@@ -115,10 +119,14 @@ export default {
     const toggleTab = (tab) => {
       activeTab.value = activeTab.value === tab ? null : tab;
     };
-
+    function clearToast() {
+      toastMessage.value = '';
+      toastType.value = '';
+    }
     const submitParticipateCode = async () => {
       if (!participateCode.value.trim()) {
-        errorMessage.value = t('header.emptyCodeError');
+        toastMessage.value = t('header.emptyCodeError');
+        toastType.value = 'error';
         return;
       }
 
@@ -146,7 +154,8 @@ export default {
 
     const handleAnalyze = async () => {
       if (!creatorCode.value.trim()) {
-        errorMessage.value = t('header.emptyCodeError');
+        toastMessage.value = t('header.emptyCodeError');
+        toastType.value = 'error';
         return;
       }
 
@@ -184,6 +193,9 @@ export default {
       submitParticipateCode,
       handleAnalyze,
       route,
+      clearToast,
+      toastMessage,
+      toastType,
     };
   },
 };
