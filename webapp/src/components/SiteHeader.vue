@@ -74,6 +74,8 @@
       </div>
     </div>
   </header>
+  <!-- Add error message display -->
+  <div v-if="errorMessage" class="mt-2 text-red-500">{{ errorMessage }}</div>
 </template>
 
 <script>
@@ -115,6 +117,11 @@ export default {
     };
 
     const submitParticipateCode = async () => {
+      if (!participateCode.value.trim()) {
+        errorMessage.value = t('header.emptyCodeError');
+        return;
+      }
+
       isLoading.value = true;
       errorMessage.value = '';
       try {
@@ -138,6 +145,11 @@ export default {
     };
 
     const handleAnalyze = async () => {
+      if (!creatorCode.value.trim()) {
+        errorMessage.value = t('header.emptyCodeError');
+        return;
+      }
+
       isLoading.value = true;
       errorMessage.value = '';
       try {

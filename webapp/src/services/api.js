@@ -1,5 +1,3 @@
-// src/services/api.js
-
 import axios from 'axios';
 
 const API_URL = 'http://localhost:5001/api/v1'; // Update this to your API's URL
@@ -29,9 +27,21 @@ export default {
 
   // Get survey results
   getSurveyResults(surveyId, userCode) {
-    return api.get(`${API_URL}/surveys/${surveyId}/results?user_code=${userCode}`);
+    return api.get(`${API_URL}/surveys/${surveyId}/results`, { params: { user_code: userCode } });
   },
+
+  // Get survey results by user code
   getSurveyResultsByUserCode(userCode) {
-    return api.get(`${API_URL}/surveys/results?user_code=${userCode}`);
+    return api.get(`${API_URL}/surveys/results`, { params: { user_code: userCode } });
   },
+
+  // Get IDs
+  getIds(count, preferred) {
+    return api.get('${API_URL}/ids', { params: { count, id: preferred } });
+  },
+
+  // Check ID availability
+  checkIdAvailability(id) {
+    return api.get('${API_URL}/ids/check', { params: { id } });
+  }
 };

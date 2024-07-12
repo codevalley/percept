@@ -46,6 +46,7 @@ export default {
       analyzePlaceholder: 'Enter creator code',
       analyzeButton: 'Analyze',
       errorLoadingSurvey: 'Failed to load survey. Please check the code and try again.',
+      emptyCodeError: 'The code cannot be empty.',
       errorLoadingResults: 'Failed to load results. Please check the creator code and try again.',
     },
     toast: {
