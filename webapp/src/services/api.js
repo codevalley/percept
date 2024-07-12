@@ -12,36 +12,36 @@ const api = axios.create({
 export default {
   // Create a new survey
   createSurvey(surveyData) {
-    return api.post(`${API_URL}/surveys`, surveyData);
+    return api.post(`/surveys`, surveyData);
   },
 
   // Get a survey by ID
   getSurvey(surveyId) {
-    return api.get(`${API_URL}/surveys/${surveyId}`);
+    return api.get(`/surveys/${surveyId}`);
   },
 
   // Submit answers for a survey
   submitAnswers(surveyId, answers) {
-    return api.post(`${API_URL}/surveys/${surveyId}/answers`, answers);
+    return api.post(`/surveys/${surveyId}/answers`, answers);
   },
 
   // Get survey results
   getSurveyResults(surveyId, userCode) {
-    return api.get(`${API_URL}/surveys/${surveyId}/results`, { params: { user_code: userCode } });
+    return api.get(`/surveys/${surveyId}/results`, { params: { user_code: userCode } });
   },
 
   // Get survey results by user code
   getSurveyResultsByUserCode(userCode) {
-    return api.get(`${API_URL}/surveys/results`, { params: { user_code: userCode } });
+    return api.get(`/surveys/results`, { params: { user_code: userCode } });
   },
 
   // Get IDs
   getIds(count, preferred) {
-    return api.get('${API_URL}/ids', { params: { count, id: preferred } });
+    return api.get(`/ids`, { params: { count, id: preferred } });
   },
 
   // Check ID availability
   checkIdAvailability(id) {
-    return api.get('${API_URL}/ids/check', { params: { id } });
+    return api.get(`/ids/check`, { params: { id } });
   }
 };

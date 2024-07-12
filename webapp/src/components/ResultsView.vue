@@ -15,6 +15,7 @@
             <div class="flex items-center space-x-4">
               <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review code</span>
               <button
+                v-if="surveyId"
                 class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
                 @click="copyToClipboard(surveyId)">
                 <span class="text-base font-medium mr-2">{{ surveyId }}</span>
@@ -25,6 +26,7 @@
             <div class="flex items-center space-x-4">
               <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review Link</span>
               <button
+                v-if="surveyLink"
                 class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
                 @click="copyToClipboard(surveyLink)">
                 <span class="text-base font-medium mr-2">Copy URL</span>
@@ -37,6 +39,7 @@
             <div class="flex items-center space-x-4">
               <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
               <button
+                v-if="userCode"
                 class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
                 @click="copyToClipboard(userCode)">
                 <span class="text-base font-medium mr-2">{{ userCode }}</span>
@@ -47,6 +50,7 @@
             <div class="flex items-center space-x-4">
               <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
               <button
+                v-if="resultsLink"
                 class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
                 @click="copyToClipboard(resultsLink)">
                 <span class="text-base font-medium mr-2">Copy URL</span>
@@ -60,6 +64,7 @@
           <div class="flex items-center space-x-4">
             <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
             <button
+              v-if="userCode"
               class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
               @click="copyToClipboard(userCode)">
               <span class="text-base font-medium mr-2">{{ userCode }}</span>
@@ -70,6 +75,7 @@
           <div class="flex items-center space-x-4">
             <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
             <button
+              v-if="resultsLink"
               class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
               @click="copyToClipboard(resultsLink)">
               <span class="text-base font-medium mr-2">Copy URL</span>
@@ -158,22 +164,39 @@ export default {
     const toastMessage = ref('');
     const toastType = ref('');
 
-    const surveyId = computed(() => results.value?.survey_id);
-    const userCode = computed(() => route.params.userCode);
+    const surveyId = computed(() => route.params.surveyId || results.value?.survey_id || '');
+    const userCode = computed(() => route.params.userCode || '');
 
     const surveyLink = computed(() => {
-      if (surveyId.value) {
-        return `/surveys/${surveyId.value}`;
-      }
-      return '';
+      return surveyId.value ? `/surveys/${surveyId.value}` : '';
     });
 
     const resultsLink = computed(() => {
-      if (surveyId.value && userCode.value) {
-        return `/results/${surveyId.value}/${userCode.value}`;
-      }
-      return '';
+      return (surveyId.value && userCode.value) ? `/results/${surveyId.value}/${userCode.value}` : '';
     });
+
+    const handleError = (err) => {
+      console.error('Error fetching results:', err);
+      if (err.response) {
+        switch (err.response.status) {
+          case 404:
+            error.value = 'Survey or user not found. Please check your IDs and try again.';
+            break;
+          case 403:
+            error.value = 'You do not have permission to view these results.';
+            break;
+          case 202:
+            error.value = 'Not enough responses available to show stats.';
+            break;
+          default:
+            error.value = 'An error occurred while fetching results. Please try again later.';
+        }
+      } else if (err.request) {
+        error.value = 'Unable to reach the server. Please check your internet connection and try again.';
+      } else {
+        error.value = 'An unexpected error occurred. Please try again.';
+      }
+    };
 
     const fetchResults = async () => {
       const { surveyId, userCode } = route.params;
@@ -193,16 +216,15 @@ export default {
           response = await api.getSurveyResults(surveyId, userCode);
         }
         
-        if (response.status === 202) {
-          // Handle incomplete results
-          results.value = response.data;
-        } else {
-          // Handle complete results
-          results.value = response.data;
+        results.value = response.data;
+        
+        // Update surveyId if it's not available in the route params
+        if (!surveyId && response.data.survey_id) {
+          surveyId.value = response.data.survey_id;
         }
+
       } catch (err) {
-        console.error('Error fetching results:', err);
-        error.value = 'Failed to load results. Please try again.';
+        handleError(err);
       } finally {
         loading.value = false;
       }
