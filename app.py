@@ -119,7 +119,7 @@ def create_survey():
         app.logger.error(f"Error creating survey: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-@app.route('/api/v1/surveys/<int:survey_id>', methods=['GET'])
+@app.route('/api/v1/surveys/<string:survey_id>', methods=['GET'])
 def get_survey(survey_id):
     app.logger.debug(f"Received GET request for survey ID: {survey_id}")
     survey = mongo.db.surveys.find_one({'survey_id': survey_id})
@@ -129,7 +129,7 @@ def get_survey(survey_id):
     
     app.logger.debug(f"Found survey: {survey}")
     return jsonify({
-        'survey_id': survey['survey_id'],  # Include survey_id in the response
+        'survey_id': survey['survey_id'],
         'title': survey['title'],
         'description': survey.get('description', ''),
         'questions': [
@@ -222,12 +222,12 @@ def get_results_by_user_code():
         return jsonify({'error': 'User code is required'}), 400
     
     # Try to find the survey based on the user_code (for creators)
-    survey = mongo.db.surveys.find_one({'user_code': int(user_code)})
+    survey = mongo.db.surveys.find_one({'user_code': user_code})
     if survey:
         return process_results(survey['survey_id'], user_code)
     
     # If not found in surveys, look in answers (for participants)
-    answer = mongo.db.answers.find_one({'user_code': int(user_code)})
+    answer = mongo.db.answers.find_one({'user_code': user_code})
     if answer:
         return process_results(answer['survey_id'], user_code)
     
@@ -246,7 +246,7 @@ def process_results(survey_id, user_code):
         return jsonify({'error': 'Survey not found'}), 404
 
     # Check if user is creator
-    is_creator = (int(user_code) == survey['user_code'])
+    is_creator = (user_code == survey['user_code'])
     logging.info(f"User is creator: {is_creator}")
 
     # Get all answers for this survey
@@ -254,7 +254,7 @@ def process_results(survey_id, user_code):
     logging.info(f"Found {len(answers)} answers for survey {survey_id}")
 
     # Check if the user_code exists in the answers
-    user_answer = next((a for a in answers if a['user_code'] == int(user_code)), None)
+    user_answer = next((a for a in answers if a['user_code'] == user_code), None)
     if not user_answer and not is_creator:
         logging.warning(f"Invalid user code: {user_code}")
         return jsonify({'error': 'Invalid user code'}), 404
@@ -281,7 +281,7 @@ def process_results(survey_id, user_code):
         return jsonify(response), 202
 
     # Calculate statistics
-    results = calculate_survey_statistics(survey, answers, int(user_code), is_creator)
+    results = calculate_survey_statistics(survey, answers, user_code, is_creator)
 
     return jsonify(results), 200
 

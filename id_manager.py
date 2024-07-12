@@ -24,6 +24,19 @@ class IDManager:
         new_ids = self.generate_new_ids(count)
         print(new_ids)
         self.reserve.insert_many([{'_id': id, 'status': 'available'} for id in new_ids], ordered=False)
+    
+    def get_id(self):
+        """Get a single available ID from the reserve."""
+        id_doc = self.reserve.find_one_and_update(
+            {'status': 'available'},
+            {'$set': {'status': 'used'}},
+            return_document=True
+        )
+        if id_doc:
+            self.replenish_if_needed()
+            return id_doc['_id']
+        else:
+            raise Exception("No available IDs in the reserve")
 
     def get_ids(self, count=1, preferred=None):
         """Get a list of available IDs, including preferred if available."""
@@ -44,8 +57,8 @@ class IDManager:
 
     def is_id_available(self, id):
         """Check if an ID is available."""
-        doc = self.reserve.find_one({'_id': id})
-        return doc is not None and doc.get('status') == 'available'
+        doc = self.reserve.find_one({'_id': id, 'status': 'available'})
+        return doc is not None
 
     def add_custom_id(self, id):
         """Add a custom ID to the reserve and mark it as used."""
