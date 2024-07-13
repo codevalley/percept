@@ -126,10 +126,10 @@
         <!-- New Publish Button Section with Dynamic Width Textboxes -->
         <div class="bg-accent-green rounded-[999px] p-4 flex items-center justify-between mb-4">
           <div class="flex items-center space-x-6">
+            <!-- Survey Code Input -->
             <div class="flex items-center">
-              <div :class="['fancy-border relative', { 'checking': isCheckingCode('survey') }]">
-                <div :class="['flex items-center justify-between px-4 h-10 rounded-full bg-white border transition-colors',
-                  isCheckingCode('survey') ? 'border-primary' : 
+              <div :class="['fancy-border', { 'checking': isCheckingCode('survey') }]">
+                <div :class="['flex items-center justify-between px-4 h-full rounded-full bg-white border transition-colors',
                   isCodeValid('survey') ? 'border-accent-green' : 
                   isCodeInvalid('survey') ? 'border-red-500' : 'border-neutral-300']">
                   <inline-svg 
@@ -138,18 +138,17 @@
                       isCodeInvalid('survey') ? 'text-red-500' : 'text-primary']" 
                     @click="rotateCode('survey')" 
                   />
-                  <div class="relative code-input-container">
+                  <div class="relative code-input-container flex-grow">
                     <input 
                       ref="surveyCodeInput"
                       v-model="surveyCode" 
                       @input="debounceCheckCode('survey')"
-                      class="bg-transparent focus:outline-none"
+                      class="bg-transparent focus:outline-none w-full"
                       :class="[
                         'text-base font-medium',
                         isCodeInvalid('survey') ? 'text-red-500' : 'text-primary'
                       ]"
                       :placeholder="'dashing-dalton'"
-                      style="min-width: 20px;"
                     />
                     <span ref="surveyCodeMeasure" class="measure-span text-base font-medium"></span>
                   </div>
@@ -157,11 +156,10 @@
               </div>
             </div>
 
-
+            <!-- User Code Input -->
             <div class="flex items-center">
-              <div :class="['fancy-border relative', { 'checking': isCheckingCode('user') }]">
-                <div :class="['flex items-center justify-between px-4 h-10 rounded-full bg-white border transition-colors',
-                  isCheckingCode('user') ? 'border-primary' : 
+              <div :class="['fancy-border', { 'checking': isCheckingCode('user') }]">
+                <div :class="['flex items-center justify-between px-4 h-full rounded-full bg-white border transition-colors',
                   isCodeValid('user') ? 'border-accent-green' : 
                   isCodeInvalid('user') ? 'border-red-500' : 'border-neutral-300']">
                   <inline-svg 
@@ -170,18 +168,17 @@
                       isCodeInvalid('user') ? 'text-red-500' : 'text-primary']" 
                     @click="rotateCode('user')" 
                   />
-                  <div class="relative code-input-container">
+                  <div class="relative code-input-container flex-grow">
                     <input 
                       ref="userCodeInput"
                       v-model="userCode" 
                       @input="debounceCheckCode('user')"
-                      class="bg-transparent focus:outline-none"
+                      class="bg-transparent focus:outline-none w-full"
                       :class="[
                         'text-base font-medium',
                         isCodeInvalid('user') ? 'text-red-500' : 'text-primary'
                       ]"
                       :placeholder="'brown-bliss'"
-                      style="min-width: 20px;"
                     />
                     <span ref="userCodeMeasure" class="measure-span text-base font-medium"></span>
                   </div>
@@ -600,9 +597,6 @@ export default {
   50% { opacity: 1; }
 }
 
-@keyframes rotate {
-  100% { transform: rotate(360deg); }
-}
 
 /* General styles */
 .animate-blink {
@@ -610,27 +604,33 @@ export default {
 }
 
 /* Fancy border styles */
+/* Updated Fancy border styles */
 .fancy-border {
   position: relative;
   border-radius: 9999px;
   overflow: hidden;
 }
 
+.fancy-border {
+  --offset: 3px;
+  background: white;  /* Changed from the tutorial's dark background */
+  border-radius: 9999px;
+  position: relative;
+  overflow: hidden;
+  height: 40px;  /* Adjust as needed */
+  width: 100%;  /* Adjust as needed */
+}
+
 .fancy-border::before {
   content: '';
+  background: conic-gradient(transparent 270deg, red, transparent);
   position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  aspect-ratio: 1;
+  width: 100%;
   opacity: 0;
-  background: conic-gradient(
-    from 0deg,
-    theme('colors.accent.DEFAULT') 0deg, 
-    transparent 60deg,
-    transparent 300deg,
-    theme('colors.accent.DEFAULT') 360deg
-  );
   transition: opacity 0.3s ease;
 }
 
@@ -639,10 +639,30 @@ export default {
   animation: rotate 2s linear infinite;
 }
 
+.fancy-border::after {
+  content: '';
+  background: inherit;
+  border-radius: inherit;
+  position: absolute;
+  inset: var(--offset);
+}
+
 .fancy-border > div {
   position: relative;
-  z-index: 1;
+  z-index: 10;
+  height: 100%;
 }
+
+@keyframes rotate {
+  from {
+    transform: translate(-50%, -50%) scale(1.4) rotate(0turn);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.4) rotate(1turn);
+  }
+}
+
+
 
 /* Code input styles */
 .code-input-container {
