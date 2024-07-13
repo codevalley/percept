@@ -1,15 +1,20 @@
 <template>
-  <div class="fancy-input-wrapper flex items-center">
-    <div :class="['fancy-border', { 'checking': isChecking, 'error': isError }]" :style="{ '--loader-color': loaderColor }">
-      <div :class="[
-        'flex items-center justify-between px-4 h-full rounded-full bg-white border transition-colors',
-        isValid ? validBorderColor : 
-        isError ? 'border-red-500' : neutralBorderColor
-      ]">
+  <div class="fancy-input-wrapper" :style="{ '--offset': offset + 'px' }">
+    <div 
+      class="fancy-background"
+      :class="[
+        { 'checking': isChecking, 'error': isError },
+        isChecking ? 'conic' : isError ? 'bg-red-500' : bgColor
+      ]"
+      :style="{
+        '--bg-color': bgColor,
+        '--loader-color': loaderColor
+      }"
+    >
+      <div class="fancy-inner flex items-center justify-between px-4 rounded-full bg-white">
         <inline-svg 
           :src="isError ? '/assets/error-icon.svg' : icon" 
-          :class="['w-6 h-6 cursor-pointer mr-2', 
-            isError ? 'text-red-500' : iconColor]" 
+          :class="['w-6 h-6 cursor-pointer mr-2', isError ? 'text-red-500' : iconColor]" 
           @click="$emit('rotate')" 
         />
         <div class="relative flex-grow">
@@ -54,25 +59,13 @@ export default {
       type: Boolean,
       default: false,
     },
-    isValid: {
-      type: Boolean,
-      default: false,
-    },
     isError: {
       type: Boolean,
       default: false,
     },
-    loaderColor: {
+    bgColor: {
       type: String,
-      default: '#BE185D',
-    },
-    validBorderColor: {
-      type: String,
-      default: 'border-accent-green',
-    },
-    neutralBorderColor: {
-      type: String,
-      default: 'border-neutral-300',
+      default: '#E5E7EB', // Tailwind's neutral-200
     },
     textColor: {
       type: String,
@@ -81,6 +74,14 @@ export default {
     iconColor: {
       type: String,
       default: 'text-primary',
+    },
+    loaderColor: {
+      type: String,
+      default: '#BE185D',
+    },
+    offset: {
+      type: Number,
+      default: 2,
     },
   },
   emits: ['update:modelValue', 'rotate', 'input'],
@@ -101,10 +102,7 @@ export default {
       nextTick(adjustWidth);
     };
 
-    watch(() => props.modelValue, () => {
-      nextTick(adjustWidth);
-    });
-
+    watch(() => props.modelValue, adjustWidth);
     watch(() => props.placeholder, adjustWidth);
 
     onMounted(() => {
@@ -115,7 +113,6 @@ export default {
       fancyInput,
       measureSpan,
       handleInput,
-      adjustWidth,
     };
   },
 };
@@ -123,59 +120,58 @@ export default {
 
 <style scoped>
 .fancy-input-wrapper {
-  position: relative;
   display: inline-block;
+  position: relative;
 }
 
-.fancy-border {
-  --offset: 3px;
-    --loader-color: v-bind(loaderColor);
-  background: white;
+.fancy-background {
+  position: relative;
+  z-index: 0;
   border-radius: 9999px;
-  position: relative;
   overflow: hidden;
-  height: 40px;
-  display: inline-block;
+  padding: var(--offset);
+  background-color: var(--bg-color);
 }
 
-.fancy-border::before {
+.fancy-background::before {
   content: '';
-  background: conic-gradient(transparent 270deg, var(--loader-color), transparent);
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  aspect-ratio: 1;
-  width: 100%;
+  z-index: -2;
+  left: -50%;
+  top: -50%;
+  width: 200%;
+  height: 200%;
+  background-color: var(--bg-color);
+  background-repeat: no-repeat;
+  background-position: 0 0;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-.fancy-border.checking::before {
+.fancy-background::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: var(--offset);
+  background: white;
+  border-radius: 9999px;
+}
+
+.fancy-background.conic::before {
   opacity: 1;
+  background-image: conic-gradient(var(--loader-color), var(--bg-color), var(--loader-color));
   animation: rotate 2s linear infinite;
 }
 
-.fancy-border::after {
-  content: '';
-  background: inherit;
-  border-radius: inherit;
-  position: absolute;
-  inset: var(--offset);
-}
-
-.fancy-border > div {
+.fancy-inner {
   position: relative;
-  z-index: 10;
-  height: 100%;
+  z-index: 1;
+  height: 40px;
 }
 
 @keyframes rotate {
-  from {
-    transform: translate(-50%, -50%) scale(1.4) rotate(0turn);
-  }
-  to {
-    transform: translate(-50%, -50%) scale(1.4) rotate(1turn);
+  100% {
+    transform: rotate(1turn);
   }
 }
 
@@ -185,6 +181,5 @@ export default {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: -1;
 }
 </style>
