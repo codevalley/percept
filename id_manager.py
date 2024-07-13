@@ -57,8 +57,12 @@ class IDManager:
 
     def is_id_available(self, id):
         """Check if an ID is available."""
-        doc = self.reserve.find_one({'_id': id, 'status': 'available'})
-        return doc is not None
+        doc = self.reserve.find_one({'_id': id})
+        if doc is None:
+            # ID is not in the reserve, so it's available
+            return True
+        # If the ID is in the reserve, it's available only if its status is 'available'
+        return doc['status'] == 'available'
 
     def add_custom_id(self, id):
         """Add a custom ID to the reserve and mark it as used."""
