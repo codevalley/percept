@@ -77,13 +77,19 @@ def create_survey():
     data = request.json
     app.logger.debug(f"Request data: {data}")
     
-    if not data or 'title' not in data or 'questions' not in data:
+    if not data or 'title' not in data or 'questions' not in data or 'survey_id' not in data or 'user_code' not in data:
         app.logger.warning("Invalid request data")
         return jsonify({'error': 'Invalid request data'}), 400
     
     try:
-        survey_id = id_manager.get_id()
-        user_code = id_manager.get_id()
+        survey_id = data['survey_id']
+        user_code = data['user_code']
+        
+        # Check if the IDs are available
+        if not id_manager.is_id_available(survey_id) or not id_manager.is_id_available(user_code):
+            app.logger.warning(f"Requested IDs are not available: survey_id={survey_id}, user_code={user_code}")
+            return jsonify({'error': 'Requested IDs are not available'}), 400
+
         survey = {
             'survey_id': survey_id,
             'title': data['title'],
@@ -108,7 +114,7 @@ def create_survey():
         
         response = jsonify({
             'survey_id': survey_id,
-            'share_link': f"/surveys/{survey_id}",
+            'share_link': f"/participate/{survey_id}",
             'user_code': user_code,
             'questions': [{'id': q['id'], 'text': q['text']} for q in survey['questions']]
         })
