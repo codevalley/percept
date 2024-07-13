@@ -4,7 +4,6 @@ from statistics import StatisticsError, mean, stdev
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
-from petname import generate
 import os
 import logging
 from id_manager import IDManager
@@ -23,7 +22,7 @@ snowflake = Snowflake53(1,1)
 # Constants
 MINIMUM_RESPONSES = 5
 ID_SUGGESTIONS = 5
-INITIAL_ID_RESERVE = 100  # Number of IDs to generate initially
+INITIAL_ID_RESERVE = 50  # Number of IDs to generate initially
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 

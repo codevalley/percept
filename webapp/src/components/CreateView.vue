@@ -123,20 +123,64 @@
           </transition-group>
         </div>
 
-        <!-- Publish Button -->
-        <div class="text-left">
-          <button @click="finishSurvey" :disabled="!allQuestionsAnswered || isLoading || isSubmitted" :class="[
-            'w-[152px] h-[56px] rounded-full text-center text-2xl font-bold leading-9',
-            !allQuestionsAnswered || isLoading || isSubmitted
-              ? 'bg-gray-100 text-neutral-300'
-              : 'bg-accent-green text-primary'
-          ]">
-            Publish
-          </button>
+        <!-- New Publish Button Section with Dynamic Width Textboxes -->
+        <div class="bg-accent-green rounded-[999px] p-4 flex items-center justify-between mb-4">
+          <div class="flex items-center space-x-6">
+            <div class="flex items-center">
+              <div class="bg-white rounded-full flex items-center justify-between px-4 h-[42px]">
+                <inline-svg src="/assets/bookmark-icon.svg" class="w-6 h-6 text-primary cursor-pointer mr-2" @click="rotateCode('survey')" />
+                <div class="relative code-input-container">
+                  <input 
+                    ref="surveyCodeInput"
+                    v-model="surveyCode" 
+                    @blur="checkCodeAvailability('survey')"
+                    @input="adjustWidth($event, 'survey')"
+                    class="text-zinc-400 text-xl font-semibold bg-transparent focus:outline-none"
+                    :placeholder="'dashing-dalton'"
+                    style="min-width: 20px;"
+                  />
+                  <span ref="surveyCodeMeasure" class="measure-span text-xl font-semibold"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center">
+              <div class="bg-white rounded-full flex items-center justify-between px-4 h-[42px]">
+                <inline-svg src="/assets/user-icon.svg" class="w-6 h-6 text-primary cursor-pointer mr-2" @click="rotateCode('user')" />
+                <div class="relative code-input-container">
+                  <input 
+                    ref="userCodeInput"
+                    v-model="userCode" 
+                    @blur="checkCodeAvailability('user')"
+                    @input="adjustWidth($event, 'user')"
+                    class="text-zinc-400 text-xl font-semibold bg-transparent focus:outline-none"
+                    :placeholder="'brown-bliss'"
+                    style="min-width: 20px;"
+                  />
+                  <span ref="userCodeMeasure" class="measure-span text-xl font-semibold"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <button 
+              @click="finishSurvey" 
+              :disabled="!allQuestionsAnswered || isLoading || isSubmitted" 
+              :class="[
+                'w-[152px] h-14 rounded-full text-center text-2xl font-bold leading-9',
+                !allQuestionsAnswered || isLoading || isSubmitted
+                  ? 'bg-gray-400 text-gray-300 cursor-not-allowed'
+                  : 'bg-primary text-white'
+              ]"
+            >
+              Publish
+            </button>
+          </div>
         </div>
 
-        <!-- Alert Box -->
-        <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-accent pt-5">
+        <!-- Alert Box (moved outside of the new publish section) -->
+        <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-accent">
           <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5" />
           <span class="text-sm font-medium">Complete self review before publishing</span>
         </div>
@@ -195,10 +239,10 @@
     </div>
     <ToastView :message="toastMessage" :type="toastType" @hidden="clearToast" />
   </div>
-</template>
+</template> <!-- Is published section end -->
 
 <script>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
@@ -230,6 +274,11 @@ export default {
     const toastType = ref('');
     const userCode = ref('');
     const resultsLink = ref('');
+    const availableCodes = ref({ survey: [], user: [] });
+    const surveyCodeInput = ref(null);
+    const userCodeInput = ref(null);
+    const surveyCodeMeasure = ref(null);
+    const userCodeMeasure = ref(null);
 
     const allQuestionsAnswered = computed(() =>
       questions.value.length > 0 &&
@@ -250,6 +299,92 @@ export default {
       { text: "Do I take responsibility for my mistakes?", response_type: "boolean" }
     ];
 
+    function adjustWidth(event, type) {
+      const inputElement = type === 'survey' ? surveyCodeInput.value : userCodeInput.value;
+      const measureElement = type === 'survey' ? surveyCodeMeasure.value : userCodeMeasure.value;
+      
+      measureElement.textContent = event.target.value || event.target.placeholder;
+      inputElement.style.width = `${measureElement.offsetWidth}px`;
+    }
+
+    async function fetchInitialCodes() {
+      try {
+        const response = await api.getIds(10);
+        availableCodes.value.survey = response.data.ids.slice(0, 5);
+        availableCodes.value.user = response.data.ids.slice(5);
+        surveyCode.value = availableCodes.value.survey[0];
+        userCode.value = availableCodes.value.user[0];
+      } catch (error) {
+        console.error('Error fetching initial codes:', error);
+        toastMessage.value = t('createView.errorFetchingCodes');
+        toastType.value = 'error';
+      }
+    }
+
+    function rotateCode(type) {
+      const codes = availableCodes.value[type];
+      const currentCode = type === 'survey' ? surveyCode.value : userCode.value;
+      const currentIndex = codes.indexOf(currentCode);
+      const nextIndex = (currentIndex + 1) % codes.length;
+      if (type === 'survey') {
+        surveyCode.value = codes[nextIndex];
+      } else {
+        userCode.value = codes[nextIndex];
+      }
+    }
+
+    async function checkCodeAvailability(type) {
+      const code = type === 'survey' ? surveyCode.value : userCode.value;
+      console.log(`Checking availability for ${type} code: ${code}`);
+
+      try {
+        const response = await api.checkIdAvailability(code);
+        console.log(`API response for ${type} code:`, response);
+
+        if (!response.data || typeof response.data.available !== 'boolean') {
+          console.error(`Unexpected API response format for ${type} code:`, response.data);
+          toastMessage.value = t('createView.errorCheckingCode');
+          toastType.value = 'error';
+          return;
+        }
+
+        if (!response.data.available) {
+          console.log(`${type} code ${code} is not available`);
+          toastMessage.value = t('createView.codeNotAvailable');
+          toastType.value = 'error';
+          // Reset to the last known available code
+          if (type === 'survey') {
+            surveyCode.value = availableCodes.value.survey[0];
+            console.log(`Reset survey code to ${surveyCode.value}`);
+          } else {
+            userCode.value = availableCodes.value.user[0];
+            console.log(`Reset user code to ${userCode.value}`);
+          }
+        } else {
+          console.log(`${type} code ${code} is available`);
+          // Update the first available code in the list
+          if (type === 'survey') {
+            availableCodes.value.survey[0] = surveyCode.value;
+            console.log(`Updated available survey codes:`, availableCodes.value.survey);
+          } else {
+            availableCodes.value.user[0] = userCode.value;
+            console.log(`Updated available user codes:`, availableCodes.value.user);
+          }
+        }
+      } catch (error) {
+        console.error(`Error checking ${type} code availability:`, error);
+        if (error.response) {
+          console.error('Error response:', error.response.data);
+          console.error('Error status:', error.response.status);
+        } else if (error.request) {
+          console.error('No response received:', error.request);
+        } else {
+          console.error('Error setting up request:', error.message);
+        }
+        toastMessage.value = t('createView.errorCheckingCode');
+        toastType.value = 'error';
+      }
+    }
     function setQuestionType(type) {
       newQuestion.value.response_type = type;
       newQuestion.value.isAutogenerated = false;
@@ -322,16 +457,9 @@ export default {
       isLoading.value = true;
       errorMessage.value = '';
       try {
-        // Fetch IDs for the survey and user
-        // You might want to add logic here to determine a preferred survey ID if needed
-        const getRandomIds = await api.getIds(5, null); // or use a preferred ID if you have one
-
-        const surveyId = getRandomIds.data.ids[0];
-        const userId = getRandomIds.data.ids[1];
-
         const surveyData = {
-          survey_id: surveyId,
-          user_code: userId,
+          survey_id: surveyCode.value,
+          user_code: userCode.value,
           title: surveyTitle.value,
           description: surveyDescription.value,
           questions: questions.value.map((q, index) => ({
@@ -342,9 +470,7 @@ export default {
 
         const response = await api.createSurvey(surveyData);
         console.log('Survey created', response.data);
-        surveyCode.value = response.data.survey_id;
         surveyLink.value = response.data.share_link;
-        userCode.value = response.data.user_code;
         resultsLink.value = `/results/${surveyCode.value}/${userCode.value}`;
         isSubmitted.value = true;
         isPublished.value = true;
@@ -362,7 +488,21 @@ export default {
       }
     }
 
+    onMounted(() => {
+      fetchInitialCodes();
+      // Initial width adjustment
+      adjustWidth({ target: surveyCodeInput.value }, 'survey');
+      adjustWidth({ target: userCodeInput.value }, 'user');
+    });
+
     watch(() => newQuestion.value.text, handleQuestionChange);
+
+    watch([surveyCode, userCode], () => {
+      nextTick(() => {
+        adjustWidth({ target: surveyCodeInput.value }, 'survey');
+        adjustWidth({ target: userCodeInput.value }, 'user');
+      });
+    });
 
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
@@ -403,13 +543,18 @@ export default {
       clearToast,
       userCode,
       resultsLink,
-      copyToClipboard
+      rotateCode,
+      checkCodeAvailability,
+      copyToClipboard,
+      adjustWidth,
+      surveyCodeInput,
+      userCodeInput,
+      surveyCodeMeasure,
+      userCodeMeasure,
     };
   }
 }
 </script>
-
-
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
@@ -426,6 +571,16 @@ export default {
   100% {
     opacity: 0;
   }
+}
+
+/* Updated selector for measurement spans */
+.code-input-container .measure-span {
+  visibility: hidden;
+  white-space: pre;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
 }
 
 .animate-blink {
