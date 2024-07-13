@@ -137,13 +137,14 @@ export default {
   content: '';
   position: absolute;
   z-index: -2;
-  left: -50%;
-  top: -50%;
-  width: 200%;
-  height: 200%;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  padding-top: 100%; /* This makes the pseudo-element square */
+  transform: translate(-50%, -50%);
   background-color: var(--bg-color);
   background-repeat: no-repeat;
-  background-position: 0 0;
+  background-position: center;
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -171,7 +172,7 @@ export default {
 
 @keyframes rotate {
   100% {
-    transform: rotate(1turn);
+    transform: translate(-50%, -50%) rotate(1turn);
   }
 }
 
