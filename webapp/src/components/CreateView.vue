@@ -135,9 +135,14 @@
               :is-valid="isCodeValid('survey')"
               :is-error="isCodeInvalid('survey')"
               :loader-color="'#BE185D'"
+              :valid-border-color="'border-neutral-300'"
+              :neutral-border-color="'border-neutral-300'"
+              :text-color="'text-neutral-500'"
+              :icon-color="'text-neutral-500'"
               @rotate="rotateCode('survey')"
               @input="debounceCheckCode('survey')"
             />
+
 
             <!-- User Code Input -->
             <FancyInput
@@ -148,6 +153,10 @@
               :is-valid="isCodeValid('user')"
               :is-error="isCodeInvalid('user')"
               :loader-color="'#BE185D'"
+              :valid-border-color="'border-neutral-300'"
+              :neutral-border-color="'border-neutral-300'"
+              :text-color="'text-neutral-500'"
+              :icon-color="'text-neutral-500'"
               @rotate="rotateCode('user')"
               @input="debounceCheckCode('user')"
             />
@@ -308,7 +317,7 @@ export default {
         console.error('Error fetching initial codes:', error);
         toastMessage.value = t('createView.errorFetchingCodes');
         toastType.value = 'error';
-      }
+      }    
     }
 
     function rotateCode(type) {
