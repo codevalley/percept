@@ -127,64 +127,30 @@
         <div class="bg-accent-green rounded-[999px] p-4 flex items-center justify-between mb-4">
           <div class="flex items-center space-x-6">
             <!-- Survey Code Input -->
-            <div class="flex items-center">
-              <div :class="['fancy-border', { 'checking': isCheckingCode('survey') }]">
-                <div :class="['flex items-center justify-between px-4 h-full rounded-full bg-white border transition-colors',
-                  isCodeValid('survey') ? 'border-accent-green' : 
-                  isCodeInvalid('survey') ? 'border-red-500' : 'border-neutral-300']">
-                  <inline-svg 
-                    :src="isCodeInvalid('survey') ? '/assets/error-icon.svg' : '/assets/bookmark-icon.svg'" 
-                    :class="['w-6 h-6 cursor-pointer mr-2', 
-                      isCodeInvalid('survey') ? 'text-red-500' : 'text-primary']" 
-                    @click="rotateCode('survey')" 
-                  />
-                  <div class="relative code-input-container flex-grow">
-                    <input 
-                      ref="surveyCodeInput"
-                      v-model="surveyCode" 
-                      @input="debounceCheckCode('survey')"
-                      class="bg-transparent focus:outline-none w-full"
-                      :class="[
-                        'text-base font-medium',
-                        isCodeInvalid('survey') ? 'text-red-500' : 'text-primary'
-                      ]"
-                      :placeholder="'dashing-dalton'"
-                    />
-                    <span ref="surveyCodeMeasure" class="measure-span text-base font-medium"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <FancyInput
+              v-model="surveyCode"
+              :icon="'/assets/bookmark-icon.svg'"
+              :placeholder="'dashing-dalton'"
+              :is-checking="isCheckingCode('survey')"
+              :is-valid="isCodeValid('survey')"
+              :is-error="isCodeInvalid('survey')"
+              :loader-color="'#BE185D'"
+              @rotate="rotateCode('survey')"
+              @input="debounceCheckCode('survey')"
+            />
 
             <!-- User Code Input -->
-            <div class="flex items-center">
-              <div :class="['fancy-border', { 'checking': isCheckingCode('user') }]">
-                <div :class="['flex items-center justify-between px-4 h-full rounded-full bg-white border transition-colors',
-                  isCodeValid('user') ? 'border-accent-green' : 
-                  isCodeInvalid('user') ? 'border-red-500' : 'border-neutral-300']">
-                  <inline-svg 
-                    :src="isCodeInvalid('user') ? '/assets/error-icon.svg' : '/assets/user-icon.svg'" 
-                    :class="['w-6 h-6 cursor-pointer mr-2', 
-                      isCodeInvalid('user') ? 'text-red-500' : 'text-primary']" 
-                    @click="rotateCode('user')" 
-                  />
-                  <div class="relative code-input-container flex-grow">
-                    <input 
-                      ref="userCodeInput"
-                      v-model="userCode" 
-                      @input="debounceCheckCode('user')"
-                      class="bg-transparent focus:outline-none w-full"
-                      :class="[
-                        'text-base font-medium',
-                        isCodeInvalid('user') ? 'text-red-500' : 'text-primary'
-                      ]"
-                      :placeholder="'brown-bliss'"
-                    />
-                    <span ref="userCodeMeasure" class="measure-span text-base font-medium"></span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <FancyInput
+              v-model="userCode"
+              :icon="'/assets/user-icon.svg'"
+              :placeholder="'brown-bliss'"
+              :is-checking="isCheckingCode('user')"
+              :is-valid="isCodeValid('user')"
+              :is-error="isCodeInvalid('user')"
+              :loader-color="'#BE185D'"
+              @rotate="rotateCode('user')"
+              @input="debounceCheckCode('user')"
+            />
           </div>
           <div>
             <button 
@@ -265,12 +231,13 @@
 </template> <!-- Is published section end -->
 
 <script>
-import { ref, computed, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
 import InlineSvg from 'vue-inline-svg';
 import ToastView from '@/components/ToastView.vue';
+import FancyInput from '@/components/FancyInput.vue';
 import debounce from 'lodash/debounce';
 
 export default {
@@ -278,6 +245,7 @@ export default {
   components: {
     InlineSvg,
     ToastView,
+    FancyInput,
   },
   setup() {
     const { t } = useI18n();
@@ -299,10 +267,6 @@ export default {
     const userCode = ref('');
     const resultsLink = ref('');
     const availableCodes = ref({ survey: [], user: [] });
-    const surveyCodeInput = ref(null);
-    const userCodeInput = ref(null);
-    const surveyCodeMeasure = ref(null);
-    const userCodeMeasure = ref(null);
     const codeStatus = ref({ survey: null, user: null });
     const isChecking = ref({ survey: false, user: false });
 
@@ -332,17 +296,6 @@ export default {
       { text: "How adaptable am I to change?", response_type: "scale" },
       { text: "Do I take responsibility for my mistakes?", response_type: "boolean" }
     ];
-
-    // Also, update the adjustWidth function to handle null values
-    function adjustWidth(event, type) {
-      const inputElement = type === 'survey' ? surveyCodeInput.value : userCodeInput.value;
-      const measureElement = type === 'survey' ? surveyCodeMeasure.value : userCodeMeasure.value;
-      
-      if (inputElement && measureElement) {
-        measureElement.textContent = event.target.value || event.target.placeholder || '';
-        inputElement.style.width = `${measureElement.offsetWidth}px`;
-      }
-    }
 
     async function fetchInitialCodes() {
       try {
@@ -411,6 +364,7 @@ export default {
         isChecking.value[type] = false;
       }
     }
+
     function setQuestionType(type) {
       newQuestion.value.response_type = type;
       newQuestion.value.isAutogenerated = false;
@@ -516,21 +470,9 @@ export default {
 
     onMounted(async () => {
       await fetchInitialCodes();
-      nextTick(() => {
-        adjustWidth({ target: surveyCodeInput.value }, 'survey');
-        adjustWidth({ target: userCodeInput.value }, 'user');
-      });
     });
 
-    
     watch(() => newQuestion.value.text, handleQuestionChange);
-
-    watch([surveyCode, userCode], () => {
-      nextTick(() => {
-        adjustWidth({ target: surveyCodeInput.value }, 'survey');
-        adjustWidth({ target: userCodeInput.value }, 'user');
-      });
-    });
 
     function copyToClipboard(text) {
       navigator.clipboard.writeText(text).then(() => {
@@ -544,7 +486,7 @@ export default {
     }
 
     return {
-      t, // Make sure to return t so it can be used in the template
+      t,
       surveyTitle,
       surveyDescription,
       newQuestion,
@@ -574,11 +516,6 @@ export default {
       rotateCode,
       checkCodeAvailability,
       copyToClipboard,
-      adjustWidth,
-      surveyCodeInput,
-      userCodeInput,
-      surveyCodeMeasure,
-      userCodeMeasure,
       isCheckingCode,
       isCodeValid,
       isCodeInvalid,
