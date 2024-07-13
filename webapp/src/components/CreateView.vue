@@ -127,42 +127,68 @@
         <div class="bg-accent-green rounded-[999px] p-4 flex items-center justify-between mb-4">
           <div class="flex items-center space-x-6">
             <div class="flex items-center">
-              <div class="bg-white rounded-full flex items-center justify-between px-4 h-[42px]">
-                <inline-svg src="/assets/bookmark-icon.svg" class="w-6 h-6 text-primary cursor-pointer mr-2" @click="rotateCode('survey')" />
-                <div class="relative code-input-container">
-                  <input 
-                    ref="surveyCodeInput"
-                    v-model="surveyCode" 
-                    @blur="checkCodeAvailability('survey')"
-                    @input="adjustWidth($event, 'survey')"
-                    class="text-zinc-400 text-xl font-semibold bg-transparent focus:outline-none"
-                    :placeholder="'dashing-dalton'"
-                    style="min-width: 20px;"
+              <div :class="['fancy-border relative', { 'checking': isCheckingCode('survey') }]">
+                <div :class="['flex items-center justify-between px-4 h-10 rounded-full bg-white border transition-colors',
+                  isCheckingCode('survey') ? 'border-primary' : 
+                  isCodeValid('survey') ? 'border-accent-green' : 
+                  isCodeInvalid('survey') ? 'border-red-500' : 'border-neutral-300']">
+                  <inline-svg 
+                    :src="isCodeInvalid('survey') ? '/assets/error-icon.svg' : '/assets/bookmark-icon.svg'" 
+                    :class="['w-6 h-6 cursor-pointer mr-2', 
+                      isCodeInvalid('survey') ? 'text-red-500' : 'text-primary']" 
+                    @click="rotateCode('survey')" 
                   />
-                  <span ref="surveyCodeMeasure" class="measure-span text-xl font-semibold"></span>
+                  <div class="relative code-input-container">
+                    <input 
+                      ref="surveyCodeInput"
+                      v-model="surveyCode" 
+                      @input="debounceCheckCode('survey')"
+                      class="bg-transparent focus:outline-none"
+                      :class="[
+                        'text-base font-medium',
+                        isCodeInvalid('survey') ? 'text-red-500' : 'text-primary'
+                      ]"
+                      :placeholder="'dashing-dalton'"
+                      style="min-width: 20px;"
+                    />
+                    <span ref="surveyCodeMeasure" class="measure-span text-base font-medium"></span>
+                  </div>
                 </div>
               </div>
             </div>
 
+
             <div class="flex items-center">
-              <div class="bg-white rounded-full flex items-center justify-between px-4 h-[42px]">
-                <inline-svg src="/assets/user-icon.svg" class="w-6 h-6 text-primary cursor-pointer mr-2" @click="rotateCode('user')" />
-                <div class="relative code-input-container">
-                  <input 
-                    ref="userCodeInput"
-                    v-model="userCode" 
-                    @blur="checkCodeAvailability('user')"
-                    @input="adjustWidth($event, 'user')"
-                    class="text-zinc-400 text-xl font-semibold bg-transparent focus:outline-none"
-                    :placeholder="'brown-bliss'"
-                    style="min-width: 20px;"
+              <div :class="['fancy-border relative', { 'checking': isCheckingCode('user') }]">
+                <div :class="['flex items-center justify-between px-4 h-10 rounded-full bg-white border transition-colors',
+                  isCheckingCode('user') ? 'border-primary' : 
+                  isCodeValid('user') ? 'border-accent-green' : 
+                  isCodeInvalid('user') ? 'border-red-500' : 'border-neutral-300']">
+                  <inline-svg 
+                    :src="isCodeInvalid('user') ? '/assets/error-icon.svg' : '/assets/user-icon.svg'" 
+                    :class="['w-6 h-6 cursor-pointer mr-2', 
+                      isCodeInvalid('user') ? 'text-red-500' : 'text-primary']" 
+                    @click="rotateCode('user')" 
                   />
-                  <span ref="userCodeMeasure" class="measure-span text-xl font-semibold"></span>
+                  <div class="relative code-input-container">
+                    <input 
+                      ref="userCodeInput"
+                      v-model="userCode" 
+                      @input="debounceCheckCode('user')"
+                      class="bg-transparent focus:outline-none"
+                      :class="[
+                        'text-base font-medium',
+                        isCodeInvalid('user') ? 'text-red-500' : 'text-primary'
+                      ]"
+                      :placeholder="'brown-bliss'"
+                      style="min-width: 20px;"
+                    />
+                    <span ref="userCodeMeasure" class="measure-span text-base font-medium"></span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-
           <div>
             <button 
               @click="finishSurvey" 
@@ -248,6 +274,7 @@ import api from '@/services/api';
 import confetti from 'canvas-confetti';
 import InlineSvg from 'vue-inline-svg';
 import ToastView from '@/components/ToastView.vue';
+import debounce from 'lodash/debounce';
 
 export default {
   name: 'CreateView',
@@ -279,6 +306,16 @@ export default {
     const userCodeInput = ref(null);
     const surveyCodeMeasure = ref(null);
     const userCodeMeasure = ref(null);
+    const codeStatus = ref({ survey: null, user: null });
+    const isChecking = ref({ survey: false, user: false });
+
+    const isCheckingCode = (type) => isChecking.value[type];
+    const isCodeValid = (type) => codeStatus.value[type] === 'valid';
+    const isCodeInvalid = (type) => codeStatus.value[type] === 'invalid';
+
+    const debounceCheckCode = debounce((type) => {
+      checkCodeAvailability(type);
+    }, 750);
 
     const allQuestionsAnswered = computed(() =>
       questions.value.length > 0 &&
@@ -299,12 +336,15 @@ export default {
       { text: "Do I take responsibility for my mistakes?", response_type: "boolean" }
     ];
 
+    // Also, update the adjustWidth function to handle null values
     function adjustWidth(event, type) {
       const inputElement = type === 'survey' ? surveyCodeInput.value : userCodeInput.value;
       const measureElement = type === 'survey' ? surveyCodeMeasure.value : userCodeMeasure.value;
       
-      measureElement.textContent = event.target.value || event.target.placeholder;
-      inputElement.style.width = `${measureElement.offsetWidth}px`;
+      if (inputElement && measureElement) {
+        measureElement.textContent = event.target.value || event.target.placeholder || '';
+        inputElement.style.width = `${measureElement.offsetWidth}px`;
+      }
     }
 
     async function fetchInitialCodes() {
@@ -337,52 +377,41 @@ export default {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
       console.log(`Checking availability for ${type} code: ${code}`);
 
+      isChecking.value[type] = true;
+      codeStatus.value[type] = null;
+
       try {
         const response = await api.checkIdAvailability(code);
         console.log(`API response for ${type} code:`, response);
 
+        // Ensure the animation runs for at least 1 second
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         if (!response.data || typeof response.data.available !== 'boolean') {
-          console.error(`Unexpected API response format for ${type} code:`, response.data);
-          toastMessage.value = t('createView.errorCheckingCode');
-          toastType.value = 'error';
-          return;
+          throw new Error('Unexpected API response format');
         }
 
-        if (!response.data.available) {
+        if (response.data.available) {
+          codeStatus.value[type] = 'valid';
+          console.log(`${type} code ${code} is available`);
+          if (type === 'survey') {
+            availableCodes.value.survey[0] = surveyCode.value;
+          } else {
+            availableCodes.value.user[0] = userCode.value;
+          }
+        } else {
+          codeStatus.value[type] = 'invalid';
           console.log(`${type} code ${code} is not available`);
           toastMessage.value = t('createView.codeNotAvailable');
           toastType.value = 'error';
-          // Reset to the last known available code
-          if (type === 'survey') {
-            surveyCode.value = availableCodes.value.survey[0];
-            console.log(`Reset survey code to ${surveyCode.value}`);
-          } else {
-            userCode.value = availableCodes.value.user[0];
-            console.log(`Reset user code to ${userCode.value}`);
-          }
-        } else {
-          console.log(`${type} code ${code} is available`);
-          // Update the first available code in the list
-          if (type === 'survey') {
-            availableCodes.value.survey[0] = surveyCode.value;
-            console.log(`Updated available survey codes:`, availableCodes.value.survey);
-          } else {
-            availableCodes.value.user[0] = userCode.value;
-            console.log(`Updated available user codes:`, availableCodes.value.user);
-          }
         }
       } catch (error) {
         console.error(`Error checking ${type} code availability:`, error);
-        if (error.response) {
-          console.error('Error response:', error.response.data);
-          console.error('Error status:', error.response.status);
-        } else if (error.request) {
-          console.error('No response received:', error.request);
-        } else {
-          console.error('Error setting up request:', error.message);
-        }
+        codeStatus.value[type] = 'invalid';
         toastMessage.value = t('createView.errorCheckingCode');
         toastType.value = 'error';
+      } finally {
+        isChecking.value[type] = false;
       }
     }
     function setQuestionType(type) {
@@ -488,13 +517,15 @@ export default {
       }
     }
 
-    onMounted(() => {
-      fetchInitialCodes();
-      // Initial width adjustment
-      adjustWidth({ target: surveyCodeInput.value }, 'survey');
-      adjustWidth({ target: userCodeInput.value }, 'user');
+    onMounted(async () => {
+      await fetchInitialCodes();
+      nextTick(() => {
+        adjustWidth({ target: surveyCodeInput.value }, 'survey');
+        adjustWidth({ target: userCodeInput.value }, 'user');
+      });
     });
 
+    
     watch(() => newQuestion.value.text, handleQuestionChange);
 
     watch([surveyCode, userCode], () => {
@@ -551,6 +582,10 @@ export default {
       userCodeInput,
       surveyCodeMeasure,
       userCodeMeasure,
+      isCheckingCode,
+      isCodeValid,
+      isCodeInvalid,
+      debounceCheckCode,
     };
   }
 }
@@ -559,21 +594,61 @@ export default {
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
 
+/* Animations */
 @keyframes blink {
-  0% {
-    opacity: 0;
-  }
-
-  50% {
-    opacity: 1;
-  }
-
-  100% {
-    opacity: 0;
-  }
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
 
-/* Updated selector for measurement spans */
+@keyframes rotate {
+  100% { transform: rotate(360deg); }
+}
+
+/* General styles */
+.animate-blink {
+  animation: blink 1s infinite;
+}
+
+/* Fancy border styles */
+.fancy-border {
+  position: relative;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.fancy-border::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  opacity: 0;
+  background: conic-gradient(
+    from 0deg,
+    theme('colors.accent.DEFAULT') 0deg, 
+    transparent 60deg,
+    transparent 300deg,
+    theme('colors.accent.DEFAULT') 360deg
+  );
+  transition: opacity 0.3s ease;
+}
+
+.fancy-border.checking::before {
+  opacity: 1;
+  animation: rotate 2s linear infinite;
+}
+
+.fancy-border > div {
+  position: relative;
+  z-index: 1;
+}
+
+/* Code input styles */
+.code-input-container {
+  position: relative;
+}
+
 .code-input-container .measure-span {
   visibility: hidden;
   white-space: pre;
@@ -583,12 +658,11 @@ export default {
   z-index: -1;
 }
 
-.animate-blink {
-  animation: blink 1s infinite;
-}
-
+/* Transition styles */
 .fade-scale-enter-active,
-.fade-scale-leave-active {
+.fade-scale-leave-active,
+.list-enter-active,
+.list-leave-active {
   transition: all 0.3s ease;
 }
 
@@ -596,11 +670,6 @@ export default {
 .fade-scale-leave-to {
   opacity: 0;
   transform: scale(0.9);
-}
-
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.5s ease;
 }
 
 .list-enter-from,
