@@ -1,5 +1,5 @@
 <template>
-    <div class="flex items-center">
+    <div class="fancy-input-wrapper flex items-center">
       <div :class="['fancy-border', { 'checking': isChecking, 'error': isError }]">
         <div :class="[
           'flex items-center justify-between px-4 h-full rounded-full bg-white border transition-colors',
@@ -12,16 +12,13 @@
               isError ? 'text-red-500' : 'text-primary']" 
             @click="$emit('rotate')" 
           />
-          <div class="relative fancy-input-container flex-grow">
+          <div class="relative flex-grow">
             <input 
               ref="fancyInput"
               :value="modelValue"
               @input="handleInput"
-              class="bg-transparent focus:outline-none w-full"
-              :class="[
-                'text-base font-medium',
-                isError ? 'text-red-500' : 'text-primary'
-              ]"
+              class="bg-transparent focus:outline-none w-full text-base font-medium"
+              :class="isError ? 'text-red-500' : 'text-primary'"
               :placeholder="placeholder"
             />
             <span ref="measureSpan" class="measure-span text-base font-medium"></span>
@@ -105,6 +102,11 @@
   </script>
   
   <style scoped>
+  .fancy-input-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  
   .fancy-border {
     --offset: 3px;
     --loader-color: v-bind(loaderColor);
@@ -113,7 +115,6 @@
     position: relative;
     overflow: hidden;
     height: 40px;
-    width: auto;
     display: inline-block;
   }
   
@@ -158,12 +159,7 @@
     }
   }
   
-  .fancy-input-container {
-    position: relative;
-    display: inline-block;
-  }
-  
-  .fancy-input-container .measure-span {
+  .measure-span {
     visibility: hidden;
     white-space: pre;
     position: absolute;
@@ -172,3 +168,4 @@
     z-index: -1;
   }
   </style>
+  
