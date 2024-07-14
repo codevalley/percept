@@ -3,12 +3,15 @@ import nltk
 from nltk.corpus import wordnet as wn
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from pymongo.errors import DuplicateKeyError
+import re
 
 nltk.download('words', quiet=True)
 nltk.download('vader_lexicon', quiet=True)
 
 MIN_LEMMA_LEN = 3
 MAX_LEMMA_LEN = 10
+MIN_ID_LEN = 5
+ID_VALID_PATTERN = re.compile(r'^[a-zA-Z0-9-]+$')
 
 class IDManager:
     def __init__(self, db, collection_name='id_reserve', min_reserve=1000):
@@ -55,8 +58,18 @@ class IDManager:
         if result.matched_count == 0:
             self.reserve.insert_one({'_id': id, 'status': 'used'})
 
+    def is_valid_id_format(self, id):
+        """Check if the ID has a valid format."""
+        return (
+            isinstance(id, str) and
+            len(id) >= MIN_ID_LEN and
+            ID_VALID_PATTERN.match(id) is not None
+        )
+
     def is_id_available(self, id):
-        """Check if an ID is available."""
+        """Check if an ID is available and has a valid format."""
+        if not self.is_valid_id_format(id):
+            return False
         doc = self.reserve.find_one({'_id': id})
         if doc is None:
             # ID is not in the reserve, so it's available

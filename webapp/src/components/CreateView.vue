@@ -179,23 +179,23 @@
           </div>
         </div>
 
-        <!-- Alert Box (moved outside of the new publish section) -->
+        <!-- Updated Error Notes Section -->
         <div class="mb-6">
-          <div v-if="!allQuestionsAnswered || isCodeInvalid('survey') || isCodeInvalid('user') || !isValidFormat(surveyCode) || !isValidFormat(userCode)" class="flex flex-col space-y-2 text-accent">
+          <div v-if="!allQuestionsAnswered || isCodeInvalid('survey') || isCodeInvalid('user')" class="flex flex-col space-y-2 text-accent">
             <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2">
               <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5" />
               <span class="text-sm font-medium">Complete self review before publishing</span>
             </div>
-            <div v-if="isCodeInvalid('survey') || !isValidFormat(surveyCode)" class="flex items-center space-x-2">
+            <div v-if="isCodeInvalid('survey')" class="flex items-center space-x-2">
               <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5" />
               <span class="text-sm font-medium">
-                {{ isCodeInvalid('survey') ? 'Invalid survey code. Please choose a different one.' : 'Survey code can only contain letters, numbers, and hyphens.' }}
+                {{ getCodeErrorMessage('survey') }}
               </span>
             </div>
-            <div v-if="isCodeInvalid('user') || !isValidFormat(userCode)" class="flex items-center space-x-2">
+            <div v-if="isCodeInvalid('user')" class="flex items-center space-x-2">
               <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5" />
               <span class="text-sm font-medium">
-                {{ isCodeInvalid('user') ? 'Invalid user code. Please choose a different one.' : 'User code can only contain letters, numbers, and hyphens.' }}
+                {{ getCodeErrorMessage('user') }}
               </span>
             </div>
           </div>
@@ -298,36 +298,57 @@ export default {
     const isChecking = ref({ survey: false, user: false });
 
     const isCheckingCode = (type) => isChecking.value[type];
-    const isCodeValid = (type) => codeStatus.value[type] === 'valid';
-    const isCodeInvalid = (type) => codeStatus.value[type] === 'invalid';
-
+    
     const isValidFormat = (code) => {
       const validFormat = /^[a-zA-Z0-9-]+$/;
-      return validFormat.test(code);
+      return typeof code === 'string' && code.length >= 5 && validFormat.test(code);
     };
 
     const handleCodeInput = (type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
       if (isValidFormat(code)) {
+        codeStatus.value[type] = null; // Reset status before checking
         debounceCheckCode(type);
       } else {
         codeStatus.value[type] = 'invalid';
+        isChecking.value[type] = false;
       }
+    };
+    const getCodeErrorMessage = (type) => {
+      const code = type === 'survey' ? surveyCode.value : userCode.value;
+      if (!code || code.length < 5) {
+        return `${type === 'survey' ? 'Survey' : 'User'} code must be at least 5 characters long.`;
+      }
+      if (!/^[a-zA-Z0-9-]+$/.test(code)) {
+        return `${type === 'survey' ? 'Survey' : 'User'} code can only contain letters, numbers, and hyphens.`;
+      }
+      return `Invalid ${type === 'survey' ? 'survey' : 'user'} code. Please choose a different one.`;
     };
 
     const canPublish = computed(() => 
       allQuestionsAnswered.value && 
-      !isCodeInvalid('survey') && 
-      !isCodeInvalid('user') && 
-      isValidFormat(surveyCode.value) && 
-      isValidFormat(userCode.value) && 
+      isCodeValid('survey') && 
+      isCodeValid('user') && 
       !isLoading.value && 
       !isSubmitted.value
     );
 
     const debounceCheckCode = debounce((type) => {
-      checkCodeAvailability(type);
+      const code = type === 'survey' ? surveyCode.value : userCode.value;
+      if (isValidFormat(code)) {
+        checkCodeAvailability(type);
+      }
     }, 750);
+
+    const isCodeValid = (type) => {
+      const code = type === 'survey' ? surveyCode.value : userCode.value;
+      return isValidFormat(code) && codeStatus.value[type] === 'valid';
+    };
+
+    const isCodeInvalid = (type) => {
+      const code = type === 'survey' ? surveyCode.value : userCode.value;
+      return !isValidFormat(code) || codeStatus.value[type] === 'invalid';
+    };
 
     const allQuestionsAnswered = computed(() =>
       questions.value.length > 0 &&
@@ -574,6 +595,7 @@ export default {
       canPublish,
       isValidFormat,
       handleCodeInput,
+      getCodeErrorMessage,
     };
   }
 }

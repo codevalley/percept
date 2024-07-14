@@ -54,12 +54,19 @@ def check_id():
     if not id_to_check:
         return jsonify({'error': 'No ID provided'}), 400
 
+    if not id_manager.is_valid_id_format(id_to_check):
+        return jsonify({
+            'id': id_to_check,
+            'available': False,
+            'error': 'Invalid ID format. ID must be at least 5 characters long and contain only letters, numbers, and hyphens.'
+        }), 400
+
     available = id_manager.is_id_available(id_to_check)
     return jsonify({
         'id': id_to_check,
         'available': available
     })
-
+    
 @app.route('/api/v1/ids', methods=['GET'])
 def get_ids():
     preferred = request.args.get('id')
@@ -86,9 +93,13 @@ def create_survey():
         user_code = data['user_code']
         
         # Check if the IDs are available
-        if not id_manager.is_id_available(survey_id) or not id_manager.is_id_available(user_code):
-            app.logger.warning(f"Requested IDs are not available: survey_id={survey_id}, user_code={user_code}")
-            return jsonify({'error': 'Requested IDs are not available'}), 400
+        if not id_manager.is_id_available(survey_id):
+            app.logger.warning(f"Requested survey ID is not available: survey_id={survey_id}")
+            return jsonify({'error': 'Requested survey ID is not available'}), 400
+        
+        if not id_manager.is_id_available(user_code):
+            app.logger.warning(f"Requested user code is not available: user_code={user_code}")
+            return jsonify({'error': 'Requested user code is not available'}), 400
 
         survey = {
             'survey_id': survey_id,
@@ -105,21 +116,29 @@ def create_survey():
             ],
             'user_code': user_code
         }
+        
+        # Insert the survey into the database
         result = mongo.db.surveys.insert_one(survey)
-        app.logger.debug(f"Survey created with ID: {survey_id}")
         
-        # Mark the IDs as used
-        id_manager.mark_id_as_used(survey_id)
-        id_manager.mark_id_as_used(user_code)
-        
-        response = jsonify({
-            'survey_id': survey_id,
-            'share_link': f"/participate/{survey_id}",
-            'user_code': user_code,
-            'questions': [{'id': q['id'], 'text': q['text']} for q in survey['questions']]
-        })
-        app.logger.debug(f"Sending response: {response.get_data(as_text=True)}")
-        return response, 201
+        if result.inserted_id:
+            app.logger.debug(f"Survey created with ID: {survey_id}")
+            
+            # Mark the IDs as used only after successful insertion
+            id_manager.mark_id_as_used(survey_id)
+            id_manager.mark_id_as_used(user_code)
+            
+            response = jsonify({
+                'survey_id': survey_id,
+                'share_link': f"/participate/{survey_id}",
+                'user_code': user_code,
+                'questions': [{'id': q['id'], 'text': q['text']} for q in survey['questions']]
+            })
+            app.logger.debug(f"Sending response: {response.get_data(as_text=True)}")
+            return response, 201
+        else:
+            app.logger.error("Failed to insert survey into database")
+            return jsonify({'error': 'Failed to create survey'}), 500
+    
     except Exception as e:
         app.logger.error(f"Error creating survey: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
