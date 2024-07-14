@@ -141,11 +141,11 @@
               :error-bg-color="'bg-neutral'"
               :icon-color="'text-neutral-500'"
               @rotate="rotateCode('survey')"
-              @input="debounceCheckCode('survey')"
+              @input="handleCodeInput('survey')"
             />
 
 
-            <!-- User Code Input -->
+            <!-- User Code Input @input="debounceCheckCode('user')" -->
             <FancyInput
               v-model="userCode"
               :icon="'/assets/user-icon.svg'"
@@ -159,16 +159,17 @@
               :text-color="'text-neutral-500'"
               :icon-color="'text-neutral-500'"
               @rotate="rotateCode('user')"
-              @input="debounceCheckCode('user')"
+              
+              @input="handleCodeInput('survey')"
             />
           </div>
           <div>
             <button 
               @click="finishSurvey" 
-              :disabled="!allQuestionsAnswered || isLoading || isSubmitted" 
+              :disabled="!canPublish" 
               :class="[
                 'w-[152px] h-14 rounded-full text-center text-2xl font-bold leading-9',
-                !allQuestionsAnswered || isLoading || isSubmitted
+                !canPublish
                   ? 'bg-gray-400 text-gray-300 cursor-not-allowed'
                   : 'bg-primary text-white'
               ]"
@@ -179,9 +180,25 @@
         </div>
 
         <!-- Alert Box (moved outside of the new publish section) -->
-        <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2 mb-6 text-accent">
-          <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5" />
-          <span class="text-sm font-medium">Complete self review before publishing</span>
+        <div class="mb-6">
+          <div v-if="!allQuestionsAnswered || isCodeInvalid('survey') || isCodeInvalid('user') || !isValidFormat(surveyCode) || !isValidFormat(userCode)" class="flex flex-col space-y-2 text-accent">
+            <div v-if="!allQuestionsAnswered" class="flex items-center space-x-2">
+              <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5" />
+              <span class="text-sm font-medium">Complete self review before publishing</span>
+            </div>
+            <div v-if="isCodeInvalid('survey') || !isValidFormat(surveyCode)" class="flex items-center space-x-2">
+              <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5" />
+              <span class="text-sm font-medium">
+                {{ isCodeInvalid('survey') ? 'Invalid survey code. Please choose a different one.' : 'Survey code can only contain letters, numbers, and hyphens.' }}
+              </span>
+            </div>
+            <div v-if="isCodeInvalid('user') || !isValidFormat(userCode)" class="flex items-center space-x-2">
+              <inline-svg src="assets/info-icon.svg" class="text-accent w-5 h-5" />
+              <span class="text-sm font-medium">
+                {{ isCodeInvalid('user') ? 'Invalid user code. Please choose a different one.' : 'User code can only contain letters, numbers, and hyphens.' }}
+              </span>
+            </div>
+          </div>
         </div>
       </template>
 
@@ -283,6 +300,30 @@ export default {
     const isCheckingCode = (type) => isChecking.value[type];
     const isCodeValid = (type) => codeStatus.value[type] === 'valid';
     const isCodeInvalid = (type) => codeStatus.value[type] === 'invalid';
+
+    const isValidFormat = (code) => {
+      const validFormat = /^[a-zA-Z0-9-]+$/;
+      return validFormat.test(code);
+    };
+
+    const handleCodeInput = (type) => {
+      const code = type === 'survey' ? surveyCode.value : userCode.value;
+      if (isValidFormat(code)) {
+        debounceCheckCode(type);
+      } else {
+        codeStatus.value[type] = 'invalid';
+      }
+    };
+
+    const canPublish = computed(() => 
+      allQuestionsAnswered.value && 
+      !isCodeInvalid('survey') && 
+      !isCodeInvalid('user') && 
+      isValidFormat(surveyCode.value) && 
+      isValidFormat(userCode.value) && 
+      !isLoading.value && 
+      !isSubmitted.value
+    );
 
     const debounceCheckCode = debounce((type) => {
       checkCodeAvailability(type);
@@ -530,6 +571,9 @@ export default {
       isCodeValid,
       isCodeInvalid,
       debounceCheckCode,
+      canPublish,
+      isValidFormat,
+      handleCodeInput,
     };
   }
 }

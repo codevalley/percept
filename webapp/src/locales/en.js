@@ -17,6 +17,8 @@ export default {
       toastError: 'Failed to create survey. Please try again.',
       copySuccess: 'Copied to clipboard!',
       copyError: 'Failed to copy to clipboard',
+      errorCheckingCode:'Cannot validate the id',
+      codeNotAvailable:'The id is already used or invalid (contains space, special characters)'
     },
     homeView: {
       title: 'Calibrate your self awareness',
@@ -34,7 +36,6 @@ export default {
       finishButton: 'Finish',
       loadingMessage: 'Loading survey...',
       submittingButton: 'Publishing...',
-      errorLoading: 'Error loading survey. Please try again.',
       errorSubmitting: 'Error submitting survey. Please try again.',
       missingSurveyId: 'Survey ID is missing. Please check the URL and try again.',
       surveyNotFound: 'Survey not found. Please check the survey ID and try again.',
