@@ -36,6 +36,11 @@ export default {
       submittingButton: 'Publishing...',
       errorLoading: 'Error loading survey. Please try again.',
       errorSubmitting: 'Error submitting survey. Please try again.',
+      missingSurveyId: 'Survey ID is missing. Please check the URL and try again.',
+      surveyNotFound: 'Survey not found. Please check the survey ID and try again.',
+      errorLoading: 'An error occurred while loading the survey. Please try again later.',
+      unexpectedError: 'An unexpected error occurred. Please try again.',
+
     },
     header: {
       title: 'Backwave',

@@ -1,6 +1,9 @@
 <template>
   <div class="font-sans min-h-screen bg-white">
-    <div v-if="loadedSurveyData" class="max-w-[768px] mx-auto pt-16">
+    <div v-if="error" class="max-w-[768px] mx-auto px-4 pt-16 text-center">
+      <p class="text-2xl text-accent">{{ error }}</p>
+    </div>
+    <div v-else-if="loadedSurveyData" class="max-w-[768px] mx-auto pt-16">
       <!-- Combined Header and Question Section -->
       <div class="rounded-3xl overflow-hidden">
         <!-- Header Section -->
@@ -98,8 +101,11 @@
         </div>
       </div>
     </div>
-    <div v-else class="max-w-[768px] mx-auto px-4 pt-16 flex justify-center items-center">
+    <div v-else-if="isLoading" class="max-w-[768px] mx-auto px-4 pt-16 flex justify-center items-center">
       <p class="text-2xl text-primary">{{ $t('takeSurvey.loadingMessage') }}</p>
+    </div>
+    <div v-else class="max-w-[768px] mx-auto px-4 pt-16 flex justify-center items-center">
+      <p class="text-2xl text-accent">{{ $t('takeSurvey.unexpectedError') }}</p>
     </div>
   </div>
 </template>
@@ -119,17 +125,18 @@ export default {
   props: {
     surveyId: {
       type: String,
-      required: true
+      default:null
     },
     surveyData: {
       type: Object,
-      required: true
+      default:null
     }
   },
   setup(props, { emit }) {
     const { t } = useI18n();
     const router = useRouter();
     const loadedSurveyData = ref(null);
+    const error = ref(null);
     const currentQuestionIndex = ref(0);
     const answers = ref({});
     const currentAnswer = ref(null);
@@ -141,36 +148,43 @@ export default {
     const isLastQuestion = computed(() => currentQuestionIndex.value === loadedSurveyData.value?.questions.length - 1);
 
     onMounted(async () => {
-      if (props.surveyData) {
-        loadedSurveyData.value = props.surveyData;
+      if (!props.surveyId) {
+        error.value = t('takeSurvey.missingSurveyId');
         isLoading.value = false;
-      } else {
-        try {
+        return;
+      }
+
+      try {
+        if (props.surveyData) {
+          loadedSurveyData.value = props.surveyData;
+        } else {
           const response = await api.getSurvey(props.surveyId);
           loadedSurveyData.value = response.data;
-        } catch (error) {
-          console.error('Error fetching survey:', error);
-          if (error.response) {
-            switch (error.response.status) {
-              case 404:
-                emit('survey-error', t('takeSurvey.surveyNotFound'));
-                break;
-              case 403:
-                emit('survey-error', t('takeSurvey.surveyAccessDenied'));
-                break;
-              default:
-                emit('survey-error', t('takeSurvey.errorLoading'));
-            }
-          } else if (error.request) {
-            emit('survey-error', t('takeSurvey.networkError'));
-          } else {
-            emit('survey-error', t('takeSurvey.errorLoading'));
-          }
-        } finally {
-          isLoading.value = false;
         }
+      } catch (err) {
+        console.error('Error fetching survey:', err);
+        if (err.response) {
+          switch (err.response.status) {
+            case 404:
+              error.value = t('takeSurvey.surveyNotFound');
+              break;
+            case 403:
+              error.value = t('takeSurvey.surveyAccessDenied');
+              break;
+            default:
+              error.value = t('takeSurvey.errorLoading');
+          }
+        } else if (err.request) {
+          error.value = t('takeSurvey.networkError');
+        } else {
+          error.value = t('takeSurvey.errorLoading');
+        }
+        emit('survey-error', error.value);
+      } finally {
+        isLoading.value = false;
       }
     });
+
 
     function selectAnswer(value) {
       currentAnswer.value = value;
@@ -236,6 +250,7 @@ export default {
       selectAnswer,
       previousQuestion,
       nextQuestion,
+      error,
     };
   }
 }

@@ -3,6 +3,7 @@ import HomeView from '@/components/HomeView.vue'
 import CreateView from '@/components/CreateView.vue'
 import TakeSurvey from '@/components/TakeSurvey.vue'
 import ResultsView from '@/components/ResultsView.vue'
+import NotFound from './components/NotFound.vue'
 
 const routes = [
   {
@@ -16,10 +17,13 @@ const routes = [
     component: CreateView
   },
   {
-    path: '/participate/:surveyId',
+    path: '/participate/:surveyId',  // This ensures surveyId must be a number
     name: 'TakeSurvey',
     component: TakeSurvey,
-    props: true
+    props: route => ({ 
+      surveyId: route.params.surveyId ? route.params.surveyId : null,
+      surveyData: null  // We'll pass null for surveyData by default
+    }),
   },
   {
     path: '/results/:userCode',
@@ -32,6 +36,10 @@ const routes = [
     name: 'SurveyResults',
     component: ResultsView,
     props: true
+  },{
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFound  // Create a NotFound component for 404 errors
   }
 ]
 
