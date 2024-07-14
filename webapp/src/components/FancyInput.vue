@@ -154,7 +154,7 @@ export default {
   position: absolute;
   z-index: -1;
   inset: var(--offset);
-  background: white;
+  background: var(--bg-color);
   border-radius: 9999px;
 }
 

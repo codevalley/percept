@@ -1,5 +1,3 @@
-# id_manager.py
-
 import random
 import nltk
 from nltk.corpus import wordnet as wn
@@ -52,8 +50,10 @@ class IDManager:
         return ids
 
     def mark_id_as_used(self, id):
-        """Mark an ID as used."""
-        self.reserve.update_one({'_id': id}, {'$set': {'status': 'used'}})
+        """Mark an ID as used, inserting it if it does not exist in the reserve."""
+        result = self.reserve.update_one({'_id': id}, {'$set': {'status': 'used'}})
+        if result.matched_count == 0:
+            self.reserve.insert_one({'_id': id, 'status': 'used'})
 
     def is_id_available(self, id):
         """Check if an ID is available."""
@@ -141,19 +141,3 @@ class IDManager:
         """Check if a word is safe using VADER sentiment analysis."""
         sentiment_score = self.sia.polarity_scores(word)['compound']
         return sentiment_score >= 0
-
-# Usage in your main application:
-# id_manager = IDManager(mongo.db)
-# id_manager.initialize_reserve()
-
-# To get new IDs:
-# new_ids = id_manager.get_ids(count=5, preferred='desired-id')
-
-# To mark an ID as used:
-# id_manager.mark_id_as_used(chosen_id)
-
-# To check if an ID is available:
-# is_available = id_manager.is_id_available(some_id)
-
-# To add a custom ID:
-# id_manager.add_custom_id('custom-user-id')
