@@ -3,18 +3,21 @@
     <div 
       class="fancy-background"
       :class="[
-        { 'checking': isChecking, 'error': isError },
-        isChecking ? 'conic' : isError ? 'bg-red-500' : bgColor
+        { 'checking': isChecking, 'valid': isValid && isFocused, 'error': isError },
+        isChecking ? 'conic' : isError ? 'error-bg' : neutralBorderColor
       ]"
       :style="{
         '--bg-color': bgColor,
-        '--loader-color': loaderColor
+        '--loader-color': loaderColor,
+        '--valid-border-color': validBorderColor,
+        '--neutral-border-color': neutralBorderColor,
+        '--error-bg-color': errorBgColor
       }"
     >
-      <div class="fancy-inner flex items-center justify-between px-4 rounded-full bg-white">
+      <div class="fancy-inner flex items-center justify-between px-4 rounded-full" :class="isError ? 'bg-opacity-10' : 'bg-white'">
         <inline-svg 
-          :src="isError ? '/assets/error-icon.svg' : icon" 
-          :class="['w-6 h-6 cursor-pointer mr-2', isError ? 'text-red-500' : iconColor]" 
+          :src="iconToShow" 
+          :class="['w-6 h-6 cursor-pointer mr-2', iconColorClass]" 
           @click="$emit('rotate')" 
         />
         <div class="relative flex-grow">
@@ -22,6 +25,8 @@
             ref="fancyInput"
             :value="modelValue"
             @input="handleInput"
+            @focus="handleFocus"
+            @blur="handleBlur"
             class="bg-transparent focus:outline-none w-full text-base font-medium"
             :class="isError ? 'text-red-500' : textColor"
             :placeholder="placeholder"
@@ -34,7 +39,7 @@
 </template>
 
 <script>
-import { ref, watch, onMounted, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import InlineSvg from 'vue-inline-svg';
 
 export default {
@@ -59,6 +64,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    isValid: {
+      type: Boolean,
+      default: false,
+    },
     isError: {
       type: Boolean,
       default: false,
@@ -79,6 +88,18 @@ export default {
       type: String,
       default: '#BE185D',
     },
+    validBorderColor: {
+      type: String,
+      default: 'border-green-500',
+    },
+    neutralBorderColor: {
+      type: String,
+      default: 'border-neutral-300',
+    },
+    errorBgColor: {
+      type: String,
+      default: '#EF4444', // Tailwind's red-500
+    },
     offset: {
       type: Number,
       default: 2,
@@ -88,6 +109,19 @@ export default {
   setup(props, { emit }) {
     const fancyInput = ref(null);
     const measureSpan = ref(null);
+    const isFocused = ref(false);
+
+    const iconToShow = computed(() => {
+      if (props.isError) return '/assets/error-icon.svg';
+      if (props.isValid && isFocused.value) return '/assets/check-icon.svg';
+      return props.icon;
+    });
+
+    const iconColorClass = computed(() => {
+      if (props.isError) return 'text-red-500';
+      if (props.isValid && isFocused.value) return 'text-green-500';
+      return props.iconColor;
+    });
 
     const adjustWidth = () => {
       if (fancyInput.value && measureSpan.value) {
@@ -102,6 +136,14 @@ export default {
       nextTick(adjustWidth);
     };
 
+    const handleFocus = () => {
+      isFocused.value = true;
+    };
+
+    const handleBlur = () => {
+      isFocused.value = false;
+    };
+
     watch(() => props.modelValue, adjustWidth);
     watch(() => props.placeholder, adjustWidth);
 
@@ -112,7 +154,12 @@ export default {
     return {
       fancyInput,
       measureSpan,
+      isFocused,
+      iconToShow,
+      iconColorClass,
       handleInput,
+      handleFocus,
+      handleBlur,
     };
   },
 };
@@ -131,6 +178,17 @@ export default {
   overflow: hidden;
   padding: var(--offset);
   background-color: var(--bg-color);
+  border: 1px solid var(--neutral-border-color);
+  transition: all 0.3s ease;
+}
+
+.fancy-background.valid {
+  border-color: var(--valid-border-color);
+}
+
+.fancy-background.error-bg {
+  background-color: var(--error-bg-color);
+  border-color: var(--error-bg-color);
 }
 
 .fancy-background::before {
@@ -140,7 +198,7 @@ export default {
   top: 50%;
   left: 50%;
   width: 100%;
-  padding-top: 100%; /* This makes the pseudo-element square */
+  padding-top: 100%;
   transform: translate(-50%, -50%);
   background-color: var(--bg-color);
   background-repeat: no-repeat;

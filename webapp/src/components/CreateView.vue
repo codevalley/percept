@@ -130,7 +130,7 @@
             <FancyInput
               v-model="surveyCode"
               :icon="'/assets/bookmark-icon.svg'"
-              :placeholder="'dashing-dalton'"
+              :placeholder="'survey-code'"
               :is-checking="isCheckingCode('survey')"
               :is-valid="isCodeValid('survey')"
               :is-error="isCodeInvalid('survey')"
@@ -148,7 +148,7 @@
             <FancyInput
               v-model="userCode"
               :icon="'/assets/user-icon.svg'"
-              :placeholder="'brown-bliss'"
+              :placeholder="'user-name'"
               :is-checking="isCheckingCode('user')"
               :is-valid="isCodeValid('user')"
               :is-error="isCodeInvalid('user')"
