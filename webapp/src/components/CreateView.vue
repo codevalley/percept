@@ -138,6 +138,7 @@
               :valid-border-color="'border-neutral-300'"
               :neutral-border-color="'border-neutral-300'"
               :text-color="'text-neutral-500'"
+              :error-bg-color="'bg-neutral'"
               :icon-color="'text-neutral-500'"
               @rotate="rotateCode('survey')"
               @input="debounceCheckCode('survey')"

@@ -144,7 +144,15 @@ export default {
       isFocused.value = false;
     };
 
-    watch(() => props.modelValue, adjustWidth);
+    watch(() => props.modelValue, (newValue) => {
+      nextTick(() => {
+        if (fancyInput.value) {
+          fancyInput.value.value = newValue;
+          adjustWidth();
+        }
+      });
+    });
+
     watch(() => props.placeholder, adjustWidth);
 
     onMounted(() => {
