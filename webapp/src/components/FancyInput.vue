@@ -1,42 +1,41 @@
 <template>
-  <div class="fancy-input-wrapper" :style="{ '--offset': offset + 'px' }">
+  <div class="fancy-input-wrapper" :style="wrapperStyle">
     <div 
       class="fancy-background"
       :class="[
         { 'checking': isChecking, 'valid': isValid && isFocused, 'error': isError },
-        isChecking ? 'conic' : isError ? 'error-bg' : neutralBorderColor
+        isChecking ? 'conic' : isError ? 'error-bg' : 'neutral-bg'
       ]"
-      :style="{
-        '--bg-color': bgColor,
-        '--loader-color': loaderColor,
-        '--valid-border-color': validBorderColor,
-        '--neutral-border-color': neutralBorderColor,
-        '--error-bg-color': errorBgColor
-      }"
+      :style="backgroundStyle"
     >
-      <div class="fancy-inner flex items-center justify-between px-4 rounded-full" :class="isError ? 'bg-opacity-10' : 'bg-white'">
-        <inline-svg 
-          :src="iconToShow" 
-          :class="['w-6 h-6 cursor-pointer mr-2', iconColorClass]" 
-          @click="$emit('rotate')" 
-        />
-        <div class="relative flex-grow">
+      <div class="fancy-inner flex items-center justify-between rounded-full" :style="innerStyle">
+        <div class="icon-container" :style="iconContainerStyle">
+          <inline-svg 
+            :src="iconToShow" 
+            :class="['cursor-pointer', iconColorClass]" 
+            :style="iconStyle"
+            @click="$emit('rotate')" 
+          />
+        </div>
+        <div class="input-container flex-grow">
           <input 
             ref="fancyInput"
             :value="modelValue"
             @input="handleInput"
             @focus="handleFocus"
             @blur="handleBlur"
-            class="bg-transparent focus:outline-none w-full text-base font-medium"
-            :class="isError ? 'text-red-500' : textColor"
+            class="bg-transparent focus:outline-none w-full"
+            :class="[isError ? 'text-red-500' : textColor, fontSize]"
+            :style="inputStyle"
             :placeholder="placeholder"
           />
-          <span ref="measureSpan" class="measure-span text-base font-medium"></span>
+          <span ref="measureSpan" :class="fontSize" class="measure-span font-medium"></span>
         </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
@@ -100,9 +99,29 @@ export default {
       type: String,
       default: '#EF4444', // Tailwind's red-500
     },
-    offset: {
+    maxWidth: {
+      type: String,
+      default: null,
+    },
+    minWidth: {
+      type: String,
+      default: null,
+    },
+    borderWidth: {
       type: Number,
       default: 2,
+    },
+    inputHeight: {
+      type: String,
+      default: '38px',
+    },
+    iconSize: {
+      type: String,
+      default: '24px',
+    },
+    fontSize: {
+      type: String,
+      default: 'text-base',
     },
   },
   emits: ['update:modelValue', 'rotate', 'input'],
@@ -110,6 +129,48 @@ export default {
     const fancyInput = ref(null);
     const measureSpan = ref(null);
     const isFocused = ref(false);
+    const dynamicWidth = ref('auto');
+
+    const wrapperStyle = computed(() => ({
+      '--border-width': `${props.borderWidth}px`,
+      width: dynamicWidth.value,
+      maxWidth: props.maxWidth,
+      minWidth: props.minWidth,
+    }));
+
+    const backgroundStyle = computed(() => ({
+      '--bg-color': props.bgColor,
+      '--loader-color': props.loaderColor,
+      '--valid-border-color': props.validBorderColor,
+      '--error-bg-color': props.errorBgColor,
+      '--input-height': props.inputHeight,
+    }));
+
+    const iconContainerStyle = computed(() => ({
+      width: props.iconSize,
+      height: props.iconSize,
+      minWidth: props.iconSize,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: '8px', // Space between icon and input
+    }));
+
+    const iconStyle = computed(() => ({
+      width: '100%',
+      height: '100%',
+
+    }));
+    
+    const innerStyle = computed(() => ({
+      height: props.inputHeight,
+      padding: `0 8px 0 8px`, // Add left padding here
+    }));
+
+    const inputStyle = computed(() => ({
+      height: props.inputHeight,
+      paddingRight: '8px', // Add some padding on the right side
+    }));
 
     const iconToShow = computed(() => {
       if (props.isError) return '/assets/error-icon.svg';
@@ -126,7 +187,9 @@ export default {
     const adjustWidth = () => {
       if (fancyInput.value && measureSpan.value) {
         measureSpan.value.textContent = fancyInput.value.value || fancyInput.value.placeholder || '';
-        fancyInput.value.style.width = `${measureSpan.value.offsetWidth}px`;
+        const iconWidth = parseInt(props.iconSize);
+        const newWidth = `${measureSpan.value.offsetWidth + iconWidth + 36}px`; // Icon width + left padding + right padding
+        dynamicWidth.value = newWidth;
       }
     };
 
@@ -163,11 +226,17 @@ export default {
       fancyInput,
       measureSpan,
       isFocused,
+      wrapperStyle,
+      backgroundStyle,
+      innerStyle,
+      inputStyle,
       iconToShow,
       iconColorClass,
       handleInput,
       handleFocus,
       handleBlur,
+      iconContainerStyle,
+      iconStyle,
     };
   },
 };
@@ -175,7 +244,8 @@ export default {
 
 <style scoped>
 .fancy-input-wrapper {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   position: relative;
 }
 
@@ -184,61 +254,65 @@ export default {
   z-index: 0;
   border-radius: 9999px;
   overflow: hidden;
-  padding: var(--offset);
   background-color: var(--bg-color);
-  border: 1px solid var(--neutral-border-color);
   transition: all 0.3s ease;
-}
-
-.fancy-background.valid {
-  border-color: var(--valid-border-color);
-}
-
-.fancy-background.error-bg {
-  background-color: var(--error-bg-color);
-  border-color: var(--error-bg-color);
+  width: 100%;
+  height: calc(var(--input-height) + (var(--border-width) * 2));
 }
 
 .fancy-background::before {
   content: '';
   position: absolute;
-  z-index: -2;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  padding-top: 100%;
-  transform: translate(-50%, -50%);
+  inset: 0;
   background-color: var(--bg-color);
-  background-repeat: no-repeat;
-  background-position: center;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.fancy-background::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: var(--offset);
-  background: var(--bg-color);
   border-radius: 9999px;
 }
 
-.fancy-background.conic::before {
-  opacity: 1;
-  background-image: conic-gradient(var(--loader-color), var(--bg-color), var(--loader-color));
+.fancy-background.valid::before {
+  background-color: var(--valid-border-color);
+}
+
+.fancy-background.error-bg::before {
+  background-color: var(--error-bg-color);
+}
+
+.fancy-background.conic::after {
+  content: '';
+  position: absolute;
+  top: -150%;
+  left: -150%;
+  right: -150%;
+  bottom: -150%;
+  background-image: conic-gradient(
+    from 0deg,
+    var(--loader-color),
+    var(--bg-color),
+    var(--loader-color),
+    var(--bg-color),
+    var(--loader-color)
+  );
   animation: rotate 2s linear infinite;
+
+  opacity: 0.7; /* Adjust this value for visibility during debugging */
 }
 
 .fancy-inner {
-  position: relative;
+  position: absolute;
+  top: var(--border-width);
+  left: var(--border-width);
+  right: var(--border-width);
+  bottom: var(--border-width);
+  border-radius: 9999px;
+  background: white;
   z-index: 1;
-  height: 40px;
 }
 
 @keyframes rotate {
+  0% {
+    transform: rotate(0deg);
+  }
   100% {
-    transform: translate(-50%, -50%) rotate(1turn);
+    transform: rotate(360deg);
   }
 }
 
