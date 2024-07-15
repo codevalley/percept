@@ -9,7 +9,7 @@
       :style="backgroundStyle"
     >
       <div class="fancy-inner flex items-center justify-between rounded-full" :style="innerStyle">
-        <div class="icon-container" :style="iconContainerStyle">
+        <div v-if="icon" class="icon-container" :style="iconContainerStyle">
           <inline-svg 
             :src="iconToShow" 
             :class="['cursor-pointer', iconColorClass]" 
@@ -17,7 +17,7 @@
             @click="$emit('rotate')" 
           />
         </div>
-        <div class="input-container flex-grow">
+        <div class="input-container flex-grow" :class="{ 'text-center': !icon }">
           <input 
             ref="fancyInput"
             :value="modelValue"
@@ -35,6 +35,7 @@
     </div>
   </div>
 </template>
+
 
 
 <script>
@@ -164,12 +165,13 @@ export default {
     
     const innerStyle = computed(() => ({
       height: props.inputHeight,
-      padding: `0 8px 0 8px`, // Add left padding here
+      padding: props.icon ? `0 8px 0 8px` : `0 8px`, // Adjust padding based on icon presence
     }));
 
     const inputStyle = computed(() => ({
       height: props.inputHeight,
       paddingRight: '8px', // Add some padding on the right side
+      paddingLeft: props.icon? `0` : `8px`
     }));
 
     const iconToShow = computed(() => {
@@ -187,8 +189,8 @@ export default {
     const adjustWidth = () => {
       if (fancyInput.value && measureSpan.value) {
         measureSpan.value.textContent = fancyInput.value.value || fancyInput.value.placeholder || '';
-        const iconWidth = parseInt(props.iconSize);
-        const newWidth = `${measureSpan.value.offsetWidth + iconWidth + 36}px`; // Icon width + left padding + right padding
+        const iconWidth = props.icon ? parseInt(props.iconSize) : 0;
+        const newWidth = `${measureSpan.value.offsetWidth + iconWidth + (props.icon ? 36 : 34)}px`; // Adjust padding based on icon presence
         dynamicWidth.value = newWidth;
       }
     };
