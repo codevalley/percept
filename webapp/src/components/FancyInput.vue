@@ -171,7 +171,8 @@ export default {
     const inputStyle = computed(() => ({
       height: props.inputHeight,
       paddingRight: '8px', // Add some padding on the right side
-      paddingLeft: props.icon? `0` : `8px`
+      paddingLeft: props.icon? `0` : `8px`,
+      textAlign: props.icon ? 'left' : 'center', // Center text if no icon
     }));
 
     const iconToShow = computed(() => {
@@ -304,9 +305,16 @@ export default {
   left: var(--border-width);
   right: var(--border-width);
   bottom: var(--border-width);
-  border-radius: 9999px;
   background: white;
   z-index: 1;
+}
+.input-container {
+  position: relative;
+  overflow: hidden; /* Prevent text from overflowing */
+}
+
+.input-container.text-center input {
+  text-align: center;
 }
 
 @keyframes rotate {
