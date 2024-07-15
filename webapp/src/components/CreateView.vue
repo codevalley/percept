@@ -159,8 +159,7 @@
               :text-color="'text-neutral-500'"
               :icon-color="'text-neutral-500'"
               @rotate="rotateCode('user')"
-              
-              @input="handleCodeInput('survey')"
+              @input="handleCodeInput('user')"
             />
           </div>
           <div>
@@ -376,6 +375,10 @@ export default {
         availableCodes.value.user = response.data.ids.slice(5);
         surveyCode.value = availableCodes.value.survey[0];
         userCode.value = availableCodes.value.user[0];
+
+        // Set initial code statuses to valid
+        codeStatus.value.survey = 'valid';
+        codeStatus.value.user = 'valid';
       } catch (error) {
         console.error('Error fetching initial codes:', error);
         toastMessage.value = t('createView.errorFetchingCodes');
@@ -393,6 +396,7 @@ export default {
       } else {
         userCode.value = codes[nextIndex];
       }
+      codeStatus[type] = 'valid';
     }
 
     async function checkCodeAvailability(type) {

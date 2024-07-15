@@ -6,3 +6,4 @@
 - fancyInput dimensions to be customizable (height) 
   - use fancyButton from fancyInput, which can be used for CTAs
   - use fancyInputs for every searchbox
+- Add fancyInput for participate as well
