@@ -176,7 +176,7 @@
               label="Publish"
               color="primary"
               size="large"
-              border-width="2"
+              :border-width="2"
               :disabled="!canPublish"
               :is-verifying="isVerifying"
               @click="handlePublishClick"
@@ -339,8 +339,7 @@ export default {
       isCodeValid('survey') && 
       isCodeValid('user') && 
       !isLoading.value && 
-      !isSubmitted.value &&
-      !isVerifying.value
+      !isSubmitted.value 
     );
 
     const debounceCheckCode = debounce((type) => {
@@ -658,67 +657,6 @@ export default {
 .animate-blink {
   animation: blink 1s infinite;
 }
-
-/* Fancy border styles */
-/* Updated Fancy border styles */
-.fancy-border {
-  position: relative;
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.fancy-border {
-  --offset: 3px;
-  background: white;  /* Changed from the tutorial's dark background */
-  border-radius: 9999px;
-  position: relative;
-  overflow: hidden;
-  height: 40px;  /* Adjust as needed */
-  width: 100%;  /* Adjust as needed */
-}
-
-.fancy-border::before {
-  content: '';
-  background: conic-gradient(transparent 270deg, red, transparent);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  aspect-ratio: 1;
-  width: 100%;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.fancy-border.checking::before {
-  opacity: 1;
-  animation: rotate 2s linear infinite;
-}
-
-.fancy-border::after {
-  content: '';
-  background: inherit;
-  border-radius: inherit;
-  position: absolute;
-  inset: var(--offset);
-}
-
-.fancy-border > div {
-  position: relative;
-  z-index: 10;
-  height: 100%;
-}
-
-@keyframes rotate {
-  from {
-    transform: translate(-50%, -50%) scale(1.4) rotate(0turn);
-  }
-  to {
-    transform: translate(-50%, -50%) scale(1.4) rotate(1turn);
-  }
-}
-
-
 
 /* Code input styles */
 .code-input-container {

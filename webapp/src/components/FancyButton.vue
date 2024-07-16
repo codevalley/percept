@@ -5,8 +5,7 @@
       :class="[
         { 'has-icon': icon },
         { 'disabled': disabled },
-        { 'conic': isVerifying },
-        buttonColorClass
+        isVerifying ? 'conic' : buttonColorClass
       ]"
       :style="backgroundStyle"
     >
@@ -170,7 +169,10 @@ export default {
 .fancy-background.conic::after {
   content: '';
   position: absolute;
-  inset: calc(-1 * var(--border-width));
+  top: -150%;
+  left: -150%;
+  right: -150%;
+  bottom: -150%;
   background-image: conic-gradient(
     from 0deg,
     var(--loader-color),
@@ -180,7 +182,7 @@ export default {
     var(--loader-color)
   );
   animation: rotate 2s linear infinite;
-  z-index: 3; /* Move to top for debugging */
+  z-index: 1;
   opacity: 0.7;
 }
 
@@ -190,6 +192,14 @@ export default {
   background: white;
   z-index: 2;
   border-radius: 9999px;
+}
+
+.fancy-background.conic {
+  cursor: wait;
+}
+
+.fancy-background.conic .fancy-inner {
+  background-color: var(--bg-color);
 }
 
 @keyframes rotate {
