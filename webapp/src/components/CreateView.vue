@@ -172,18 +172,15 @@
             />
           </div>
           <div>
-            <button 
-              @click="finishSurvey" 
-              :disabled="!canPublish" 
-              :class="[
-                'w-[152px] h-14 rounded-full text-center text-2xl font-bold leading-9',
-                !canPublish
-                  ? 'bg-gray-400 text-gray-300 cursor-not-allowed'
-                  : 'bg-primary text-white'
-              ]"
-            >
-              Publish
-            </button>
+            <FancyButton
+              label="Publish"
+              color="primary"
+              size="large"
+              border-width="2"
+              :disabled="!canPublish"
+              :is-verifying="isVerifying"
+              @click="handlePublishClick"
+            />
           </div>
         </div>
 
@@ -274,6 +271,7 @@ import InlineSvg from 'vue-inline-svg';
 import ToastView from '@/components/ToastView.vue';
 import FancyInput from '@/components/FancyInput.vue';
 import debounce from 'lodash/debounce';
+import FancyButton from "@/components/FancyButton.vue";
 
 export default {
   name: 'CreateView',
@@ -281,6 +279,7 @@ export default {
     InlineSvg,
     ToastView,
     FancyInput,
+    FancyButton,
   },
   setup() {
     const { t } = useI18n();
@@ -304,7 +303,9 @@ export default {
     const availableCodes = ref({ survey: [], user: [] });
     const codeStatus = ref({ survey: null, user: null });
     const isChecking = ref({ survey: false, user: false });
+    const isVerifying = ref(false);
 
+    const isPublishing = ref(false);
     const isCheckingCode = (type) => isChecking.value[type];
     
     const isValidFormat = (code) => {
@@ -338,7 +339,8 @@ export default {
       isCodeValid('survey') && 
       isCodeValid('user') && 
       !isLoading.value && 
-      !isSubmitted.value
+      !isSubmitted.value &&
+      !isVerifying.value
     );
 
     const debounceCheckCode = debounce((type) => {
@@ -516,12 +518,33 @@ export default {
       toastType.value = '';
     }
 
-    async function finishSurvey() {
-      if (isSubmitted.value || !allQuestionsAnswered.value) return;
+    const handlePublishClick = () => {
+      if (isVerifying.value) return;
+      isVerifying.value = true;
+      setTimeout(() => {
+        isVerifying.value = false;
+        debouncedFinishSurvey();
+      }, 750);
+    };
+    
+    const debouncedFinishSurvey = debounce(async () => {
+      console.log('debouncedFinishSurvey called');
+      
+      if (isPublishing.value || isSubmitted.value || !allQuestionsAnswered.value) {
+        console.log('Survey submission prevented:', { 
+          isPublishing: isPublishing.value, 
+          isSubmitted: isSubmitted.value, 
+          allQuestionsAnswered: allQuestionsAnswered.value 
+        });
+        return;
+      }
 
+      isPublishing.value = true;
       isLoading.value = true;
       errorMessage.value = '';
+
       try {
+        console.log('Preparing survey data for submission');
         const surveyData = {
           survey_id: surveyCode.value,
           user_code: userCode.value,
@@ -533,14 +556,18 @@ export default {
           }))
         };
 
+        console.log('Submitting survey to API');
         const response = await api.createSurvey(surveyData);
-        console.log('Survey created', response.data);
+        console.log('Survey created successfully', response.data);
+
         surveyLink.value = response.data.share_link;
         resultsLink.value = `/results/${surveyCode.value}/${userCode.value}`;
         isSubmitted.value = true;
         isPublished.value = true;
         showSuccess.value = true;
+
         celebrateSuccess();
+
         toastMessage.value = t('createView.toastSuccess');
         toastType.value = 'success';
       } catch (error) {
@@ -550,8 +577,10 @@ export default {
         toastType.value = 'error';
       } finally {
         isLoading.value = false;
+        isPublishing.value = false;
+        console.log('Survey submission process completed');
       }
-    }
+    }, 100); // 300ms debounce
 
     onMounted(async () => {
       await fetchInitialCodes();
@@ -594,7 +623,7 @@ export default {
       addQuestion,
       handleAddOrSuggest,
       selectAnswer,
-      finishSurvey,
+      debouncedFinishSurvey,
       clearToast,
       userCode,
       resultsLink,
@@ -608,6 +637,7 @@ export default {
       canPublish,
       isValidFormat,
       handleCodeInput,
+      handlePublishClick,
       getCodeErrorMessage,
     };
   }
