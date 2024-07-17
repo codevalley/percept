@@ -174,12 +174,18 @@
           <div>
             <FancyButton
               label="Publish"
-              color="primary"
-              size="large"
-              :border-width="2"
+              icon="/assets/publish-icon.svg"
               :disabled="!canPublish"
-              :is-verifying="isVerifying"
-              @click="handlePublishClick"
+              :is-actioning="isPublishing"
+              @click="finishSurvey"
+              bg-color="white"
+              text-color="text-black"
+              icon-color="text-black"
+              :border-width="3"
+              button-height="56px"
+              icon-size="24px"
+              font-size="text-2xl"
+              :min-width="'152px'"
             />
           </div>
         </div>
@@ -270,8 +276,8 @@ import confetti from 'canvas-confetti';
 import InlineSvg from 'vue-inline-svg';
 import ToastView from '@/components/ToastView.vue';
 import FancyInput from '@/components/FancyInput.vue';
+import FancyButton from '@/components/FancyButton.vue';
 import debounce from 'lodash/debounce';
-import FancyButton from "@/components/FancyButton.vue";
 
 export default {
   name: 'CreateView',
@@ -303,9 +309,8 @@ export default {
     const availableCodes = ref({ survey: [], user: [] });
     const codeStatus = ref({ survey: null, user: null });
     const isChecking = ref({ survey: false, user: false });
-    const isVerifying = ref(false);
-
     const isPublishing = ref(false);
+
     const isCheckingCode = (type) => isChecking.value[type];
     
     const isValidFormat = (code) => {
@@ -339,7 +344,7 @@ export default {
       isCodeValid('survey') && 
       isCodeValid('user') && 
       !isLoading.value && 
-      !isSubmitted.value 
+      !isSubmitted.value
     );
 
     const debounceCheckCode = debounce((type) => {
@@ -517,33 +522,13 @@ export default {
       toastType.value = '';
     }
 
-    const handlePublishClick = () => {
-      if (isVerifying.value) return;
-      isVerifying.value = true;
-      setTimeout(() => {
-        isVerifying.value = false;
-        debouncedFinishSurvey();
-      }, 750);
-    };
-    
-    const debouncedFinishSurvey = debounce(async () => {
-      console.log('debouncedFinishSurvey called');
-      
-      if (isPublishing.value || isSubmitted.value || !allQuestionsAnswered.value) {
-        console.log('Survey submission prevented:', { 
-          isPublishing: isPublishing.value, 
-          isSubmitted: isSubmitted.value, 
-          allQuestionsAnswered: allQuestionsAnswered.value 
-        });
-        return;
-      }
+    async function finishSurvey() {
+      if (isSubmitted.value || !allQuestionsAnswered.value) return;
 
       isPublishing.value = true;
       isLoading.value = true;
       errorMessage.value = '';
-
       try {
-        console.log('Preparing survey data for submission');
         const surveyData = {
           survey_id: surveyCode.value,
           user_code: userCode.value,
@@ -555,18 +540,14 @@ export default {
           }))
         };
 
-        console.log('Submitting survey to API');
         const response = await api.createSurvey(surveyData);
-        console.log('Survey created successfully', response.data);
-
+        console.log('Survey created', response.data);
         surveyLink.value = response.data.share_link;
         resultsLink.value = `/results/${surveyCode.value}/${userCode.value}`;
         isSubmitted.value = true;
         isPublished.value = true;
         showSuccess.value = true;
-
         celebrateSuccess();
-
         toastMessage.value = t('createView.toastSuccess');
         toastType.value = 'success';
       } catch (error) {
@@ -577,9 +558,8 @@ export default {
       } finally {
         isLoading.value = false;
         isPublishing.value = false;
-        console.log('Survey submission process completed');
       }
-    }, 100); // 300ms debounce
+    }
 
     onMounted(async () => {
       await fetchInitialCodes();
@@ -622,7 +602,7 @@ export default {
       addQuestion,
       handleAddOrSuggest,
       selectAnswer,
-      debouncedFinishSurvey,
+      finishSurvey,
       clearToast,
       userCode,
       resultsLink,
@@ -636,8 +616,8 @@ export default {
       canPublish,
       isValidFormat,
       handleCodeInput,
-      handlePublishClick,
       getCodeErrorMessage,
+      isPublishing,
     };
   }
 }
@@ -657,6 +637,67 @@ export default {
 .animate-blink {
   animation: blink 1s infinite;
 }
+
+/* Fancy border styles */
+/* Updated Fancy border styles */
+.fancy-border {
+  position: relative;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.fancy-border {
+  --offset: 3px;
+  background: white;  /* Changed from the tutorial's dark background */
+  border-radius: 9999px;
+  position: relative;
+  overflow: hidden;
+  height: 40px;  /* Adjust as needed */
+  width: 100%;  /* Adjust as needed */
+}
+
+.fancy-border::before {
+  content: '';
+  background: conic-gradient(transparent 270deg, red, transparent);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  aspect-ratio: 1;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.fancy-border.checking::before {
+  opacity: 1;
+  animation: rotate 2s linear infinite;
+}
+
+.fancy-border::after {
+  content: '';
+  background: inherit;
+  border-radius: inherit;
+  position: absolute;
+  inset: var(--offset);
+}
+
+.fancy-border > div {
+  position: relative;
+  z-index: 10;
+  height: 100%;
+}
+
+@keyframes rotate {
+  from {
+    transform: translate(-50%, -50%) scale(1.4) rotate(0turn);
+  }
+  to {
+    transform: translate(-50%, -50%) scale(1.4) rotate(1turn);
+  }
+}
+
+
 
 /* Code input styles */
 .code-input-container {
