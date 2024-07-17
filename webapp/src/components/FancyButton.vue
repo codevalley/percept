@@ -112,13 +112,14 @@ export default {
             '--button-height': props.buttonHeight,
         }));
 
+        
         const innerStyle = computed(() => ({
-            '--bg-color': props.bgColor,
-            '--disabled-bg-color': props.disabledBgColor,
-            height: props.buttonHeight,
-            backgroundColor: props.disabled ? props.disabledBgColor : props.bgColor,
-
+        '--bg-color': props.bgColor,
+        '--disabled-bg-color': props.disabledBgColor,
+        height: props.buttonHeight,
+        backgroundColor: props.disabled && !props.isActioning ? props.disabledBgColor : props.bgColor,
         }));
+
 
         const iconContainerStyle = computed(() => ({
             width: props.iconSize,
@@ -186,31 +187,27 @@ export default {
 }
 
 .fancy-background {
-    position: relative;
-    z-index: 0;
-    border-radius: 9999px;
-    overflow: hidden;
-    background-color: var(--border-color);
-    transition: all 0.3s ease;
-    width: 100%;
-    height: calc(var(--button-height) + (var(--border-width) * 2));
+  position: relative;
+  z-index: 0;
+  border-radius: 9999px;
+  overflow: hidden;
+  background-color: var(--border-color);
+  transition: all 0.3s ease;
+  width: 100%;
+  height: calc(var(--button-height) + (var(--border-width) * 2));
 }
 
+
 .fancy-background::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-color: var(--border-color);
-    border-radius: 9999px;
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--border-color);
+  border-radius: 9999px;
 }
 
 .fancy-background.disabled::before {
-    background-color: var(--disabled-border-color);
-}
-
-.fancy-background.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+  background-color: var(--disabled-border-color);
 }
 
 .fancy-background.conic::after {
@@ -227,29 +224,34 @@ export default {
             var(--border-color),
             var(--loader-color));
     animation: rotate 2s linear infinite;
-    opacity: 0.7;
+
 }
 
 .fancy-inner {
-    position: absolute;
-    top: var(--border-width);
-    left: var(--border-width);
-    right: var(--border-width);
-    bottom: var(--border-width);
-    background: var(--bg-color);
-    z-index: 1;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 9999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  position: absolute;
+  top: var(--border-width);
+  left: var(--border-width);
+  right: var(--border-width);
+  bottom: var(--border-width);
+  background: var(--bg-color);
+  z-index: 1;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .fancy-inner:disabled {
-    cursor: not-allowed;
+  background: var(--disabled-bg-color);
+  cursor: not-allowed;
+}
+
+.fancy-background.actioning .fancy-inner {
+  background: var(--bg-color);
 }
 
 @keyframes rotate {
