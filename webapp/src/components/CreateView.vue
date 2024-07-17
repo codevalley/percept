@@ -174,18 +174,20 @@
           <div>
             <FancyButton
               label="Publish"
-              icon="/assets/publish-icon.svg"
               :disabled="!canPublish"
               :is-actioning="isPublishing"
               @click="finishSurvey"
-              bg-color="white"
-              text-color="text-black"
-              icon-color="text-black"
               :border-width="3"
-              button-height="56px"
+              button-height="48px"
               icon-size="24px"
-              font-size="text-2xl"
-              :min-width="'152px'"
+              font-size="text-xl"
+              :min-width="'128px'"
+              bg-color="white"
+              border-color="white"
+              disabled-bg-color="#F3F4F6"
+              disabled-border-color="#F3F4F6"
+              text-color="text-black"
+              :loader-color="'#BE185D'"
             />
           </div>
         </div>
