@@ -187,6 +187,7 @@
               disabled-bg-color="gray"
               disabled-border-color="gray"
               text-color="text-white"
+              disabled-text-color="text-gray-400"
               :loader-color="'#BE185D'"
             />
           </div>
