@@ -56,6 +56,10 @@
         type: String,
         default: '#E5E7EB', // Tailwind's neutral-200
       },
+      disabledBgColor: {
+        type: String,
+        default: '#F3F3F3', // Light red background for error state
+      },
       textColor: {
         type: String,
         default: 'text-primary',
@@ -67,6 +71,14 @@
       loaderColor: {
         type: String,
         default: '#BE185D',
+      },
+      borderColor: {
+        type: String,
+        default: '#E5E7EB',
+      },
+      disabledBorderColor: {
+        type: String,
+        default: '#F3F3F3',
       },
       maxWidth: {
         type: String,
@@ -106,14 +118,18 @@
       }));
   
       const backgroundStyle = computed(() => ({
-        '--bg-color': props.bgColor,
+        '--disabled-border-color': props.disabledBorderColor,
         '--loader-color': props.loaderColor,
+        '--border-color': props.borderColor,
         '--button-height': props.buttonHeight,
       }));
   
       const innerStyle = computed(() => ({
+        '--bg-color': props.bgColor,
+        '--disabled-bg-color': props.disabledBgColor,
         height: props.buttonHeight,
         padding: props.icon ? `0 16px 0 12px` : `0 16px`,
+        backgroundColor: props.disabled ? props.disabledBgColor : props.bgColor,
       }));
   
       const iconContainerStyle = computed(() => ({
@@ -184,7 +200,7 @@
     z-index: 0;
     border-radius: 9999px;
     overflow: hidden;
-    background-color: var(--bg-color);
+    background-color: var(--border-color);
     transition: all 0.3s ease;
     width: 100%;
     height: calc(var(--button-height) + (var(--border-width) * 2));
@@ -194,8 +210,12 @@
     content: '';
     position: absolute;
     inset: 0;
-    background-color: var(--bg-color);
+    background-color: var(--border-color);
     border-radius: 9999px;
+  }
+  
+  .fancy-background.disabled::before {
+    background-color: var(--disabled-border-color);
   }
   
   .fancy-background.disabled {
@@ -213,9 +233,9 @@
     background-image: conic-gradient(
       from 0deg,
       var(--loader-color),
-      var(--bg-color),
+      var(--border-color),
       var(--loader-color),
-      var(--bg-color),
+      var(--border-color),
       var(--loader-color)
     );
     animation: rotate 2s linear infinite;
@@ -228,12 +248,13 @@
     left: var(--border-width);
     right: var(--border-width);
     bottom: var(--border-width);
-    background: white;
+    background: (--bg-color);
     z-index: 1;
     border: none;
     outline: none;
     cursor: pointer;
     transition: all 0.3s ease;
+    border-radius: 9999px;
   }
   
   .fancy-inner:disabled {
