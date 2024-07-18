@@ -116,6 +116,7 @@
         '--border-color': props.disabled ? props.disabledBorderColor : props.borderColor,
         '--loader-color': props.loaderColor,
         '--button-height': props.buttonHeight,
+        
       }));
   
       const innerStyle = computed(() => ({
@@ -198,7 +199,7 @@
     border-radius: 9999px;
     overflow: hidden;
     background-color: var(--border-color);
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
     width: 100%;
     height: calc(var(--button-height) + (var(--border-width) * 2));
   }

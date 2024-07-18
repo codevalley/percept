@@ -1,43 +1,24 @@
 <template>
   <div class="fancy-input-wrapper" :style="wrapperStyle">
-    <div 
-      class="fancy-background"
-      :class="[
-        { 'checking': isChecking, 'valid': isValid && isFocused, 'error': isError },
-        isChecking ? 'conic' : isError ? 'error-bg' : 'neutral-bg'
-      ]"
-      :style="backgroundStyle"
-    >
+    <div class="fancy-background" :class="[
+      { 'checking': isChecking, 'valid': isValid && isFocused, 'error': isError, 'disabled': disabled },
+      isChecking ? 'conic' : 'neutral-bg'
+    ]" :style="backgroundStyle">
       <div class="fancy-inner flex items-center justify-between rounded-full" :style="innerStyle">
         <div v-if="icon" class="icon-container" :style="iconContainerStyle">
-          <inline-svg 
-            :src="iconToShow" 
-            :class="['cursor-pointer', iconColorClass]" 
-            :style="iconStyle"
-            @click="$emit('rotate')" 
-          />
+          <inline-svg :src="iconToShow" :class="['cursor-pointer', iconColorClass]" :style="iconStyle"
+            @click="$emit('rotate')" />
         </div>
         <div class="input-container flex-grow" :class="{ 'text-center': !icon }">
-          <input 
-            ref="fancyInput"
-            :value="modelValue"
-            @input="handleInput"
-            @focus="handleFocus"
-            @blur="handleBlur"
-            class="bg-transparent focus:outline-none w-full"
-            :class="[isError ? 'text-red-500' : textColor, fontSize]"
-            :style="inputStyle"
-            :placeholder="placeholder"
-          />
+          <input ref="fancyInput" :value="modelValue" @input="handleInput" @focus="handleFocus" @blur="handleBlur"
+            class="bg-transparent focus:outline-none w-full" :class="[textColorClass, fontSize]" :style="inputStyle"
+            :placeholder="placeholder" :disabled="disabled" />
           <span ref="measureSpan" :class="fontSize" class="measure-span font-medium"></span>
         </div>
       </div>
     </div>
   </div>
 </template>
-
-
-
 <script>
 import { ref, computed, watch, onMounted, nextTick } from 'vue';
 import InlineSvg from 'vue-inline-svg';
@@ -72,13 +53,25 @@ export default {
       type: Boolean,
       default: false,
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
     bgColor: {
       type: String,
-      default: '#E5E7EB', // Tailwind's neutral-200
+      default: 'white',
+    },
+    disabledBgColor: {
+      type: String,
+      default: '#F3F4F6',
     },
     textColor: {
       type: String,
       default: 'text-primary',
+    },
+    disabledTextColor: {
+      type: String,
+      default: 'text-gray-400',
     },
     iconColor: {
       type: String,
@@ -88,17 +81,21 @@ export default {
       type: String,
       default: '#BE185D',
     },
+    borderColor: {
+      type: String,
+      default: '#E5E7EB',
+    },
+    disabledBorderColor: {
+      type: String,
+      default: '#F3F4F6',
+    },
     validBorderColor: {
       type: String,
-      default: 'border-green-500',
+      default: '#22C55E',
     },
-    neutralBorderColor: {
+    errorBorderColor: {
       type: String,
-      default: 'border-neutral-300',
-    },
-    errorBgColor: {
-      type: String,
-      default: '#EF4444', // Tailwind's red-500
+      default: '#EF4444',
     },
     maxWidth: {
       type: String,
@@ -140,11 +137,18 @@ export default {
     }));
 
     const backgroundStyle = computed(() => ({
-      '--bg-color': props.bgColor,
+      '--border-color': props.disabled ? props.disabledBorderColor :
+        props.isError ? props.errorBorderColor :
+          props.isValid && isFocused.value ? props.validBorderColor :
+            props.borderColor,
       '--loader-color': props.loaderColor,
-      '--valid-border-color': props.validBorderColor,
-      '--error-bg-color': props.errorBgColor,
       '--input-height': props.inputHeight,
+    }));
+
+    const innerStyle = computed(() => ({
+      height: props.inputHeight,
+      padding: props.icon ? `0 8px 0 8px` : `0 8px`,
+      backgroundColor: props.disabled ? props.disabledBgColor : props.bgColor,
     }));
 
     const iconContainerStyle = computed(() => ({
@@ -154,25 +158,19 @@ export default {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      marginRight: '8px', // Space between icon and input
+      marginRight: '8px',
     }));
 
     const iconStyle = computed(() => ({
       width: '100%',
       height: '100%',
-
-    }));
-    
-    const innerStyle = computed(() => ({
-      height: props.inputHeight,
-      padding: props.icon ? `0 8px 0 8px` : `0 8px`, // Adjust padding based on icon presence
     }));
 
     const inputStyle = computed(() => ({
       height: props.inputHeight,
-      paddingRight: '8px', // Add some padding on the right side
-      paddingLeft: props.icon? `0` : `8px`,
-      textAlign: props.icon ? 'left' : 'center', // Center text if no icon
+      paddingRight: '8px',
+      paddingLeft: props.icon ? `0` : `8px`,
+      textAlign: props.icon ? 'left' : 'center',
     }));
 
     const iconToShow = computed(() => {
@@ -182,34 +180,44 @@ export default {
     });
 
     const iconColorClass = computed(() => {
+      if (props.disabled) return 'text-gray-400';
       if (props.isError) return 'text-red-500';
       if (props.isValid && isFocused.value) return 'text-green-500';
       return props.iconColor;
+    });
+
+    const textColorClass = computed(() => {
+      if (props.disabled) return props.disabledTextColor;
+      if (props.isError) return 'text-red-500';
+      return props.textColor;
     });
 
     const adjustWidth = () => {
       if (fancyInput.value && measureSpan.value) {
         measureSpan.value.textContent = fancyInput.value.value || fancyInput.value.placeholder || '';
         const iconWidth = props.icon ? parseInt(props.iconSize) : 0;
-        const newWidth = `${measureSpan.value.offsetWidth + iconWidth + (props.icon ? 36 : 34)}px`; // Adjust padding based on icon presence
+        const newWidth = `${measureSpan.value.offsetWidth + iconWidth + (props.icon ? 36 : 34)}px`;
         dynamicWidth.value = newWidth;
       }
     };
 
     const handleInput = (event) => {
-      emit('update:modelValue', event.target.value);
-      emit('input', event);
-      nextTick(adjustWidth);
+      if (!props.disabled) {
+        emit('update:modelValue', event.target.value);
+        emit('input', event);
+        nextTick(adjustWidth);
+      }
     };
 
     const handleFocus = () => {
-      isFocused.value = true;
+      if (!props.disabled) {
+        isFocused.value = true;
+      }
     };
 
     const handleBlur = () => {
       isFocused.value = false;
     };
-
     watch(() => props.modelValue, (newValue) => {
       nextTick(() => {
         if (fancyInput.value) {
@@ -218,7 +226,7 @@ export default {
         }
       });
     });
-
+    watch(() => props.modelValue, adjustWidth);
     watch(() => props.placeholder, adjustWidth);
 
     onMounted(() => {
@@ -235,6 +243,7 @@ export default {
       inputStyle,
       iconToShow,
       iconColorClass,
+      textColorClass,
       handleInput,
       handleFocus,
       handleBlur,
@@ -244,7 +253,6 @@ export default {
   },
 };
 </script>
-
 <style scoped>
 .fancy-input-wrapper {
   display: inline-flex;
@@ -257,7 +265,7 @@ export default {
   z-index: 0;
   border-radius: 9999px;
   overflow: hidden;
-  background-color: var(--bg-color);
+  background-color: var(--border-color);
   transition: all 0.3s ease;
   width: 100%;
   height: calc(var(--input-height) + (var(--border-width) * 2));
@@ -267,16 +275,8 @@ export default {
   content: '';
   position: absolute;
   inset: 0;
-  background-color: var(--bg-color);
+  background-color: var(--border-color);
   border-radius: 9999px;
-}
-
-.fancy-background.valid::before {
-  background-color: var(--valid-border-color);
-}
-
-.fancy-background.error-bg::before {
-  background-color: var(--error-bg-color);
 }
 
 .fancy-background.conic::after {
@@ -286,17 +286,14 @@ export default {
   left: -150%;
   right: -150%;
   bottom: -150%;
-  background-image: conic-gradient(
-    from 0deg,
-    var(--loader-color),
-    var(--bg-color),
-    var(--loader-color),
-    var(--bg-color),
-    var(--loader-color)
-  );
+  background-image: conic-gradient(from 0deg,
+      var(--loader-color),
+      var(--border-color),
+      var(--loader-color),
+      var(--border-color),
+      var(--loader-color));
   animation: rotate 2s linear infinite;
-
-  opacity: 0.7; /* Adjust this value for visibility during debugging */
+  opacity: 0.7;
 }
 
 .fancy-inner {
@@ -305,12 +302,13 @@ export default {
   left: var(--border-width);
   right: var(--border-width);
   bottom: var(--border-width);
-  background: white;
   z-index: 1;
+  border-radius: 9999px;
 }
+
 .input-container {
   position: relative;
-  overflow: hidden; /* Prevent text from overflowing */
+  overflow: hidden;
 }
 
 .input-container.text-center input {
@@ -321,6 +319,7 @@ export default {
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }

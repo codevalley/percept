@@ -134,12 +134,6 @@
               :is-checking="isCheckingCode('survey')"
               :is-valid="isCodeValid('survey')"
               :is-error="isCodeInvalid('survey')"
-              :loader-color="'#BE185D'"
-              :valid-border-color="'#22C55E'"  
-              :bg-color="'#E5E7EB'"  
-              :text-color="'text-neutral-500'"
-              :error-bg-color="'#EF4444'"
-              :icon-color="'text-neutral-500'"
               :max-width="'300px'"
               :border-width="2"
               input-height="40px"
@@ -147,6 +141,14 @@
               font-size="text-sm"
               @rotate="rotateCode('survey')"
               @input="handleCodeInput('survey')"
+
+              :loader-color="'#BE185D'"
+              :valid-border-color="'#22C55E'"  
+              :bg-color="'white'"  
+              :text-color="'text-neutral-500'"
+              :error-bg-color="'#EF4444'"
+              :icon-color="'text-neutral-500'"
+              :min-width="'100px'"
             />
 
             <FancyInput
@@ -156,20 +158,21 @@
               :is-checking="isCheckingCode('user')"
               :is-valid="isCodeValid('user')"
               :is-error="isCodeInvalid('user')"
-              :loader-color="'#BE185D'"
-              :valid-border-color="'#22C55E'"  
-              :bg-color="'#E5E7EB'"  
-              :text-color="'text-neutral-500'"
-              :error-bg-color="'#EF4444'"
-              :icon-color="'text-neutral-500'"
-              :max-width="'300px'"
               :border-width="2"
               input-height="40px"
               icon-size="24px"
               font-size="text-sm"
               @rotate="rotateCode('user')"
               @input="handleCodeInput('user')"
+              :loader-color="'#BE185D'"
+              :valid-border-color="'#22C55E'"  
+              :bg-color="'white'"  
+              :text-color="'text-neutral-500'"
+              :error-bg-color="'#EF4444'"
+              :icon-color="'text-neutral-500'"
+              :min-width="'100px'"
             />
+            
           </div>
           <div>
             <FancyButton
@@ -188,7 +191,6 @@
               disabled-border-color="gray"
               text-color="text-white"
               disabled-text-color="text-gray-400"
-              :loader-color="'#BE185D'"
             />
           </div>
         </div>
