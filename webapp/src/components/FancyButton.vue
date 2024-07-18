@@ -212,7 +212,7 @@
     border-radius: 9999px;
   }
   
-  .fancy-background.conic::after {
+  .fancy-background.actioning::after {
     content: '';
     position: absolute;
     top: -150%;
