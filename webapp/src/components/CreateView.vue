@@ -325,9 +325,15 @@ export default {
 
     const handleCodeInput = (type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
+      const otherCode = type === 'survey' ? userCode.value : surveyCode.value;
       if (isValidFormat(code)) {
-        codeStatus.value[type] = null; // Reset status before checking
-        debounceCheckCode(type);
+        if (code === otherCode) {
+          codeStatus.value[type] = 'invalid';
+          isChecking.value[type] = false;
+        } else {
+          codeStatus.value[type] = null; // Reset status before checking
+          debounceCheckCode(type);
+        }
       } else {
         codeStatus.value[type] = 'invalid';
         isChecking.value[type] = false;
@@ -335,11 +341,15 @@ export default {
     };
     const getCodeErrorMessage = (type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
+      const otherCode = type === 'survey' ? userCode.value : surveyCode.value;
       if (!code || code.length < 5) {
         return `${type === 'survey' ? 'Survey' : 'User'} code must be at least 5 characters long.`;
       }
       if (!/^[a-zA-Z0-9-]+$/.test(code)) {
         return `${type === 'survey' ? 'Survey' : 'User'} code can only contain letters, numbers, and hyphens.`;
+      }
+      if (code === otherCode) {
+        return `${type === 'survey' ? 'Survey' : 'User'} code cannot be the same as the ${type === 'survey' ? 'user' : 'survey'} code.`;
       }
       return `Invalid ${type === 'survey' ? 'survey' : 'user'} code. Please choose a different one.`;
     };
@@ -361,12 +371,15 @@ export default {
 
     const isCodeValid = (type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
-      return isValidFormat(code) && codeStatus.value[type] === 'valid';
+      const otherCode = type === 'survey' ? userCode.value : surveyCode.value;
+      return isValidFormat(code) && codeStatus.value[type] === 'valid' && code !== otherCode;
     };
+
 
     const isCodeInvalid = (type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
-      return !isValidFormat(code) || codeStatus.value[type] === 'invalid';
+      const otherCode = type === 'survey' ? userCode.value : surveyCode.value;
+      return !isValidFormat(code) || codeStatus.value[type] === 'invalid' || code === otherCode;
     };
 
     const allQuestionsAnswered = computed(() =>
