@@ -14,13 +14,13 @@ MIN_ID_LEN = 5
 ID_VALID_PATTERN = re.compile(r'^[a-zA-Z0-9-]+$')
 
 class IDManager:
-    def __init__(self, db, collection_name='id_reserve', min_reserve=1000):
+    def __init__(self, db, collection_name='id_reserve', min_reserve=20):
         self.db = db
         self.reserve = self.db[collection_name]
         self.min_reserve = min_reserve
         self.sia = SentimentIntensityAnalyzer()
     
-    def initialize_reserve(self, count=1000):
+    def initialize_reserve(self, count=100):
         """Initialize the reserve with a given count of generated IDs."""
         new_ids = self.generate_new_ids(count)
         print(new_ids)

@@ -14,7 +14,8 @@ from snowflake import Snowflake53
 app = Flask(__name__)
 
 # Add the CORS configuration here
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:8080"}})
+CORS(app, resources={r"/api/*": {"origins": "http://localhost"}})
+#CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 # Initialize the generator with a random number 
 snowflake = Snowflake53(1,1)
@@ -30,7 +31,7 @@ logging.basicConfig(level=logging.DEBUG)
 if app.testing:
     app.config["MONGO_URI"] = "mongodb://localhost:27017/backfeed_test"
 else:
-    app.config["MONGO_URI"] = os.environ.get("MONGO_URI", "mongodb://mongo:27017/percept")
+    app.config["MONGO_URI"] = os.environ.get("MONGO_URI", "mongodb://localhost:27017/percept")
 mongo = PyMongo(app)
 
 # Initialize IDManager

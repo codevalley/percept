@@ -15,4 +15,4 @@ COPY . .
 
 # Expose port 5001 and specify the command to run the app
 EXPOSE 5001
-CMD ["gunicorn", "-b", "0.0.0.0:5001", "app:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:5001","--timeout", "60", "app:app"]

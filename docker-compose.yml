@@ -19,6 +19,10 @@ services:
       - MONGO_URI=mongodb://mongo:27017/percept
     depends_on:
       - mongo
+    deploy:
+      resources:
+        limits:
+          memory: 2g
 
   frontend:
     build: ./webapp
