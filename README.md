@@ -1,6 +1,6 @@
-# Percept API
+# Backwave
 
-Percept is a web application designed to help individuals improve their self-awareness by collecting anonymous feedback from their peers. This repository contains the backend API implemented using Flask and MongoDB.
+Backwave is a web application designed to help individuals improve their self-awareness by collecting anonymous feedback from their peers. This repository contains both the backend API implemented using Flask and MongoDB, and the frontend implemented in Vue.js.
 
 ## Features
 
@@ -11,11 +11,10 @@ Percept is a web application designed to help individuals improve their self-awa
 
 ## Prerequisites
 
-- Python 3.8 or higher
-- pip (Python package manager)
-- MongoDB
+- Docker
+- Docker Compose
 
-## Setup
+## Setup and Running the Application
 
 1. Clone the repository:
    ```
@@ -23,60 +22,71 @@ Percept is a web application designed to help individuals improve their self-awa
    cd percept
    ```
 
-2. Set up a virtual environment (optional but recommended):
+2. Create a `.env` file in the project root and add your MongoDB URI:
    ```
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-   ```
-
-3. Install dependencies:
-   ```
-   pip install -r requirements.txt
+   MONGO_URI=mongodb://mongo:27017/percept
    ```
 
-4. Set up MongoDB:
-   - Install MongoDB on your system if you haven't already
-   - Start the MongoDB service:
+3. Build and start the Docker containers:
+   ```
+   docker-compose up --build
+   ```
+
+   This command will build the images for the backend, frontend, and set up the MongoDB database. It will then start all the services.
+
+4. The application will be available at:
+   - Frontend: http://localhost
+   - Backend API: http://localhost/api
+
+## Development Workflow
+
+### Making Changes
+
+1. Backend changes:
+   - Modify the Flask app files as needed.
+   - Rebuild and restart the containers:
      ```
-     brew services start mongodb-community  # On macOS with Homebrew
-     # or
-     sudo systemctl start mongod  # On most Linux systems
+     docker-compose down
+     docker-compose up --build
      ```
 
-5. Create a `.env` file in the project root and add your MongoDB URI:
+2. Frontend changes:
+   - Modify the Vue.js app files in the `webapp` directory.
+   - Rebuild and restart the containers:
+     ```
+     docker-compose down
+     docker-compose up --build
+     ```
+
+3. To run the containers in detached mode:
    ```
-   MONGO_URI=mongodb://localhost:27017/percept
+   docker-compose up -d
    ```
 
-6. Run the application:
+4. To view logs:
    ```
-   python app.py
+   docker-compose logs
    ```
-7. Unit tests
+   Or for a specific service:
    ```
-   python -m unittest test_survey_results.py
+   docker-compose logs backend
    ```
-The API will be available at `http://localhost:5001`.
 
-## Install Vue
-  [WIP]
-  Go to webapp folder and run the following commands
-  ```
-  npm install -g @vue/cli
-  
-  npm install
-  npm run serve
-  ```
+### Running Tests
+
+To run the unit tests:
+
+```
+docker-compose run --rm backend python -m unittest test_survey_results.py
+```
 
 ## Using the API
 
 Here are some example curl commands to interact with the API:
 
-Note for Windows users: These commands are designed to work in Git Bash. If you're using Windows Command Prompt or PowerShell, you may need to adjust the quotes or use a different method to send JSON data.
-
 1. Create a new survey:
    ```bash
-   curl -X POST http://localhost:5001/api/v1/surveys \
+   curl -X POST http://localhost/api/v1/surveys \
         -H "Content-Type: application/json" \
         -d '{
           "title": "My Survey",
@@ -104,12 +114,12 @@ Note for Windows users: These commands are designed to work in Git Bash. If you'
 
 2. Retrieve a survey (replace {survey_id} with the ID from the create response):
    ```bash
-   curl -X GET http://localhost:5001/api/v1/surveys/{survey_id}
+   curl -X GET http://localhost/api/v1/surveys/{survey_id}
    ```
 
 3. Submit answers to a survey:
    ```bash
-   curl -X POST http://localhost:5001/api/v1/surveys/{survey_id}/answers \
+   curl -X POST http://localhost/api/v1/surveys/{survey_id}/answers \
         -H "Content-Type: application/json" \
         -d '{
           "answers": [
@@ -127,6 +137,44 @@ Replace `{survey_id}` with the actual survey ID from your created survey.
 ## API Endpoints
 
 For detailed API documentation, refer to the [api_endpoints.md](api_endpoints.md) file.
+
+## Troubleshooting
+
+1. If you encounter CORS issues:
+   - Check the CORS configuration in `app.py` and ensure it matches your frontend URL.
+   - Verify that the Nginx configuration in `nginx.conf` is correctly set up to handle CORS headers.
+
+2. If services fail to start:
+   - Check the Docker logs for each service:
+     ```
+     docker-compose logs [service_name]
+     ```
+   - Ensure all required environment variables are set in the `.env` file.
+
+3. If changes are not reflecting:
+   - Ensure you've rebuilt the Docker images after making changes:
+     ```
+     docker-compose down
+     docker-compose up --build
+     ```
+
+4. If you're experiencing database connection issues:
+   - Verify that the MongoDB container is running:
+     ```
+     docker-compose ps
+     ```
+   - Check the MongoDB logs:
+     ```
+     docker-compose logs mongo
+     ```
+   - Ensure the `MONGO_URI` in the `.env` file is correct.
+
+5. To reset the entire setup:
+   ```
+   docker-compose down -v
+   docker-compose up --build
+   ```
+   Note: This will remove all data in the MongoDB volume.
 
 ## Contributing
 
