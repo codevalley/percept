@@ -142,7 +142,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
@@ -164,17 +164,21 @@ export default {
     const toastMessage = ref('');
     const toastType = ref('');
 
-    const surveyId = computed(() => route.params.surveyId || results.value?.survey_id || '');
-    const userCode = computed(() => route.params.userCode || '');
+    // Initialize surveyId and userCode with route params or empty string
+    const surveyId = ref(route.params.surveyId ?? '');
+    const userCode = ref(route.params.userCode ?? '');
 
-    const surveyLink = computed(() => {
-      return surveyId.value ? `/surveys/${surveyId.value}` : '';
+    // Computed properties
+    const surveyLink = computed(() => surveyId.value ? `/surveys/${surveyId.value}` : '');
+    const resultsLink = computed(() => (surveyId.value && userCode.value) ? `/results/${surveyId.value}/${userCode.value}` : '');
+
+    // Watch for changes in results and update surveyId if necessary
+    watch(() => results.value, (newResults) => {
+      if (newResults?.survey_id && !surveyId.value) {
+        surveyId.value = newResults.survey_id;
+      }
     });
 
-    const resultsLink = computed(() => {
-      return (surveyId.value && userCode.value) ? `/results/${surveyId.value}/${userCode.value}` : '';
-    });
-    //TODO: Extract strings
     const handleError = (err) => {
       console.error('Error fetching results:', err);
       if (err.response) {
@@ -199,10 +203,9 @@ export default {
     };
 
     const fetchResults = async () => {
-      const { surveyId, userCode } = route.params;
       const fromAnalyze = route.query.fromAnalyze === 'true';
 
-      if (!userCode) {
+      if (!userCode.value) {
         error.value = 'User code is missing. Unable to fetch results.';
         loading.value = false;
         return;
@@ -210,20 +213,30 @@ export default {
 
       try {
         let response;
-        if (fromAnalyze || !surveyId) {
-          response = await api.getSurveyResultsByUserCode(userCode);
+        if (fromAnalyze || !surveyId.value) {
+          console.log('Fetching results by user code:', userCode.value);
+          response = await api.getSurveyResultsByUserCode(userCode.value);
         } else {
-          response = await api.getSurveyResults(surveyId, userCode);
+          console.log('Fetching results by survey ID and user code:', surveyId.value, userCode.value);
+          response = await api.getSurveyResults(surveyId.value, userCode.value);
         }
         
-        results.value = response.data;
+        console.log('API Response:', response);
         
-        // Update surveyId if it's not available in the route params
-        if (!surveyId && response.data.survey_id) {
-          surveyId.value = response.data.survey_id;
+        if (response?.data) {
+          results.value = response.data;
+          
+          // Update surveyId if it's not already set
+          if (!surveyId.value && response.data.survey_id) {
+            console.log('Updating surveyId:', response.data.survey_id);
+            surveyId.value = response.data.survey_id;
+          }
+        } else {
+          throw new Error('Invalid API response');
         }
 
       } catch (err) {
+        console.error('Fetch error:', err);
         handleError(err);
       } finally {
         loading.value = false;
@@ -247,6 +260,7 @@ export default {
     };
 
     onMounted(() => {
+      console.log('Component mounted. Fetching results...');
       fetchResults();
     });
 
