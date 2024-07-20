@@ -30,7 +30,7 @@ logging.basicConfig(level=logging.DEBUG)
 if app.testing:
     app.config["MONGO_URI"] = "mongodb://localhost:27017/backfeed_test"
 else:
-    app.config["MONGO_URI"] = os.environ.get("MONGO_URI", "mongodb://localhost:27017/percept")
+    app.config["MONGO_URI"] = os.environ.get("MONGO_URI", "mongodb://mongo:27017/percept")
 mongo = PyMongo(app)
 
 # Initialize IDManager
