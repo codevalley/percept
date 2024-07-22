@@ -14,7 +14,7 @@ from snowflake import Snowflake53
 app = Flask(__name__)
 
 # Add the CORS configuration here
-CORS(app, resources={r"/api/*": {"origins": "http://localhost"}})
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost", "http://localhost:8080"]}})
 #CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 # Initialize the generator with a random number 
