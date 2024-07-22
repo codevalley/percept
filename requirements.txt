@@ -1,6 +1,7 @@
 Flask==2.2.2
 Flask-PyMongo==2.3.0
-pymongo[tls,srv]==3.6.1
+pymongo[srv]
+dnspython
 Werkzeug==2.2.2
 requests
 flask-cors
