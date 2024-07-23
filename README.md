@@ -138,6 +138,21 @@ Replace `{survey_id}` with the actual survey ID from your created survey.
 
 For detailed API documentation, refer to the [api_endpoints.md](api_endpoints.md) file.
 
+## Setting up Environment Variables in DigitalOcean App Platform
+
+After creating your app in DigitalOcean App Platform:
+
+1. Go to the App Platform dashboard and select your app.
+2. Click on the "Settings" tab.
+3. Scroll down to the "Environment Variables" section.
+4. Click "Edit" and then "Add Variable".
+5. Add a new variable:
+   - Key: MONGO_URI
+   - Value: Your MongoDB connection string (e.g., mongodb+srv://username:password@cluster.mongodb.net/database?retryWrites=true&w=majority)
+6. Click "Save".
+
+The ${backend.INTERNAL_URL} and ${backend.PORT} variables are automatically set by DigitalOcean App Platform, so you don't need to configure them manually.
+
 ## Troubleshooting
 
 1. If you encounter CORS issues:

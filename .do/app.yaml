@@ -1,0 +1,22 @@
+name: backwave
+services:
+- name: backend
+  github:
+    repo: codevalley/backwave
+    branch: main
+    deploy_on_push: true
+  source_dir: /
+  envs:
+  - key: MONGO_URI
+    value: ${MONGO_URI}
+  - key: PORT
+    value: ${backend.PORT}
+- name: frontend
+  github:
+    repo: codevalley/backwave
+    branch: main
+    deploy_on_push: true
+  source_dir: webapp
+  envs:
+  - key: VUE_APP_API_URL
+    value: ${backend.INTERNAL_URL}
