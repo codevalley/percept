@@ -4,6 +4,7 @@ from nltk.corpus import wordnet as wn
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from pymongo.errors import DuplicateKeyError
 import re
+import os
 
 nltk.download('words', quiet=True)
 nltk.download('vader_lexicon', quiet=True)
