@@ -8,7 +8,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Pre-download NLTK data files
-RUN python -m nltk.downloader words vader_lexicon wordnet
+# -d option may have other consequences. testing for now
+RUN python -m nltk.downloader -d /workspace/nltk_data words vader_lexicon wordnet
 
 # Copy the rest of the application code
 COPY . .

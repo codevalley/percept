@@ -13,6 +13,8 @@ MAX_LEMMA_LEN = 10
 MIN_ID_LEN = 5
 ID_VALID_PATTERN = re.compile(r'^[a-zA-Z0-9-]+$')
 
+nltk.data.path.append(os.environ.get('NLTK_DATA', '/workspace/nltk_data')) 
+
 class IDManager:
     def __init__(self, db, collection_name='id_reserve', min_reserve=20):
         self.db = db
