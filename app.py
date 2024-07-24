@@ -15,11 +15,11 @@ app = Flask(__name__)
 
 # Add the CORS configuration here
 allowed_origins = [
-"http://localhost",
-"http://localhost:8080",
-os.environ.get("APP_URL", "https://backwave-app-vixvv.ondigitalocean.app")
+    "http://localhost",
+    "http://localhost:8080",
+    os.environ.get("APP_URL", "https://i.nyn.me")
 ]
-CORS(app, resources={r"/api/*": {"origins": allowed_origins}})
+CORS(app, resources={r"/api/v1/*": {"origins": allowed_origins}})
 #CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
 
 # Initialize the generator with a random number 
