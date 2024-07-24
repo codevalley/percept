@@ -6,8 +6,8 @@ from pymongo.errors import DuplicateKeyError
 import re
 import os
 
-nltk.download('words', quiet=True)
-nltk.download('vader_lexicon', quiet=True)
+nltk.download('words', quiet=false)
+nltk.download('vader_lexicon', quiet=false)
 
 MIN_LEMMA_LEN = 3
 MAX_LEMMA_LEN = 10
