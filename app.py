@@ -50,6 +50,16 @@ with app.app_context():
     #id_manager.initialize_reserve(INITIAL_ID_RESERVE)
     app.logger.info(f"Initialized ID reserve with {INITIAL_ID_RESERVE} IDs")
 
+@app.before_first_request
+def startup_logger():
+    app.logger.info("Application started. Testing MongoDB connection...")
+    try:
+        # Perform a simple operation to test the connection
+        mongo.db.command('ping')
+        app.logger.info("MongoDB connection successful")
+    except Exception as e:
+        app.logger.error(f"MongoDB connection failed: {str(e)}")
+
 @app.route('/')
 def home():
     return "Welcome to the Percept API", 200
