@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.VUE_APP_API_URL || 'http://localhost:5001/api/v1'; // Update this to your API's URL
+const API_URL = `${process.env.VUE_APP_API_URL}/v1` || 'http://localhost:5001/api/v1'; // Update this to your API's URL
 
 const api = axios.create({
     baseURL: API_URL,
