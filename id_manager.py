@@ -7,6 +7,7 @@ import re
 import os
 
 nltk.download('words', quiet=False)
+nltk.download('wordnet',quiet=False)
 nltk.download('vader_lexicon', quiet=False)
 
 MIN_LEMMA_LEN = 3
