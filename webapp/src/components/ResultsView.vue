@@ -163,13 +163,13 @@ export default {
     const error = ref(null);
     const toastMessage = ref('');
     const toastType = ref('');
-
+    const baseUrl = computed(() => process.env.VUE_APP_API_URL || '');
     // Initialize surveyId and userCode with route params or empty string
     const surveyId = ref(route.params.surveyId ?? '');
     const userCode = ref(route.params.userCode ?? '');
 
     // Computed properties
-    const surveyLink = computed(() => surveyId.value ? `/surveys/${surveyId.value}` : '');
+    const surveyLink = computed(() => surveyId.value ? `${baseUrl.value}/surveys/${surveyId.value}` : '');
     const resultsLink = computed(() => (surveyId.value && userCode.value) ? `/results/${surveyId.value}/${userCode.value}` : '');
 
     // Watch for changes in results and update surveyId if necessary

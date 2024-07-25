@@ -221,51 +221,41 @@
       <!-- Published Section -->
       <div v-if="isPublished" class="bg-accent-green rounded-[25px] p-7 mb-12">
         <div class="w-full text-primary text-2xl font-bold font-['IBM Plex Sans'] leading-9 mb-6 text-left">
-          The review is published and live!
+          The post is published and live!
         </div>
 
-        <div class="flex items-center justify-start space-x-4 mb-4">
+        <div class="flex flex-col space-y-4">
           <div class="flex items-center space-x-4">
-            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review code</span>
+            <span class="text-primary text-lg font-normal leading-7">This is your review link</span>
             <button
+              @click="openAndCopy('survey')"
               class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-              @click="copyToClipboard(surveyCode)">
+            >
               <span class="text-base font-medium mr-2">{{ surveyCode }}</span>
-              <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+              <inline-svg 
+                @click.stop="copyToClipboard('surveyCode')" 
+                src="assets/copy-icon.svg" 
+                class="w-5 h-5 text-primary cursor-pointer" 
+              />
             </button>
           </div>
+          <span class="text-primary text-sm italic ml-4">Share it with your friends for feedback</span>
 
-          <div class="flex items-center space-x-4">
-            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review Link</span>
+          <div class="flex items-center space-x-4 mt-4">
+            <span class="text-primary text-lg font-normal leading-7">This is your results link</span>
             <button
+              @click="openAndCopy('user')"
               class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-              @click="copyToClipboard(surveyLink)">
-              <span class="text-base font-medium mr-2">Copy URL</span>
-              <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-            </button>
-          </div>
-        </div>
-
-        <div class="flex items-center justify-start space-x-4">
-          <div class="flex items-center space-x-4">
-            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
-            <button
-              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-              @click="copyToClipboard(userCode)">
+            >
               <span class="text-base font-medium mr-2">{{ userCode }}</span>
-              <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+              <inline-svg 
+                @click.stop="copyToClipboard('userCode')" 
+                src="assets/copy-icon.svg" 
+                class="w-5 h-5 text-primary cursor-pointer" 
+              />
             </button>
           </div>
-
-          <div class="flex items-center space-x-4">
-            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
-            <button
-              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-              @click="copyToClipboard(resultsLink)">
-              <span class="text-base font-medium mr-2">Copy URL</span>
-              <inline-svg src="assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-            </button>
-          </div>
+          <span class="text-primary text-sm italic ml-4">Bookmark and come here later to see results</span>
         </div>
       </div>
     </div>
@@ -305,17 +295,18 @@ export default {
     const errorMessage = ref('');
     const showSuccess = ref(false);
     const surveyCode = ref('');
-    const surveyLink = ref('');
     const inputFocused = ref(false);
     const toastMessage = ref('');
     const toastType = ref('');
     const userCode = ref('');
+    const surveyLink = ref('');
     const resultsLink = ref('');
     const availableCodes = ref({ survey: [], user: [] });
     const codeStatus = ref({ survey: null, user: null });
     const isChecking = ref({ survey: false, user: false });
     const isPublishing = ref(false);
-
+    const baseUrl = computed(() => process.env.VUE_APP_API_URL || '');
+    
     const isCheckingCode = (type) => isChecking.value[type];
     
     const isValidFormat = (code) => {
@@ -540,6 +531,34 @@ export default {
       toastType.value = '';
     }
 
+    const openAndCopy = (type) => {
+      const url = type === 'survey' ? surveyLink.value : resultsLink.value;
+      window.open(url, '_blank');
+      copyToClipboard(type);
+    };
+
+    const copyToClipboard = (type) => {
+      let textToCopy;
+      if (type === 'survey') {
+        textToCopy = surveyLink.value;
+      } else if (type === 'user') {
+        textToCopy = resultsLink.value;
+      } else if (type === 'surveyCode') {
+        textToCopy = surveyCode.value;
+      } else if (type === 'userCode') {
+        textToCopy = userCode.value;
+      }
+
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        toastMessage.value = t('createView.copySuccess');
+        toastType.value = 'success';
+      }, (err) => {
+        console.error('Could not copy text: ', err);
+        toastMessage.value = t('createView.copyError');
+        toastType.value = 'error';
+      });
+    };
+
     async function finishSurvey() {
       if (isSubmitted.value || !allQuestionsAnswered.value) return;
 
@@ -560,8 +579,8 @@ export default {
 
         const response = await api.createSurvey(surveyData);
         console.log('Survey created', response.data);
-        surveyLink.value = response.data.share_link;
-        resultsLink.value = `/results/${surveyCode.value}/${userCode.value}`;
+        surveyLink.value =  `${baseUrl.value}/participate/${surveyCode.value}`;
+        resultsLink.value = `${baseUrl.value}/results/${surveyCode.value}/${userCode.value}`;
         isSubmitted.value = true;
         isPublished.value = true;
         showSuccess.value = true;
@@ -585,16 +604,7 @@ export default {
 
     watch(() => newQuestion.value.text, handleQuestionChange);
 
-    function copyToClipboard(text) {
-      navigator.clipboard.writeText(text).then(() => {
-        toastMessage.value = t('createView.copySuccess');
-        toastType.value = 'success';
-      }, (err) => {
-        console.error('Could not copy text: ', err);
-        toastMessage.value = t('createView.copyError');
-        toastType.value = 'error';
-      });
-    }
+    
 
     return {
       t,
@@ -626,6 +636,7 @@ export default {
       resultsLink,
       rotateCode,
       checkCodeAvailability,
+      openAndCopy,
       copyToClipboard,
       isCheckingCode,
       isCodeValid,

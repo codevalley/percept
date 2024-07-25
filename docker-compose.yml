@@ -17,6 +17,7 @@ services:
       - "5001:5001"
     environment:
       - MONGO_URI=mongodb://mongo:27017/percept
+      - APP_URL=http://localhost
     depends_on:
       - mongo
     deploy:
@@ -25,8 +26,10 @@ services:
           memory: 2g
 
   frontend:
-    build: ./webapp
-    
+    build:
+      context: ./webapp
+      args:
+        VUE_APP_API_URL: http://localhost
   mongo:
     image: mongo:4.4
     volumes:
