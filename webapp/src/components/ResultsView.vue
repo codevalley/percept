@@ -10,78 +10,22 @@
           {{ results.user_type === 'creator' ? 'Your Survey Information' : 'Your Results Information' }}
         </div>
 
-        <div v-if="results.user_type === 'creator'" class="flex flex-col space-y-4">
-          <div class="flex items-center justify-start space-x-4">
-            <div class="flex items-center space-x-4">
-              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review code</span>
-              <button
-                v-if="surveyId"
-                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                @click="copyToClipboard(surveyId)">
-                <span class="text-base font-medium mr-2">{{ surveyId }}</span>
-                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-              </button>
-            </div>
-
-            <div class="flex items-center space-x-4">
-              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Review Link</span>
-              <button
-                v-if="surveyLink"
-                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                @click="copyToClipboard(surveyLink)">
-                <span class="text-base font-medium mr-2">Copy URL</span>
-                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-              </button>
-            </div>
-          </div>
-
-          <div class="flex items-center justify-start space-x-4">
-            <div class="flex items-center space-x-4">
-              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
-              <button
-                v-if="userCode"
-                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                @click="copyToClipboard(userCode)">
-                <span class="text-base font-medium mr-2">{{ userCode }}</span>
-                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-              </button>
-            </div>
-
-            <div class="flex items-center space-x-4">
-              <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
-              <button
-                v-if="resultsLink"
-                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-                @click="copyToClipboard(resultsLink)">
-                <span class="text-base font-medium mr-2">Copy URL</span>
-                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div v-else class="flex items-center justify-start space-x-4">
-          <div class="flex items-center space-x-4">
-            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">User code</span>
+        <div class="flex items-center space-x-2">
+          <span class="text-primary text-lg font-normal leading-7">Bookmark this page or save the code </span>
+          <div class="relative inline-block">
             <button
-              v-if="userCode"
+              @click="copyUrl"
               class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-              @click="copyToClipboard(userCode)">
+            >
               <span class="text-base font-medium mr-2">{{ userCode }}</span>
-              <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
+              <inline-svg 
+                @click.stop="copyCode" 
+                src="/assets/copy-icon.svg"
+                class="w-5 h-5 text-primary cursor-pointer" 
+              />
             </button>
           </div>
-
-          <div class="flex items-center space-x-4">
-            <span class="text-primary text-lg font-normal leading-7 whitespace-nowrap">Results Link</span>
-            <button
-              v-if="resultsLink"
-              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-              @click="copyToClipboard(resultsLink)">
-              <span class="text-base font-medium mr-2">Copy URL</span>
-              <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary" />
-            </button>
-          </div>
+          <span class="text-primary text-lg font-normal leading-7">to see the results later.</span>
         </div>
       </div>
 
@@ -142,7 +86,7 @@
 </template>
 
 <script>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
@@ -163,21 +107,8 @@ export default {
     const error = ref(null);
     const toastMessage = ref('');
     const toastType = ref('');
-    const baseUrl = computed(() => process.env.VUE_APP_API_URL || '');
-    // Initialize surveyId and userCode with route params or empty string
-    const surveyId = ref(route.params.surveyId ?? '');
-    const userCode = ref(route.params.userCode ?? '');
-
-    // Computed properties
-    const surveyLink = computed(() => surveyId.value ? `${baseUrl.value}/surveys/${surveyId.value}` : '');
-    const resultsLink = computed(() => (surveyId.value && userCode.value) ? `/results/${surveyId.value}/${userCode.value}` : '');
-
-    // Watch for changes in results and update surveyId if necessary
-    watch(() => results.value, (newResults) => {
-      if (newResults?.survey_id && !surveyId.value) {
-        surveyId.value = newResults.survey_id;
-      }
-    });
+    
+    const userCode = computed(() => route.params.userCode || (results.value?.user_code ?? ''));
 
     const handleError = (err) => {
       console.error('Error fetching results:', err);
@@ -203,8 +134,6 @@ export default {
     };
 
     const fetchResults = async () => {
-      const fromAnalyze = route.query.fromAnalyze === 'true';
-
       if (!userCode.value) {
         error.value = 'User code is missing. Unable to fetch results.';
         loading.value = false;
@@ -212,35 +141,30 @@ export default {
       }
 
       try {
-        let response;
-        if (fromAnalyze || !surveyId.value) {
-          console.log('Fetching results by user code:', userCode.value);
-          response = await api.getSurveyResultsByUserCode(userCode.value);
-        } else {
-          console.log('Fetching results by survey ID and user code:', surveyId.value, userCode.value);
-          response = await api.getSurveyResults(surveyId.value, userCode.value);
-        }
-        
+        const response = await api.getSurveyResultsByUserCode(userCode.value);
         console.log('API Response:', response);
         
         if (response?.data) {
           results.value = response.data;
-          
-          // Update surveyId if it's not already set
-          if (!surveyId.value && response.data.survey_id) {
-            console.log('Updating surveyId:', response.data.survey_id);
-            surveyId.value = response.data.survey_id;
-          }
         } else {
           throw new Error('Invalid API response');
         }
-
       } catch (err) {
         console.error('Fetch error:', err);
         handleError(err);
       } finally {
         loading.value = false;
       }
+    };
+
+    const copyUrl = () => {
+      const url = window.location.href;
+      copyToClipboard(url);
+    };
+
+    const copyCode = (event) => {
+      event.stopPropagation();
+      copyToClipboard(userCode.value);
     };
 
     const copyToClipboard = (text) => {
@@ -268,11 +192,9 @@ export default {
       results,
       loading,
       error,
-      surveyId,
       userCode,
-      surveyLink,
-      resultsLink,
-      copyToClipboard,
+      copyUrl,
+      copyCode,
       toastMessage,
       toastType,
       clearToast
