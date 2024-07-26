@@ -11,7 +11,7 @@
         </div>
 
         <div class="flex items-center space-x-2">
-          <span class="text-primary text-lg font-normal leading-7">Bookmark this page or save the code </span>
+          <span class="text-primary text-lg font-normal leading-7">Bookmark this page or save your user code </span>
           <div class="relative inline-block">
             <button
               @click="copyUrl"

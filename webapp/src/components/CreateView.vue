@@ -138,7 +138,7 @@
               v-model="surveyCode"
               :icon="'/assets/bookmark-icon.svg'"
               :placeholder="'survey ID'"
-              :is-checking="isCheckingCode('survey')"
+              :is-checking="isChecking.survey"
               :is-valid="isCodeValid('survey')"
               :is-error="isCodeInvalid('survey')"
               :max-width="'300px'"
@@ -156,7 +156,7 @@
               :icon-color="'text-neutral-500'"
               :min-width="'100px'"
               v-tooltip="{ 
-                content: 'Set a public shortcode for this survey to share with your friends',
+                content: 'A Shareable shortcode for the review',
                 show: showSurveyCodeTooltip,
                 trigger: 'manual'
               }"
@@ -166,7 +166,7 @@
               v-model="userCode"
               :icon="'/assets/user-icon.svg'"
               :placeholder="'user name'"
-              :is-checking="isCheckingCode('user')"
+              :is-checking="isChecking.user"
               :is-valid="isCodeValid('user')"
               :is-error="isCodeInvalid('user')"
               :border-width="2"
@@ -183,7 +183,7 @@
               :icon-color="'text-neutral-500'"
               :min-width="'100px'"
               v-tooltip="{ 
-                content: 'Set a private nickname for yourself, to fetch results later',
+                content: 'A secret usercode for you to see results later',
                 show: showUserCodeTooltip,
                 trigger: 'manual'
               }"
@@ -354,7 +354,8 @@ export default {
           codeStatus.value[type] = 'invalid';
           isChecking.value[type] = false;
         } else {
-          codeStatus.value[type] = null; // Reset status before checking
+          codeStatus.value[type] = null;
+          isChecking.value[type] = true;
           debounceCheckCode(type);
         }
       } else {
@@ -362,6 +363,15 @@ export default {
         isChecking.value[type] = false;
       }
     };
+
+    const debounceCheckCode = debounce((type) => {
+      const code = type === 'survey' ? surveyCode.value : userCode.value;
+      if (isValidFormat(code)) {
+        checkCodeAvailability(type);
+      } else {
+        isChecking.value[type] = false;
+      }
+    }, 750);
 
     const getCodeErrorMessage = (type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
@@ -385,13 +395,6 @@ export default {
       !isLoading.value && 
       !isSubmitted.value
     );
-
-    const debounceCheckCode = debounce((type) => {
-      const code = type === 'survey' ? surveyCode.value : userCode.value;
-      if (isValidFormat(code)) {
-        checkCodeAvailability(type);
-      }
-    }, 750);
 
     const isCodeValid = (type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
@@ -425,6 +428,8 @@ export default {
     ];
 
     async function fetchInitialCodes() {
+      isChecking.value.survey = true;
+      isChecking.value.user = true;
       try {
         const response = await api.getIds(10);
         availableCodes.value.survey = response.data.ids.slice(0, 5);
@@ -439,6 +444,11 @@ export default {
         console.error('Error fetching initial codes:', error);
         toastMessage.value = t('createView.errorFetchingCodes');
         toastType.value = 'error';
+        codeStatus.value.survey = 'invalid';
+        codeStatus.value.user = 'invalid';
+      } finally {
+        isChecking.value.survey = false;
+        isChecking.value.user = false;
       }    
     }
 
