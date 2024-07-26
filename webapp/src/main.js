@@ -1,14 +1,21 @@
+/* eslint-disable no-unused-vars */
 import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 import i18n from './i18n'
+import FloatingVue from 'floating-vue'
+import 'floating-vue/dist/style.css'
 import './index.css'
 
 const app = createApp(App)
+
 router.onError((error) => {
     console.error('Global navigation error:', error)
-  })
+})
+
 app.use(router)
-app.provide('router', router) // Add this line
+app.provide('router', router)
 app.use(i18n)
+app.use(FloatingVue)
+
 app.mount('#app')
