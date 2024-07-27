@@ -6,8 +6,9 @@ COPY . .
 
 # Accept environment variables as build arguments
 ARG VUE_APP_API_URL
-
+ARG VUE_APP_BASE_URL
 # Create .env file or use an existing .env.production file
+RUN echo "VUE_APP_BASE_URL=${VUE_APP_BASE_URL}" > .env.production
 RUN echo "VUE_APP_API_URL=${VUE_APP_API_URL}" > .env.production
 
 RUN npm run build

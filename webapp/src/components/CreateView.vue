@@ -319,10 +319,12 @@ export default {
     const codeStatus = ref({ survey: null, user: null });
     const isChecking = reactive({ survey: false, user: false });
     const isPublishing = ref(false);
-    const baseUrl = computed(() => process.env.VUE_APP_API_URL || '');
+    const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
     const showUserCodeTooltip = ref(false);
     const showSurveyCodeTooltip = ref(false);
 
+    console.log("Base URL: ", process.env.VUE_APP_BASE_URL);
+    console.log("VUE API URL", process.env.VUE_APP_API_URL);
     const placeholderText = ref('Enter your question here');
     const placeholders = [
       'Enter your question here',
@@ -340,7 +342,6 @@ export default {
     };
 
     const isCheckingCode = (type) => {
-      console.log(`Checking ${type} code:`, isChecking[type]);
       return isChecking[type];
     };
     
@@ -480,14 +481,12 @@ export default {
 
     async function checkCodeAvailability(type) {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
-      console.log(`Checking availability for ${type} code: ${code}`);
 
       isChecking[type] = true;
       codeStatus.value[type] = null;
 
       try {
         const response = await api.checkIdAvailability(code);
-        console.log(`API response for ${type} code:`, response);
 
         // Ensure the animation runs for at least 1 second
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -498,7 +497,6 @@ export default {
 
         if (response.data.available) {
           codeStatus.value[type] = 'valid';
-          console.log(`${type} code ${code} is available`);
           if (type === 'survey') {
             availableCodes.value.survey[0] = surveyCode.value;
           } else {
