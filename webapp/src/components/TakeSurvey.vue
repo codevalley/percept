@@ -189,6 +189,7 @@ export default {
           loadedSurveyData.value = props.surveyData;
         } else {
           const response = await api.getSurvey(props.surveyId);
+          console.log('Survey response:', response);
           loadedSurveyData.value = response.data;
         }
       } catch (err) {

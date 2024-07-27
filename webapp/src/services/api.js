@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { result } from 'lodash';
 
 
 const API_URL = `${process.env.VUE_APP_API_URL}/v1` || 'http://localhost:5001/v1'; // Update this to your API's URLconsole.log('Router Base URL:', `${process.env.VUE_APP_API_URL}`); // For debugging
@@ -18,9 +17,7 @@ export default {
 
   // Get a survey by ID
   getSurvey(surveyId) {
-    result = api.get(`/surveys/${surveyId}`);
-    console.log("Get survey: ". result);
-    return result;
+    return api.get(`/surveys/${surveyId}`);
   },
 
   // Submit answers for a survey
