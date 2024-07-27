@@ -723,7 +723,7 @@ export default {
     };
 
     onMounted(async () => {
-      await fetchInitialCodes();
+      fetchInitialCodes();
       animatePlaceholder();
     });
 
