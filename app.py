@@ -19,8 +19,13 @@ allowed_origins = [
     "http://localhost:8080",
     os.environ.get("APP_URL", "https://i.nyn.me")
 ]
-CORS(app, resources={r"/api/v1/*": {"origins": allowed_origins}})
+CORS(app, resources={
+    r"/v1/*": {"origins": allowed_origins},
+    r"/api/v1/*": {"origins": allowed_origins}
+})
 #CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True)
+
+api_prefix = os.getenv('API_PREFIX', '')  # Default to empty string if not set
 
 # Initialize the generator with a random number 
 snowflake = Snowflake53(1,1)
@@ -82,11 +87,11 @@ def startup_logger():
     except Exception as e:
         app.logger.error(f"MongoDB connection failed: {str(e)}")
 
-@app.route('/')
+@app.route(f'{api_prefix}/')
 def home():
     return "Welcome to the Percept API", 200
 
-@app.route('/api/v1/ids/check', methods=['GET'])
+@app.route(f'{api_prefix}/v1/ids/check', methods=['GET'])
 def check_id():
     id_to_check = request.args.get('id')
     if not id_to_check:
@@ -105,7 +110,7 @@ def check_id():
         'available': available
     })
     
-@app.route('/api/v1/ids', methods=['GET'])
+@app.route(f'{api_prefix}/v1/ids', methods=['GET'])
 def get_ids():
     preferred = request.args.get('id')
     count = int(request.args.get('count', ID_SUGGESTIONS))
@@ -116,7 +121,7 @@ def get_ids():
         'ids': ids
     })
        
-@app.route('/api/v1/surveys', methods=['POST'])
+@app.route(f'{api_prefix}/v1/surveys', methods=['POST'])
 def create_survey():
     app.logger.debug("Received POST request to /api/v1/surveys")
     data = request.json
@@ -181,7 +186,7 @@ def create_survey():
         app.logger.error(f"Error creating survey: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
-@app.route('/api/v1/surveys/<string:survey_id>', methods=['GET'])
+@app.route(f'{api_prefix}/v1/surveys/<string:survey_id>', methods=['GET'])
 def get_survey(survey_id):
     app.logger.debug(f"Received GET request for survey ID: {survey_id}")
     survey = mongo.db.surveys.find_one({'survey_id': survey_id})
@@ -207,7 +212,7 @@ def get_survey(survey_id):
         ]
     })
 
-@app.route('/api/v1/surveys/<string:survey_id>/answers', methods=['POST'])
+@app.route(f'{api_prefix}/v1/surveys/<string:survey_id>/answers', methods=['POST'])
 def submit_answers(survey_id):
     app.logger.debug(f"Received POST request to submit answers for survey ID: {survey_id}")
     data = request.json
@@ -276,12 +281,12 @@ def submit_answers(survey_id):
         app.logger.error(f"Error submitting answers: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
     
-@app.route('/api/v1/surveys/<string:survey_id>/results', methods=['GET'])
+@app.route(f'{api_prefix}/v1/surveys/<string:survey_id>/results', methods=['GET'])
 def get_survey_results(survey_id):
     user_code = request.args.get('user_code')
     return process_results(survey_id, user_code)
 
-@app.route('/api/v1/surveys/results', methods=['GET'])
+@app.route(f'{api_prefix}/v1/surveys/results', methods=['GET'])
 def get_results_by_user_code():
     user_code = request.args.get('user_code')
     if not user_code:

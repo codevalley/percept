@@ -18,6 +18,7 @@ services:
     environment:
       - MONGO_URI=mongodb://mongo:27017/percept
       - APP_URL=http://localhost
+      - API_PREFIX=/api
     depends_on:
       mongo:
         condition: service_healthy
@@ -30,7 +31,7 @@ services:
     build:
       context: ./webapp
       args:
-        VUE_APP_API_URL: http://localhost
+        VUE_APP_API_URL: http://localhost/api
         VUE_APP_BASE_URL: http://localhost
   mongo:
     image: mongo:4.4
