@@ -11,5 +11,5 @@ module.exports = {
   },
 
   // to allow the app to read environment variables at runtime
-  publicPath: process.env.PUBLIC_URL || '/'
+  publicPath: process.env.VUE_APP_BASE_URL || '/'
 };

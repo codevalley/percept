@@ -1,32 +1,32 @@
 alerts:
 - rule: DEPLOYMENT_FAILED
 - rule: DOMAIN_FAILED
+domains:
+- domain: nyn.sh
+  type: PRIMARY
+  zone: nyn.sh
 features:
 - buildpack-stack=ubuntu-22
-ingress:
-  rules:
-  - component:
-      name: backwave-api
-    match:
-      path:
-        prefix: /api
-  - component:
-      name: backwave-web
-    match:
-      path:
-        prefix: /
 name: backwave-app
 region: blr
 services:
-- build_command: pip install -r requirements.txt
+- build_command: |-
+    pip install -r requirements.txt
+    python -m nltk.downloader words vader_lexicon wordnet
   environment_slug: python
   envs:
+  - key: NLTK_DATA
+    scope: RUN_AND_BUILD_TIME
+    value: /workspace/nltk_data
   - key: PORT
     scope: RUN_AND_BUILD_TIME
     value: "5001"
   - key: MONGO_URI
     scope: RUN_AND_BUILD_TIME
-    value: mongodb+srv://doadmin:st7039T142lw6Lfo@private-db-mongo-backwave-26782c0f.mongo.ondigitalocean.com/admin?authSource=admin&tls=true
+    value: mongodb+srv://doadmin:st7039T142lw6Lfo@db-mongo-backwave-eb4142b3.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=db-mongo-backwave
+  - key: APP_URL
+    scope: RUN_AND_BUILD_TIME
+    value: ${APP_URL}
   github:
     branch: main
     deploy_on_push: true
@@ -35,11 +35,20 @@ services:
   instance_count: 1
   instance_size_slug: apps-s-1vcpu-1gb-fixed
   name: backwave-api
-  run_command: gunicorn --worker-tmp-dir /dev/shm app:app
+  run_command: gunicorn --bind 0.0.0.0:$PORT --timeout 600 app:app
   source_dir: /
+  routes:
+  - path: /api
 static_sites:
 - build_command: npm install && npm run build
   environment_slug: node-js
+  envs:
+  - key: VUE_APP_API_URL
+    scope: BUILD_TIME
+    value: ${APP_URL}/api
+  - key: VUE_APP_BASE_URL
+    scope: BUILD_TIME
+    value: ${APP_URL}
   github:
     branch: main
     deploy_on_push: true
@@ -47,3 +56,7 @@ static_sites:
   name: backwave-web
   output_dir: dist
   source_dir: webapp
+  routes:
+  - path: /
+  - path: /*
+    preserve_path_prefix: true
