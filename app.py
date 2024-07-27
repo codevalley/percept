@@ -7,7 +7,7 @@ from flask_cors import CORS
 import os
 import logging
 from id_manager import IDManager
-
+from pymongo.errors import ConnectionFailure
 from snowflake import Snowflake53
 
 
@@ -42,13 +42,35 @@ mongo = PyMongo(app)
 # Initialize IDManager
 id_manager = IDManager(mongo.db)
 
+def initialize_db(max_retries=5, delay=5):
+    for attempt in range(max_retries):
+        try:
+            # The ismaster command is cheap and does not require auth.
+            mongo.db.command('ismaster')
+            logging.info("Successfully connected to MongoDB")
+            return True
+        except ConnectionFailure:
+            if attempt < max_retries - 1:
+                logging.error(f"Failed to connect to MongoDB. Retrying in {delay} seconds...")
+                time.sleep(delay)
+            else:
+                logging.error("Failed to connect to MongoDB after maximum retries")
+                return False
+
+
 def generate_unique_id():
     return snowflake.generate()
 
 # Initialize the ID reserve
 with app.app_context():
-    id_manager.initialize_reserve(INITIAL_ID_RESERVE)
-    app.logger.info(f"Initialized ID reserve with {INITIAL_ID_RESERVE} IDs")
+    if initialize_db():
+        try:
+            id_manager.initialize_reserve(INITIAL_ID_RESERVE)
+            app.logger.info(f"Initialized ID reserve with {INITIAL_ID_RESERVE} IDs")
+        except Exception as e:
+            app.logger.error(f"Failed to initialize ID reserve: {str(e)}")
+    else:
+        app.logger.error("Failed to initialize database connection")
 
 @app.before_first_request
 def startup_logger():

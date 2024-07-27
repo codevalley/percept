@@ -9,4 +9,7 @@ module.exports = {
       .use('vue-svg-loader')
       .loader('vue-svg-loader');
   },
+
+  // to allow the app to read environment variables at runtime
+  publicPath: process.env.PUBLIC_URL || '/'
 };

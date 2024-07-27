@@ -138,7 +138,7 @@
               v-model="surveyCode"
               :icon="'/assets/bookmark-icon.svg'"
               :placeholder="'survey ID'"
-              :is-checking="isChecking.survey"
+              :is-checking="isCheckingCode('survey')"
               :is-valid="isCodeValid('survey')"
               :is-error="isCodeInvalid('survey')"
               :max-width="'300px'"
@@ -166,7 +166,7 @@
               v-model="userCode"
               :icon="'/assets/user-icon.svg'"
               :placeholder="'user name'"
-              :is-checking="isChecking.user"
+              :is-checking="isCheckingCode('user')"
               :is-valid="isCodeValid('user')"
               :is-error="isCodeInvalid('user')"
               :border-width="2"
@@ -278,7 +278,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
@@ -317,7 +317,7 @@ export default {
     const resultsLink = ref('');
     const availableCodes = ref({ survey: [], user: [] });
     const codeStatus = ref({ survey: null, user: null });
-    const isChecking = ref({ survey: false, user: false });
+    const isChecking = reactive({ survey: false, user: false });
     const isPublishing = ref(false);
     const baseUrl = computed(() => process.env.VUE_APP_API_URL || '');
     const showUserCodeTooltip = ref(false);
@@ -339,7 +339,10 @@ export default {
       }, 3000); // Change every 3 seconds
     };
 
-    const isCheckingCode = (type) => isChecking.value[type];
+    const isCheckingCode = (type) => {
+      console.log(`Checking ${type} code:`, isChecking[type]);
+      return isChecking[type];
+    };
     
     const isValidFormat = (code) => {
       const validFormat = /^[a-zA-Z0-9-]+$/;
@@ -352,15 +355,15 @@ export default {
       if (isValidFormat(code)) {
         if (code === otherCode) {
           codeStatus.value[type] = 'invalid';
-          isChecking.value[type] = false;
+          isChecking[type] = false;
         } else {
           codeStatus.value[type] = null;
-          isChecking.value[type] = true;
+          isChecking[type] = true;
           debounceCheckCode(type);
         }
       } else {
         codeStatus.value[type] = 'invalid';
-        isChecking.value[type] = false;
+        isChecking[type] = false;
       }
     };
 
@@ -369,7 +372,7 @@ export default {
       if (isValidFormat(code)) {
         checkCodeAvailability(type);
       } else {
-        isChecking.value[type] = false;
+        isChecking[type] = false;
       }
     }, 750);
 
@@ -428,8 +431,11 @@ export default {
     ];
 
     async function fetchInitialCodes() {
-      isChecking.value.survey = true;
-      isChecking.value.user = true;
+      console.log('Starting fetchInitialCodes');
+
+      await nextTick();
+      isChecking.survey = true;
+      isChecking.user = true;
       try {
         const response = await api.getIds(10);
         availableCodes.value.survey = response.data.ids.slice(0, 5);
@@ -447,8 +453,12 @@ export default {
         codeStatus.value.survey = 'invalid';
         codeStatus.value.user = 'invalid';
       } finally {
-        isChecking.value.survey = false;
-        isChecking.value.user = false;
+        // Add a small delay before setting isChecking to false
+        setTimeout(() => {
+          isChecking.survey = false;
+          isChecking.user = false;
+          console.log('Finished fetchInitialCodes, isChecking:', isChecking);
+        }, 1000); // 1 second delay
       }    
     }
 
@@ -469,7 +479,7 @@ export default {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
       console.log(`Checking availability for ${type} code: ${code}`);
 
-      isChecking.value[type] = true;
+      isChecking[type] = true;
       codeStatus.value[type] = null;
 
       try {
@@ -503,7 +513,7 @@ export default {
         toastMessage.value = t('createView.errorCheckingCode');
         toastType.value = 'error';
       } finally {
-        isChecking.value[type] = false;
+        isChecking[type] = false;
       }
     }
 

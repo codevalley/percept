@@ -19,7 +19,8 @@ services:
       - MONGO_URI=mongodb://mongo:27017/percept
       - APP_URL=http://localhost
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     deploy:
       resources:
         limits:
@@ -36,6 +37,11 @@ services:
       - mongodata:/data/db
     ports:
       - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mongodata:
