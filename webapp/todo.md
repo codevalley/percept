@@ -6,4 +6,3 @@
     - Include option to enter surveyID in TakeSurvey error state
     - Include option to enter userID in ResultsView error state
 - tooltip auto show
-- remove extra /api in the endpoints
