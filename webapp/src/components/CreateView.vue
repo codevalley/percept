@@ -278,7 +278,7 @@
 </template>
 
 <script>
-import { ref, computed, watch, nextTick, onMounted, reactive } from 'vue';
+import { ref, computed, watch, onMounted, reactive } from 'vue';
 import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
 import confetti from 'canvas-confetti';
@@ -402,13 +402,13 @@ export default {
     const isCodeValid = (type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
       const otherCode = type === 'survey' ? userCode.value : surveyCode.value;
-      return isValidFormat(code) && codeStatus.value[type] === 'valid' && code !== otherCode;
+      return !isChecking[type] && isValidFormat(code) && codeStatus.value[type] === 'valid' && code !== otherCode;
     };
 
     const isCodeInvalid = (type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
       const otherCode = type === 'survey' ? userCode.value : surveyCode.value;
-      return !isValidFormat(code) || codeStatus.value[type] === 'invalid' || code === otherCode;
+      return !isChecking[type] && (!isValidFormat(code) || codeStatus.value[type] === 'invalid' || code === otherCode);
     };
 
     const allQuestionsAnswered = computed(() =>
@@ -433,7 +433,7 @@ export default {
     async function fetchInitialCodes() {
       console.log('Starting fetchInitialCodes');
 
-      await nextTick();
+      
       isChecking.survey = true;
       isChecking.user = true;
       try {
@@ -443,9 +443,12 @@ export default {
         surveyCode.value = availableCodes.value.survey[0];
         userCode.value = availableCodes.value.user[0];
 
-        // Set initial code statuses to valid
-        codeStatus.value.survey = 'valid';
-        codeStatus.value.user = 'valid';
+        
+        // Validate the codes
+        await Promise.all([
+          checkCodeAvailability('survey'),
+          checkCodeAvailability('user')
+        ]);
       } catch (error) {
         console.error('Error fetching initial codes:', error);
         toastMessage.value = t('createView.errorFetchingCodes');
@@ -723,7 +726,7 @@ export default {
     };
 
     onMounted(async () => {
-      fetchInitialCodes();
+      await fetchInitialCodes();
       animatePlaceholder();
     });
 
