@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 
-const API_URL = `${process.env.VUE_APP_API_URL}/v1` || 'http://localhost:5001/v1'; // Update this to your API's URLconsole.log('Router Base URL:', `${process.env.VUE_APP_API_URL}`); // For debugging
+const isDevelopment = process.env.VUE_APP_ENV === 'development';
+const API_URL = isDevelopment ? '/v1' : `${process.env.VUE_APP_API_URL}/v1`;
 const api = axios.create({
     baseURL: API_URL,
     headers: {
