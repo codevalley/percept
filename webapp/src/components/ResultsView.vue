@@ -10,11 +10,15 @@
             <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
               <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">This is your review link</span>
               <button
-                @click="copyToClipboard('surveyCode')"
+                @click="openAndCopy('survey')"
                 class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
               >
                 <span class="text-base font-medium mr-2">{{ surveyCode }}</span>
-                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary cursor-pointer" />
+                <inline-svg 
+                  @click.stop="copyToClipboard('surveyCode')" 
+                  src="/assets/copy-icon.svg" 
+                  class="w-5 h-5 text-primary cursor-pointer" 
+                />
               </button>
             </div>
             <span class="text-primary text-sm italic ml-0 sm:ml-4">Share it with your friends for feedback</span>
@@ -25,11 +29,15 @@
                 {{ results.user_type === 'creator' ? 'This is your results link' : 'Your results code' }}
               </span>
               <button
-                @click="copyToClipboard('userCode')"
+                @click="openAndCopy('user')"
                 class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
               >
                 <span class="text-base font-medium mr-2">{{ userCode }}</span>
-                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary cursor-pointer" />
+                <inline-svg 
+                  @click.stop="copyToClipboard('userCode')" 
+                  src="/assets/copy-icon.svg" 
+                  class="w-5 h-5 text-primary cursor-pointer" 
+                />
               </button>
             </div>
             <span class="text-primary text-sm italic ml-0 sm:ml-4">
@@ -133,6 +141,17 @@ export default {
     const userCode = computed(() => route.params.userCode || (results.value?.user_code ?? ''));
     const surveyCode = computed(() => results.value?.survey_id ?? '');
 
+    const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
+    const surveyLink = computed(() => `${baseUrl.value}/participate/${surveyCode.value}`);
+    const resultsLink = computed(() => `${baseUrl.value}/results/${userCode.value}`);
+
+    const openAndCopy = (type) => {
+      const url = type === 'survey' ? surveyLink.value : resultsLink.value;
+      window.open(url, '_blank');
+      copyToClipboard(type === 'survey' ? 'surveyCode' : 'userCode');
+    };
+
+
     const handleError = (err) => {
       console.error('Error fetching results:', err);
       if (err.response) {
@@ -181,7 +200,13 @@ export default {
 
 
     const copyToClipboard = (type) => {
-      const textToCopy = type === 'surveyCode' ? surveyCode.value : userCode.value;
+      let textToCopy;
+      if (type === 'surveyCode') {
+        textToCopy = surveyLink.value;
+      } else if (type === 'userCode') {
+        textToCopy = resultsLink.value;
+      }
+
       navigator.clipboard.writeText(textToCopy).then(() => {
         toastMessage.value = t('resultsView.copySuccess');
         toastType.value = 'success';
@@ -211,6 +236,7 @@ export default {
       copyToClipboard,
       toastMessage,
       toastType,
+      openAndCopy,
       clearToast
     };
   }
