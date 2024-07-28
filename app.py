@@ -251,8 +251,8 @@ def submit_answers(survey_id):
                     app.logger.warning(f"Invalid answer for boolean question {question_id}: {answer['answer']}")
                     return jsonify({'error': f"Invalid answer for question {question_id}: must be a boolean"}), 400
         
-        # Store the answers
-        user_code = id_manager.get_id()
+        # Use provided user_code, if not, generate a new one
+        user_code = data.get('user_code', id_manager.get_id())
         answer_submission = {
             'survey_id': survey_id,
             'user_code': user_code,
