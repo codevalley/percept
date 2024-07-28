@@ -1,36 +1,59 @@
 <template>
-  <div class="font-['IBM_Plex_Sans'] max-w-3xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold text-primary mb-6">Survey Results</h1>
+  <div class="font-['IBM_Plex_Sans'] max-w-full sm:max-w-3xl mx-auto px-4 py-6 sm:py-8">
+    <h1 class="text-2xl sm:text-3xl font-bold text-primary mb-4 sm:mb-6">Survey Results</h1>
     <div v-if="loading" class="text-lg text-primary">Loading results...</div>
     <div v-else-if="error" class="text-lg text-accent">{{ error }}</div>
     <div v-else-if="results">
-      <!-- Share Links Section - Always show for both complete and incomplete results -->
-      <div class="bg-accent-green rounded-[25px] p-7 mb-8">
-        <div class="w-full text-primary text-2xl font-bold leading-9 mb-6 text-left">
-          {{ results.user_type === 'creator' ? 'Your Survey Information' : 'Your Results Information' }}
+      <!-- Share Links Section -->
+      <!-- Share Links Section -->
+  <div class="bg-accent-green rounded-[25px] p-4 sm:p-7 mb-6 sm:mb-8">
+    <div class="flex flex-col space-y-6">
+      <!-- Survey Code Row - Only visible for creators -->
+      <div v-if="results.user_type === 'creator'" class="flex flex-col space-y-1">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+          <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">This is your review link</span>
+          <button
+            @click="copyToClipboard('surveyCode')"
+            class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+          >
+            <span class="text-base font-medium mr-2">{{ surveyCode }}</span>
+            <inline-svg 
+              src="/assets/copy-icon.svg"
+              class="w-5 h-5 text-primary cursor-pointer" 
+            />
+          </button>
         </div>
-
-        <div class="flex items-center space-x-2">
-          <span class="text-primary text-lg font-normal leading-7">Bookmark this page or save your user code </span>
-          <div class="relative inline-block">
-            <button
-              @click="copyUrl"
-              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-            >
-              <span class="text-base font-medium mr-2">{{ userCode }}</span>
-              <inline-svg 
-                @click.stop="copyCode" 
-                src="/assets/copy-icon.svg"
-                class="w-5 h-5 text-primary cursor-pointer" 
-              />
-            </button>
-          </div>
-          <span class="text-primary text-lg font-normal leading-7">to see the results later.</span>
-        </div>
+        <span class="text-primary text-sm italic ml-0 sm:ml-4">Share it with your friends for feedback</span>
       </div>
 
+      <!-- User Code Row - Always visible -->
+      <div class="flex flex-col space-y-1">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+          <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">
+            {{ results.user_type === 'creator' ? 'This is your results link' : 'Your results code' }}
+          </span>
+          <button
+            @click="copyToClipboard('userCode')"
+            class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+          >
+            <span class="text-base font-medium mr-2">{{ userCode }}</span>
+            <inline-svg 
+              src="/assets/copy-icon.svg"
+              class="w-5 h-5 text-primary cursor-pointer" 
+            />
+          </button>
+        </div>
+        <span class="text-primary text-sm italic ml-0 sm:ml-4">
+          {{ results.user_type === 'creator' 
+            ? 'Bookmark and come here later to see results' 
+            : 'Use this code to access your results in the future' }}
+        </span>
+      </div>
+    </div>
+  </div>
+
       <!-- Incomplete Results Section -->
-      <div v-if="results.status === 'incomplete'" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+      <div v-if="results.status === 'incomplete'" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 text-sm sm:text-base">
         <p class="font-bold">Results Not Available Yet</p>
         <template v-if="results.is_creator">
           <p>More responses are needed before results are available.</p>
@@ -46,33 +69,33 @@
       <!-- Complete Results Section -->
       <template v-else>
         <!-- Overall Statistics -->
-        <div class="bg-neutral-100 p-6 rounded-lg mb-8">
-          <h2 class="text-2xl font-semibold text-primary mb-4">Overall Statistics</h2>
-          <p v-if="results.overall_statistics" class="mb-2 text-primary">
+        <div class="bg-neutral-100 p-4 sm:p-6 rounded-lg mb-6 sm:mb-8">
+          <h2 class="text-xl sm:text-2xl font-semibold text-primary mb-3 sm:mb-4">Overall Statistics</h2>
+          <p v-if="results.overall_statistics" class="mb-2 text-primary text-sm sm:text-base">
             Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate?.toFixed(2) || 'N/A' }}
           </p>
-          <p v-if="results.overall_statistics.deviation_from_creator !== undefined" class="mb-2 text-primary">
+          <p v-if="results.overall_statistics.deviation_from_creator !== undefined" class="mb-2 text-primary text-sm sm:text-base">
             Deviation from Creator: {{ results.overall_statistics.deviation_from_creator?.toFixed(2) || 'N/A' }}
           </p>
-          <p v-if="results.overall_statistics.deviation_from_others !== undefined" class="mb-2 text-primary">
+          <p v-if="results.overall_statistics.deviation_from_others !== undefined" class="mb-2 text-primary text-sm sm:text-base">
             Deviation from Others: {{ results.overall_statistics.deviation_from_others?.toFixed(2) || 'N/A' }}
           </p>
-          <p v-if="results.overall_statistics.overall_deviation !== undefined" class="mb-2 text-primary">
+          <p v-if="results.overall_statistics.overall_deviation !== undefined" class="mb-2 text-primary text-sm sm:text-base">
             Overall Deviation: {{ results.overall_statistics.overall_deviation?.toFixed(2) || 'N/A' }}
           </p>
         </div>
 
         <!-- Question Results -->
         <div v-if="results.questions">
-          <h2 class="text-2xl font-semibold text-primary mb-4">Question Results</h2>
-          <div v-for="question in results.questions" :key="question.id" class="bg-white border border-neutral-200 p-6 rounded-lg mb-4 shadow-sm">
-            <h3 class="text-xl font-medium text-primary mb-3">{{ question.text }}</h3>
-            <div v-if="question.type === 'scale'" class="space-y-2">
+          <h2 class="text-xl sm:text-2xl font-semibold text-primary mb-3 sm:mb-4">Question Results</h2>
+          <div v-for="question in results.questions" :key="question.id" class="bg-white border border-neutral-200 p-4 sm:p-6 rounded-lg mb-4 shadow-sm">
+            <h3 class="text-lg sm:text-xl font-medium text-primary mb-2 sm:mb-3">{{ question.text }}</h3>
+            <div v-if="question.type === 'scale'" class="space-y-1 sm:space-y-2 text-sm sm:text-base">
               <p class="text-primary">Your Answer: <span class="font-semibold">{{ question.user_score || 'N/A' }}</span></p>
               <p class="text-primary">Average Score: <span class="font-semibold">{{ question.average_score?.toFixed(2) || 'N/A' }}</span></p>
               <p class="text-primary">Your Deviation: <span class="font-semibold">{{ question.user_deviation?.toFixed(2) || 'N/A' }}</span></p>
             </div>
-            <div v-else-if="question.type === 'boolean'" class="space-y-2">
+            <div v-else-if="question.type === 'boolean'" class="space-y-1 sm:space-y-2 text-sm sm:text-base">
               <p class="text-primary">Your Answer: <span class="font-semibold">{{ question.user_answer !== undefined ? (question.user_answer ? 'Yes' : 'No') : 'N/A' }}</span></p>
               <p class="text-primary">Percentage who answered Yes: <span class="font-semibold">{{ question.true_percentage?.toFixed(2) || 'N/A' }}%</span></p>
             </div>
@@ -109,6 +132,7 @@ export default {
     const toastType = ref('');
     
     const userCode = computed(() => route.params.userCode || (results.value?.user_code ?? ''));
+    const surveyCode = computed(() => results.value?.survey_id ?? '');
 
     const handleError = (err) => {
       console.error('Error fetching results:', err);
@@ -157,18 +181,9 @@ export default {
       }
     };
 
-    const copyUrl = () => {
-      const url = window.location.href;
-      copyToClipboard(url);
-    };
-
-    const copyCode = (event) => {
-      event.stopPropagation();
-      copyToClipboard(userCode.value);
-    };
-
-    const copyToClipboard = (text) => {
-      navigator.clipboard.writeText(text).then(() => {
+    const copyToClipboard = (type) => {
+      const textToCopy = type === 'surveyCode' ? surveyCode.value : userCode.value;
+      navigator.clipboard.writeText(textToCopy).then(() => {
         toastMessage.value = t('resultsView.copySuccess');
         toastType.value = 'success';
       }, (err) => {
@@ -193,8 +208,8 @@ export default {
       loading,
       error,
       userCode,
-      copyUrl,
-      copyCode,
+      surveyCode,
+      copyToClipboard,
       toastMessage,
       toastType,
       clearToast

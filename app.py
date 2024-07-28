@@ -341,7 +341,9 @@ def process_results(survey_id, user_code):
                 'current_responses': current_responses,
                 'minimum_responses': MINIMUM_RESPONSES,
                 'remaining_responses': MINIMUM_RESPONSES - current_responses,
-                'is_creator': True
+                'is_creator': True,
+                'user_code' : user_code,
+                'survey_id' : survey_id
             }
         else:
             response = {
