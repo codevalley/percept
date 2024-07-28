@@ -4,55 +4,42 @@
     <div v-if="loading" class="text-lg text-primary">Loading results...</div>
     <div v-else-if="error" class="text-lg text-accent">{{ error }}</div>
     <div v-else-if="results">
-      <!-- Share Links Section -->
-      <!-- Share Links Section -->
-  <div class="bg-accent-green rounded-[25px] p-4 sm:p-7 mb-6 sm:mb-8">
-    <div class="flex flex-col space-y-6">
-      <!-- Survey Code Row - Only visible for creators -->
-      <div v-if="results.user_type === 'creator'" class="flex flex-col space-y-1">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
-          <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">This is your review link</span>
-          <button
-            @click="copyToClipboard('surveyCode')"
-            class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-          >
-            <span class="text-base font-medium mr-2">{{ surveyCode }}</span>
-            <inline-svg 
-              src="/assets/copy-icon.svg"
-              class="w-5 h-5 text-primary cursor-pointer" 
-            />
-          </button>
+      <div class="bg-accent-green rounded-[25px] p-4 sm:p-7 mb-6 sm:mb-8">
+        <div class="flex flex-col space-y-6">
+          <div v-if="results.user_type === 'creator'" class="flex flex-col space-y-1">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+              <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">This is your review link</span>
+              <button
+                @click="copyToClipboard('surveyCode')"
+                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+              >
+                <span class="text-base font-medium mr-2">{{ surveyCode }}</span>
+                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary cursor-pointer" />
+              </button>
+            </div>
+            <span class="text-primary text-sm italic ml-0 sm:ml-4">Share it with your friends for feedback</span>
+          </div>
+          <div class="flex flex-col space-y-1">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+              <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">
+                {{ results.user_type === 'creator' ? 'This is your results link' : 'Your results code' }}
+              </span>
+              <button
+                @click="copyToClipboard('userCode')"
+                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
+              >
+                <span class="text-base font-medium mr-2">{{ userCode }}</span>
+                <inline-svg src="/assets/copy-icon.svg" class="w-5 h-5 text-primary cursor-pointer" />
+              </button>
+            </div>
+            <span class="text-primary text-sm italic ml-0 sm:ml-4">
+              {{ results.user_type === 'creator' 
+                ? 'Bookmark and come here later to see results' 
+                : 'Use this code to access your results in the future' }}
+            </span>
+          </div>
         </div>
-        <span class="text-primary text-sm italic ml-0 sm:ml-4">Share it with your friends for feedback</span>
       </div>
-
-      <!-- User Code Row - Always visible -->
-      <div class="flex flex-col space-y-1">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
-          <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">
-            {{ results.user_type === 'creator' ? 'This is your results link' : 'Your results code' }}
-          </span>
-          <button
-            @click="copyToClipboard('userCode')"
-            class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-          >
-            <span class="text-base font-medium mr-2">{{ userCode }}</span>
-            <inline-svg 
-              src="/assets/copy-icon.svg"
-              class="w-5 h-5 text-primary cursor-pointer" 
-            />
-          </button>
-        </div>
-        <span class="text-primary text-sm italic ml-0 sm:ml-4">
-          {{ results.user_type === 'creator' 
-            ? 'Bookmark and come here later to see results' 
-            : 'Use this code to access your results in the future' }}
-        </span>
-      </div>
-    </div>
-  </div>
-
-      <!-- Incomplete Results Section -->
       <div v-if="results.status === 'incomplete'" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 text-sm sm:text-base">
         <p class="font-bold">Results Not Available Yet</p>
         <template v-if="results.is_creator">
@@ -65,42 +52,54 @@
           <p>The survey hasn't received enough responses yet. Please check back later.</p>
         </template>
       </div>
-
-      <!-- Complete Results Section -->
       <template v-else>
-        <!-- Overall Statistics -->
         <div class="bg-neutral-100 p-4 sm:p-6 rounded-lg mb-6 sm:mb-8">
           <h2 class="text-xl sm:text-2xl font-semibold text-primary mb-3 sm:mb-4">Overall Statistics</h2>
-          <p v-if="results.overall_statistics" class="mb-2 text-primary text-sm sm:text-base">
-            Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate?.toFixed(2) || 'N/A' }}
+          <!-- Overall Statistics -->
+          <p v-if="typeof results.overall_statistics.average_deviation_from_aggregate === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+            Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate.toFixed(2) }}
           </p>
-          <p v-if="results.overall_statistics.deviation_from_creator !== undefined" class="mb-2 text-primary text-sm sm:text-base">
-            Deviation from Creator: {{ results.overall_statistics.deviation_from_creator?.toFixed(2) || 'N/A' }}
+          <p v-if="results.user_type === 'participant' && typeof results.overall_statistics.deviation_from_creator === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+            Deviation from Creator: {{ results.overall_statistics.deviation_from_creator.toFixed(2) }}
           </p>
-          <p v-if="results.overall_statistics.deviation_from_others !== undefined" class="mb-2 text-primary text-sm sm:text-base">
-            Deviation from Others: {{ results.overall_statistics.deviation_from_others?.toFixed(2) || 'N/A' }}
+          <p v-if="results.user_type === 'participant' && typeof results.overall_statistics.deviation_from_others === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+            Deviation from Others: {{ results.overall_statistics.deviation_from_others.toFixed(2) }}
           </p>
-          <p v-if="results.overall_statistics.overall_deviation !== undefined" class="mb-2 text-primary text-sm sm:text-base">
-            Overall Deviation: {{ results.overall_statistics.overall_deviation?.toFixed(2) || 'N/A' }}
+          <p v-if="typeof results.overall_statistics.overall_deviation === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+            Overall Deviation: {{ results.overall_statistics.overall_deviation.toFixed(2) }}
           </p>
-        </div>
 
-        <!-- Question Results -->
+        </div>
         <div v-if="results.questions">
           <h2 class="text-xl sm:text-2xl font-semibold text-primary mb-3 sm:mb-4">Question Results</h2>
           <div v-for="question in results.questions" :key="question.id" class="bg-white border border-neutral-200 p-4 sm:p-6 rounded-lg mb-4 shadow-sm">
             <h3 class="text-lg sm:text-xl font-medium text-primary mb-2 sm:mb-3">{{ question.text }}</h3>
-            <div v-if="question.type === 'scale'" class="space-y-1 sm:space-y-2 text-sm sm:text-base">
-              <p class="text-primary">Your Answer: <span class="font-semibold">{{ question.user_score || 'N/A' }}</span></p>
-              <p class="text-primary">Average Score: <span class="font-semibold">{{ question.average_score?.toFixed(2) || 'N/A' }}</span></p>
-              <p class="text-primary">Your Deviation: <span class="font-semibold">{{ question.user_deviation?.toFixed(2) || 'N/A' }}</span></p>
+            <div v-if="question.type === 'scale'">
+              <!-- For creators, show distribution and average without user-specific scores -->
+              <template v-if="results.user_type === 'creator'">
+                <p class="text-primary">Average Score: <span class="font-semibold">{{ typeof question.average_score === 'number' ? question.average_score.toFixed(2) : 'N/A' }}</span></p>
+                <p class="text-primary">Standard Deviation: <span class="font-semibold">{{ typeof question.standard_deviation === 'number' ? question.standard_deviation.toFixed(2) : 'N/A' }}</span></p>
+                <div v-if="question.distribution">
+                  <p class="text-primary" v-for="(count, score) in question.distribution" :key="score">
+                    {{ score }}: {{ count }} responses
+                  </p>
+                </div>
+              </template>
+              <!-- For participants, show their score, average and their deviation -->
+              <template v-else>
+                <p class="text-primary">Your Answer: <span class="font-semibold">{{ question.user_score || 'N/A' }}</span></p>
+                <p class="text-primary">Average Score: <span class="font-semibold">{{ typeof question.average_score === 'number' ? question.average_score.toFixed(2) : 'N/A' }}</span></p>
+                <p class="text-primary">Your Deviation: <span class="font-semibold">{{ typeof question.user_deviation === 'number' ? question.user_deviation.toFixed(2) : 'N/A' }}</span></p>
+              </template>
             </div>
-            <div v-else-if="question.type === 'boolean'" class="space-y-1 sm:space-y-2 text-sm sm:text-base">
-              <p class="text-primary">Your Answer: <span class="font-semibold">{{ question.user_answer !== undefined ? (question.user_answer ? 'Yes' : 'No') : 'N/A' }}</span></p>
-              <p class="text-primary">Percentage who answered Yes: <span class="font-semibold">{{ question.true_percentage?.toFixed(2) || 'N/A' }}%</span></p>
+            <div v-else-if="question.type === 'boolean'">
+              <!-- Show percentages for both creator and participant -->
+              <p class="text-primary">Percentage who answered Yes: <span class="font-semibold">{{ typeof question.true_percentage === 'number' ? question.true_percentage.toFixed(2) : 'N/A' }}%</span></p>
+              <p class="text-primary">Percentage who answered No: <span class="font-semibold">{{ typeof question.false_percentage === 'number' ? question.false_percentage.toFixed(2) : 'N/A' }}%</span></p>
             </div>
           </div>
         </div>
+
       </template>
     </div>
     <div v-else class="text-lg text-primary">No results available.</div>
@@ -130,7 +129,7 @@ export default {
     const error = ref(null);
     const toastMessage = ref('');
     const toastType = ref('');
-    
+
     const userCode = computed(() => route.params.userCode || (results.value?.user_code ?? ''));
     const surveyCode = computed(() => results.value?.survey_id ?? '');
 
@@ -166,10 +165,9 @@ export default {
 
       try {
         const response = await api.getSurveyResultsByUserCode(userCode.value);
-        console.log('API Response:', response);
-        
-        if (response?.data) {
+        if (response && response.data) {
           results.value = response.data;
+          console.log('Successfully fetched data:', results.value);
         } else {
           throw new Error('Invalid API response');
         }
@@ -180,6 +178,7 @@ export default {
         loading.value = false;
       }
     };
+
 
     const copyToClipboard = (type) => {
       const textToCopy = type === 'surveyCode' ? surveyCode.value : userCode.value;
