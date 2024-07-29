@@ -8,4 +8,3 @@
 - tooltip auto show
 - Shorter URLs for surveys
 - Copy method on textboxes
-- Better resolution icon for whatsapp share
