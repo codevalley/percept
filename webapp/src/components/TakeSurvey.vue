@@ -137,6 +137,7 @@ import api from '@/services/api';
 import InlineSvg from 'vue-inline-svg';
 import FancyInput from '@/components/FancyInput.vue';
 import debounce from 'lodash/debounce';
+import { userMeta } from 'vue-meta'
 
 export default {
   name: 'TakeSurvey',
@@ -176,6 +177,34 @@ export default {
     const isCheckingCode = computed(() => isChecking.value);
     const isCodeValid = computed(() => codeStatus.value === 'valid');
     const isCodeInvalid = computed(() => codeStatus.value === 'invalid');
+
+    const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
+
+    const { meta } = useMeta(() => {
+      if (!loadedSurveyData.value) return {}
+
+      const title = `${loadedSurveyData.value.title} - Backwave Survey`;
+      const description = loadedSurveyData.value.description || "Take this survey and provide valuable feedback.";
+      const url = `${baseUrl.value}/participate/${props.surveyId}`;
+      const image = `${baseUrl.value}/og-image.png`; // Make sure this image exists in your public folder
+
+      return {
+        title: title,
+        meta: [
+          { property: 'og:title', content: title },
+          { property: 'og:description', content: description },
+          { property: 'og:url', content: url },
+          { property: 'og:image', content: image },
+          { property: 'og:type', content: 'website' },
+          { name: 'twitter:title', content: title },
+          { name: 'twitter:description', content: description },
+          { name: 'twitter:url', content: url },
+          { name: 'twitter:image', content: image },
+          { name: 'twitter:card', content: 'summary_large_image' },
+        ],
+      }
+    })
+
 
     onMounted(async () => {
       if (!props.surveyId) {
@@ -345,6 +374,7 @@ export default {
       isCodeInvalid,
       rotateCode,
       handleCodeInput,
+      meta,
     };
   }
 }
