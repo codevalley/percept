@@ -1,24 +1,24 @@
 <template>
   <div class="font-sans min-h-screen bg-white">
-    <div class="max-w-4xl mx-auto px-4">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Hero section -->
-      <div class="mt-8 p-8 bg-neutral-100 rounded-3xl min-h-[420px] flex flex-col justify-end">
-        <inline-svg src="/assets/high-five.svg" class="text-neutral-700 w-24 h-24 mx-auto mb-6" />
-        <h2 class="text-4xl font-bold text-center text-primary mb-1">
+      <div class="mt-8 p-6 sm:p-8 bg-neutral-100 rounded-3xl min-h-[320px] sm:min-h-[420px] flex flex-col justify-end">
+        <inline-svg src="/assets/high-five.svg" class="text-neutral-700 w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6" />
+        <h2 class="text-3xl sm:text-4xl font-bold text-center text-primary mb-1">
           {{ $t('homeView.title') }}
         </h2>
-        <p class="text-xl text-center text-primary mb-8">
+        <p class="text-lg sm:text-xl text-center text-primary mb-6 sm:mb-8">
           {{ $t('homeView.subtitle') }}
         </p>
         <div class="flex justify-center">
-          <router-link to="/create" class="bg-accent-green text-primary  text-xl font-bold px-8 py-2 rounded-full">
+          <router-link to="/create" class="bg-accent-green text-primary text-lg sm:text-xl font-bold px-6 sm:px-8 py-2 rounded-full">
             {{ $t('homeView.createButton') }}
           </router-link>
         </div>
       </div>
 
-      <!-- Participate section -->
-      <div class="mt-12">
+      <!-- Participate section - Only visible on desktop -->
+      <div class="hidden sm:block mt-12">
         <h3 class="text-xl font-semibold text-primary text-left">{{ $t('homeView.participateTitle') }}</h3>
         <p class="text-lg text-primary mb-3 text-left">
           {{ $t('homeView.participateSubtitle') }}
@@ -90,7 +90,6 @@ export default {
         isLoading.value = false;
       }
     };
-
 
     return {
       participateCode,

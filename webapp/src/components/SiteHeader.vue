@@ -1,96 +1,88 @@
 <template>
-  <header class="font-sans mb-16">
-    <div class="max-w-[859px] mx-auto px-4">
-      <div class="flex items-center justify-between h-20">
+  <header class="font-sans mb-8 sm:mb-16">
+    <div class="max-w-[859px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
         <div class="flex items-center cursor-pointer" @click="navigateTo('/')">
-          <img src="/assets/backwave.svg" alt="Backwave logo" class="w-16 h-16" />
-          <h1 class="text-5xl font-bold ml-2 text-primary self-start mt-1">{{ $t('header.title') }}</h1>
+          <img src="/assets/backwave.svg" alt="Backwave logo" class="w-10 h-10 sm:w-16 sm:h-16" />
+          <h1 class="text-xl sm:text-3xl md:text-5xl font-bold ml-2 text-primary self-start mt-1">{{ $t('header.title') }}</h1>
         </div>
-        <nav class="flex items-center space-x-8">
-          <div
-            @click="toggleTab('participate')"
-            class="flex items-center relative cursor-pointer"
-            :class="{ 'text-primary': currentTab === 'participate', 'text-accent': currentTab !== 'participate' }"
-          >
-            <inline-svg src="/assets/hash-icon.svg" class="w-7 h-7 mr-2" />
-            <span class="text-xl font-bold leading-9">{{ $t('header.participate') }}</span>
-            <div v-if="currentTab === 'participate'" class="w-full h-0.5 bg-primary absolute bottom-[-4px] left-0"></div>
-          </div>
-          <div
-            @click="navigateTo('/create')"
-            class="flex items-center relative cursor-pointer"
-            :class="{ 'text-primary': currentTab === 'create', 'text-accent': currentTab !== 'create' }"
-          >
-            <inline-svg src="/assets/yes-icon.svg" class="w-7 h-7 mr-2" />
-            <span class="text-xl font-bold leading-9">{{ $t('header.create') }}</span>
-            <div v-if="currentTab === 'create'" class="w-full h-0.5 bg-primary absolute bottom-[-4px] left-0"></div>
-          </div>
-          <div
-            @click="toggleTab('analyze')"
-            class="flex items-center relative cursor-pointer"
-            :class="{ 'text-primary': currentTab === 'analyze', 'text-accent': currentTab !== 'analyze' }"
-          >
-            <inline-svg src="/assets/analyze-icon.svg" class="w-7 h-7 mr-2" />
-            <span class="text-xl font-bold leading-9">{{ $t('header.analyze') }}</span>
-            <div v-if="currentTab === 'analyze'" class="w-full h-0.5 bg-primary absolute bottom-[-4px] left-0"></div>
-          </div>
+        <nav class="hidden sm:flex items-center space-x-4 sm:space-x-8">
+          <NavItem 
+            v-for="item in navItems" 
+            :key="item.name" 
+            :item="item" 
+            :isActive="item.name === activeTab"
+            @click="handleNavItemClick(item.name)"
+          />
         </nav>
+        <button @click="toggleMobileMenu" class="sm:hidden">
+          <inline-svg src="/assets/menu-icon.svg" class="w-6 h-6 text-primary" />
+        </button>
       </div>
       
-      <div v-if="activeTab === 'participate'" class="mt-4 flex items-center bg-neutral-100 rounded-full w-[420px]">
-        <img src="/assets/hash-icon.svg" alt="Question" class="w-10 h-10 ml-4 mr-2" />
-        <input
-          v-model="participateCode"
-          type="text"
-          :placeholder="$t('header.participatePlaceholder')"
-          class="bg-transparent text-xl font-regular text-neutral-400 flex-grow px-2 py-2 focus:outline-none"
-        />
-        <button
-          @click="submitParticipateCode"
-          :disabled="isLoading"
-          class="bg-primary text-white text-xl font-bold px-8 py-2 rounded-full"
-        >
-          <span v-if="!isLoading">{{ $t('header.participateButton') }}</span>
-          <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
-        </button>
+      <!-- Mobile menu -->
+      <div v-if="isMobileMenuOpen" class="sm:hidden mt-4">
+        <nav class="flex flex-col space-y-4">
+          <NavItem 
+            v-for="item in navItems" 
+            :key="item.name" 
+            :item="item" 
+            :isActive="item.name === activeTab"
+            @click="handleNavItemClick(item.name)"
+          />
+        </nav>
       </div>
 
-      <div v-if="activeTab === 'analyze'" class="mt-4 flex items-center bg-neutral-100 rounded-full w-[420px]">
-        <img src="/assets/analyze-icon.svg" alt="Analyze" class="w-10 h-10 ml-4 mr-2" />
-        <input
-          v-model="creatorCode"
-          type="text"
-          :placeholder="$t('header.analyzePlaceholder')"
-          class="bg-transparent text-xl font-regular text-neutral-400 flex-grow px-2 py-2 focus:outline-none"
-        />
-        <button
-          @click="handleAnalyze"
-          :disabled="isLoading"
-          class="bg-accent text-white text-xl font-bold px-8 py-2 rounded-full"
-        >
-          <span v-if="!isLoading">{{ $t('header.analyzeButton') }}</span>
-          <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
-        </button>
+      <div v-if="activeTab === 'participate' || activeTab === 'analyze'" class="mt-4">
+        <div class="flex flex-col sm:flex-row bg-neutral-100 rounded-3xl sm:rounded-full w-full sm:w-[420px]">
+          <div class="flex items-center w-full p-2 sm:p-0 sm:pl-4">
+            <img :src="activeTab === 'participate' ? '/assets/hash-icon.svg' : '/assets/analyze-icon.svg'" :alt="activeTab" class="w-8 h-8 mr-2" />
+            <input
+              v-if="activeTab === 'participate'"
+              v-model="participateCode"
+              type="text"
+              :placeholder="$t('header.participatePlaceholder')"
+              class="bg-transparent text-lg font-regular text-neutral-400 w-full flex-grow focus:outline-none"
+            />
+            <input
+              v-else
+              v-model="creatorCode"
+              type="text"
+              :placeholder="$t('header.analyzePlaceholder')"
+              class="bg-transparent text-lg font-regular text-neutral-400 w-full flex-grow focus:outline-none"
+            />
+          </div>
+          <button
+            @click="activeTab === 'participate' ? submitParticipateCode() : handleAnalyze()"
+            :disabled="isLoading"
+            class="bg-primary text-white text-lg font-bold px-6 py-2 rounded-full w-full sm:w-auto m-2 sm:m-1"
+          >
+            <span v-if="!isLoading">{{ $t(activeTab === 'participate' ? 'header.participateButton' : 'header.analyzeButton') }}</span>
+            <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
+          </button>
+        </div>
       </div>
-       <!-- Add error message display -->
+      
       <ToastView :message="toastMessage" :type="toastType" @hidden="clearToast" />
     </div>
   </header>
 </template>
 
 <script>
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import InlineSvg from 'vue-inline-svg';
 import api from '@/services/api';
 import ToastView from '@/components/ToastView.vue';
+import NavItem from '@/components/NavItem.vue';
 
 export default {
   name: 'SiteHeader',
   components: {
     InlineSvg,
     ToastView,
+    NavItem,
   },
   setup() {
     const { t } = useI18n();
@@ -103,26 +95,38 @@ export default {
     const errorMessage = ref('');
     const toastMessage = ref('');
     const toastType = ref('');
+    const isMobileMenuOpen = ref(false);
 
-    const currentTab = computed(() => {
-      if (route.name === 'Results' || activeTab.value === 'analyze') return 'analyze';
-      if (route.name === 'TakeSurvey' || activeTab.value === 'participate') return 'participate';
-      if (route.name === 'Create') return 'create';
-      return null;
-    });
+    const navItems = [
+      { name: 'participate', icon: '/assets/hash-icon.svg', label: t('header.participate') },
+      { name: 'create', icon: '/assets/yes-icon.svg', label: t('header.create') },
+      { name: 'analyze', icon: '/assets/analyze-icon.svg', label: t('header.analyze') },
+    ];
 
     const navigateTo = (path) => {
       router.push(path);
       activeTab.value = null;
+      isMobileMenuOpen.value = false;
     };
 
-    const toggleTab = (tab) => {
-      activeTab.value = activeTab.value === tab ? null : tab;
+    const handleNavItemClick = (tabName) => {
+      if (tabName === 'create') {
+        navigateTo('/create');
+      } else {
+        activeTab.value = activeTab.value === tabName ? null : tabName;
+      }
+      isMobileMenuOpen.value = false;
     };
+
+    const toggleMobileMenu = () => {
+      isMobileMenuOpen.value = !isMobileMenuOpen.value;
+    };
+
     function clearToast() {
       toastMessage.value = '';
       toastType.value = '';
     }
+
     const submitParticipateCode = async () => {
       if (!participateCode.value.trim()) {
         toastMessage.value = t('header.emptyCodeError');
@@ -181,21 +185,35 @@ export default {
       }
     };
 
+    // Watch for route changes to update activeTab
+    watch(() => route.name, (newRouteName) => {
+      if (newRouteName === 'Create') {
+        activeTab.value = 'create';
+      } else if (newRouteName === 'TakeSurvey') {
+        activeTab.value = 'participate';
+      } else if (newRouteName === 'Results') {
+        activeTab.value = 'analyze';
+      } else {
+        activeTab.value = null;
+      }
+    }, { immediate: true });
+
     return {
       activeTab,
-      currentTab,
       participateCode,
       creatorCode,
       isLoading,
       errorMessage,
       navigateTo,
-      toggleTab,
+      handleNavItemClick,
       submitParticipateCode,
       handleAnalyze,
-      route,
       clearToast,
       toastMessage,
       toastType,
+      isMobileMenuOpen,
+      toggleMobileMenu,
+      navItems,
     };
   },
 };
