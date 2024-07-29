@@ -64,18 +64,28 @@
         <div class="bg-neutral-100 p-4 sm:p-6 rounded-lg mb-6 sm:mb-8">
           <h2 class="text-xl sm:text-2xl font-semibold text-primary mb-3 sm:mb-4">Overall Statistics</h2>
           <!-- Overall Statistics -->
-          <p v-if="typeof results.overall_statistics.average_deviation_from_aggregate === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-            Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate.toFixed(2) }}
-          </p>
-          <p v-if="results.user_type === 'participant' && typeof results.overall_statistics.average_deviation_from_creator === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-            Average Deviation from Creator: {{ results.overall_statistics.average_deviation_from_creator.toFixed(2) }}
-          </p>
-          <p v-if="results.user_type === 'participant' && typeof results.overall_statistics.average_deviation_from_others === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-            Average Deviation from Others: {{ results.overall_statistics.average_deviation_from_others.toFixed(2) }}
-          </p>
-          <p v-if="typeof results.overall_statistics.overall_deviation === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-            Overall Deviation: {{ results.overall_statistics.overall_deviation.toFixed(2) }}
-          </p>
+          <template v-if="results.user_type === 'creator'">
+            <p v-if="typeof results.overall_statistics.overall_deviation === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+              Overall Deviation: {{ results.overall_statistics.overall_deviation.toFixed(2) }}
+            </p>
+            <p v-if="typeof results.overall_statistics.average_deviation_from_aggregate === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+              Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate.toFixed(2) }}
+            </p>
+          </template>
+          <template v-else>
+            <p v-if="typeof results.overall_statistics.average_deviation_from_aggregate === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+              Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate.toFixed(2) }}
+            </p>
+            <p v-if="typeof results.overall_statistics.average_deviation_from_creator === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+              Average Deviation from Creator: {{ results.overall_statistics.average_deviation_from_creator.toFixed(2) }}
+            </p>
+            <p v-if="typeof results.overall_statistics.average_deviation_from_others === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+              Average Deviation from Others: {{ results.overall_statistics.average_deviation_from_others.toFixed(2) }}
+            </p>
+            <p v-if="typeof results.overall_statistics.overall_deviation === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+              Overall Deviation: {{ results.overall_statistics.overall_deviation.toFixed(2) }}
+            </p>
+          </template>
         </div>
         <div v-if="results.questions">
           <h2 class="text-xl sm:text-2xl font-semibold text-primary mb-3 sm:mb-4">Question Results</h2>

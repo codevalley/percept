@@ -387,6 +387,7 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
     creator_deviations = []
     user_deviations = []
     other_deviations = []
+    aggregate_deviations = []
 
     for q_id, question in questions.items():
         q_answers = [a['answers'][str(q_id)] for a in answers if str(q_id) in a['answers']]
@@ -433,7 +434,9 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
 
             # Calculate deviations for all answers from creator's answer
             if creator_answer is not None:
-                all_deviations.extend([abs(ans - creator_answer) for ans in q_answers])
+                question_deviations = [abs(ans - creator_answer) for ans in q_answers]
+                all_deviations.extend(question_deviations)
+                aggregate_deviations.append(mean(question_deviations))
             
         elif question['response_type'] == 'boolean':
             true_count = sum(q_answers)
@@ -464,6 +467,9 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
 
     if all_deviations:
         results['overall_statistics']['overall_deviation'] = round(mean(all_deviations), 2)
+
+    if aggregate_deviations:
+        results['overall_statistics']['average_deviation_from_aggregate'] = round(mean(aggregate_deviations), 2)
 
     logging.info(f"<O>Final results: {results}")
     return results
