@@ -1,11 +1,11 @@
 <template>
   <div class="font-sans min-h-screen bg-white">
-    <div v-if="error" class="max-w-[768px] mx-auto px-4 pt-16 text-center">
-      <p class="text-2xl text-accent">{{ error }}</p>
+    <div v-if="error" class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16 text-center">
+      <p class="text-xl sm:text-2xl text-accent">{{ error }}</p>
     </div>
-    <div v-else class="max-w-[768px] mx-auto pt-16">
+    <div v-else class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16">
       <!-- User Code Input Section -->
-      <div class="mb-8 flex justify-center">
+      <div class="mb-6 sm:mb-8 flex justify-center">
         <FancyInput
           v-model="userCode"
           :icon="'/assets/user-icon.svg'"
@@ -27,38 +27,38 @@
         <!-- Combined Header and Question Section -->
         <div class="rounded-3xl overflow-hidden">
           <!-- Header Section -->
-          <div class="bg-neutral-100 p-7">
+          <div class="bg-neutral-100 p-4 sm:p-7">
             <div class="flex items-start">
-              <div class="w-12 h-12 bg-secondary rounded-full mr-5 mt-3 flex-shrink-0"></div>
+              <div class="w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-full mr-3 sm:mr-5 mt-1 sm:mt-3 flex-shrink-0"></div>
               <div>
-                <h1 class="text-primary text-2xl font-semibold leading-10">{{ loadedSurveyData.title }}</h1>
-                <p class="text-primary text-lg font-normal leading-7">{{ loadedSurveyData.description }}</p>
+                <h1 class="text-primary text-xl sm:text-2xl font-semibold leading-8 sm:leading-10">{{ loadedSurveyData.title }}</h1>
+                <p class="text-primary text-base sm:text-lg font-normal leading-6 sm:leading-7">{{ loadedSurveyData.description }}</p>
               </div>
             </div>
           </div>
 
           <!-- Question Section -->
-          <div v-if="currentQuestion" class="bg-accent-green p-7 relative">
+          <div v-if="currentQuestion" class="bg-accent-green p-4 sm:p-7 relative">
             <!-- Progress Bar -->
-            <div class="w-full h-2.5 bg-neutral-200 absolute top-0 left-0 right-0">
+            <div class="w-full h-2 sm:h-2.5 bg-neutral-200 absolute top-0 left-0 right-0">
               <div class="h-full bg-accent transition-all duration-300 ease-in-out" :style="{ width: `${progress}%` }"></div>
             </div>
 
             <!-- Question -->
-            <div class="flex items-center mb-6">
-              <inline-svg src="assets/question-icon.svg" class="w-7 h-7 mr-4 text-primary"/>
-              <p class="text-primary text-2xl font-bold leading-9">{{ currentQuestion.text }}</p>
+            <div class="flex items-center mb-4 sm:mb-6 mt-3 sm:mt-0">
+              <inline-svg src="assets/question-icon.svg" class="w-6 h-6 sm:w-7 sm:h-7 mr-3 sm:mr-4 text-primary"/>
+              <p class="text-primary text-lg sm:text-2xl font-bold leading-7 sm:leading-9">{{ currentQuestion.text }}</p>
             </div>
 
             <!-- Answer Options -->
-            <div class="flex justify-center space-x-5 mb-16">
+            <div class="flex justify-center space-x-2 sm:space-x-5 mb-12 sm:mb-16">
               <template v-if="currentQuestion.response_type === 'scale'">
                 <button 
                   v-for="n in (currentQuestion.response_scale_max || 5)" 
                   :key="n" 
                   @click="selectAnswer(n)"
                   :class="[
-                    'w-14 h-14 rounded-full border-4 transition-colors flex items-center justify-center',
+                    'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center text-sm sm:text-base',
                     n <= currentAnswer ? 'bg-primary border-primary text-white' : 'bg-white border-neutral-200 text-primary'
                   ]"
                 >
@@ -69,20 +69,20 @@
                 <button 
                   @click="selectAnswer(true)"
                   :class="[
-                    'w-14 h-14 rounded-full border-4 transition-colors flex items-center justify-center',
+                    'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center',
                     currentAnswer === true ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
                   ]"
                 >
-                  <inline-svg src="/assets/yes-icon.svg" class="w-8 h-8" :class="currentAnswer === true ? 'text-white' : 'text-primary'"/>
+                  <inline-svg src="/assets/yes-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === true ? 'text-white' : 'text-primary'"/>
                 </button>
                 <button 
                   @click="selectAnswer(false)"
                   :class="[
-                    'w-14 h-14 rounded-full border-4 transition-colors flex items-center justify-center',
+                    'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center',
                     currentAnswer === false ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
                   ]"
                 >
-                  <inline-svg src="/assets/no-icon.svg" class="w-8 h-8" :class="currentAnswer === false ? 'text-white' : 'text-primary'"/>
+                  <inline-svg src="/assets/no-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === false ? 'text-white' : 'text-primary'"/>
                 </button>
               </template>
             </div>
@@ -92,7 +92,7 @@
               <button 
                 @click="previousQuestion" 
                 v-if="currentQuestionIndex > 0"
-                class="px-6 py-2 bg-primary text-white rounded-full"
+                class="px-4 sm:px-6 py-2 bg-primary text-white rounded-full text-sm sm:text-base"
               >
                 {{ $t('takeSurvey.previousButton') }}
               </button>
@@ -101,7 +101,7 @@
                 @click="nextQuestion" 
                 :disabled="currentAnswer === null || isSubmitting || !isCodeValid"
                 :class="[
-                  'px-6 py-2 rounded-full transition-colors',
+                  'px-4 sm:px-6 py-2 rounded-full transition-colors text-sm sm:text-base',
                   (currentAnswer === null || isSubmitting || !isCodeValid) 
                     ? 'bg-white text-neutral-300 cursor-not-allowed' 
                     : 'bg-primary text-white'
@@ -111,7 +111,7 @@
                   {{ isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton') }}
                 </span>
                 <span v-else class="flex items-center">
-                  <svg class="animate-spin h-5 w-5 mr-3" viewBox="0 0 24 24">
+                  <svg class="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" viewBox="0 0 24 24">
                     <!-- Add your loading spinner SVG here -->
                   </svg>
                   {{ $t('takeSurvey.submittingButton') }}
@@ -121,12 +121,13 @@
           </div>
         </div>
       </div>
-      <div v-else-if="isLoading" class="flex justify-center items-center">
-        <p class="text-2xl text-primary">{{ $t('takeSurvey.loadingMessage') }}</p>
+      <div v-else-if="isLoading" class="flex justify-center items-center h-64">
+        <p class="text-xl sm:text-2xl text-primary">{{ $t('takeSurvey.loadingMessage') }}</p>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import { ref, computed, onMounted } from 'vue';

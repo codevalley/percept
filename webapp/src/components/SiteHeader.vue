@@ -33,8 +33,8 @@
         </nav>
       </div>
 
-      <div v-if="activeTab === 'participate' || activeTab === 'analyze'" class="mt-4">
-        <div class="flex flex-col sm:flex-row bg-neutral-100 rounded-3xl sm:rounded-full w-full sm:w-[420px]">
+      <div v-if="(activeTab === 'participate' && route.name !== 'TakeSurvey') || (activeTab === 'analyze' && route.name !== 'Results')" class="mt-4">
+        <div class="flex flex-col bg-neutral-100 rounded-3xl sm:rounded-full w-full sm:w-[420px]">
           <div class="flex items-center w-full p-2 sm:p-0 sm:pl-4">
             <img :src="activeTab === 'participate' ? '/assets/hash-icon.svg' : '/assets/analyze-icon.svg'" :alt="activeTab" class="w-8 h-8 mr-2" />
             <input
@@ -52,14 +52,16 @@
               class="bg-transparent text-lg font-regular text-neutral-400 w-full flex-grow focus:outline-none"
             />
           </div>
-          <button
-            @click="activeTab === 'participate' ? submitParticipateCode() : handleAnalyze()"
-            :disabled="isLoading"
-            class="bg-primary text-white text-lg font-bold px-6 py-2 rounded-full w-full sm:w-auto m-2 sm:m-1"
-          >
-            <span v-if="!isLoading">{{ $t(activeTab === 'participate' ? 'header.participateButton' : 'header.analyzeButton') }}</span>
-            <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
-          </button>
+          <div class="px-2 pb-2 sm:pr-1 sm:pb-1">
+            <button
+              @click="activeTab === 'participate' ? submitParticipateCode() : handleAnalyze()"
+              :disabled="isLoading"
+              class="bg-primary text-white text-lg font-bold px-6 py-2 rounded-full w-full"
+            >
+              <span v-if="!isLoading">{{ $t(activeTab === 'participate' ? 'header.participateButton' : 'header.analyzeButton') }}</span>
+              <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
+            </button>
+          </div>
         </div>
       </div>
       
@@ -214,6 +216,7 @@ export default {
       isMobileMenuOpen,
       toggleMobileMenu,
       navItems,
+      route, // Add route to the returned object
     };
   },
 };
