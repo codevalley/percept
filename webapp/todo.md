@@ -6,3 +6,7 @@
     - Include option to enter surveyID in TakeSurvey error state
     - Include option to enter userID in ResultsView error state
 - tooltip auto show
+- Ability to update / change/delete questions (during creation)
+- Shorter URLs for surveys
+- Copy method on textboxes
+- Better resolution icon for whatsapp share
