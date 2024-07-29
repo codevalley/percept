@@ -67,16 +67,15 @@
           <p v-if="typeof results.overall_statistics.average_deviation_from_aggregate === 'number'" class="mb-2 text-primary text-sm sm:text-base">
             Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate.toFixed(2) }}
           </p>
-          <p v-if="results.user_type === 'participant' && typeof results.overall_statistics.deviation_from_creator === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-            Deviation from Creator: {{ results.overall_statistics.deviation_from_creator.toFixed(2) }}
+          <p v-if="results.user_type === 'participant' && typeof results.overall_statistics.average_deviation_from_creator === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+            Average Deviation from Creator: {{ results.overall_statistics.average_deviation_from_creator.toFixed(2) }}
           </p>
-          <p v-if="results.user_type === 'participant' && typeof results.overall_statistics.deviation_from_others === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-            Deviation from Others: {{ results.overall_statistics.deviation_from_others.toFixed(2) }}
+          <p v-if="results.user_type === 'participant' && typeof results.overall_statistics.average_deviation_from_others === 'number'" class="mb-2 text-primary text-sm sm:text-base">
+            Average Deviation from Others: {{ results.overall_statistics.average_deviation_from_others.toFixed(2) }}
           </p>
           <p v-if="typeof results.overall_statistics.overall_deviation === 'number'" class="mb-2 text-primary text-sm sm:text-base">
             Overall Deviation: {{ results.overall_statistics.overall_deviation.toFixed(2) }}
           </p>
-
         </div>
         <div v-if="results.questions">
           <h2 class="text-xl sm:text-2xl font-semibold text-primary mb-3 sm:mb-4">Question Results</h2>
@@ -97,17 +96,19 @@
               <template v-else>
                 <p class="text-primary">Your Answer: <span class="font-semibold">{{ question.user_score || 'N/A' }}</span></p>
                 <p class="text-primary">Average Score: <span class="font-semibold">{{ typeof question.average_score === 'number' ? question.average_score.toFixed(2) : 'N/A' }}</span></p>
-                <p class="text-primary">Your Deviation: <span class="font-semibold">{{ typeof question.user_deviation === 'number' ? question.user_deviation.toFixed(2) : 'N/A' }}</span></p>
+                <p class="text-primary">Your Deviation from Average: <span class="font-semibold">{{ typeof question.user_deviation === 'number' ? question.user_deviation.toFixed(2) : 'N/A' }}</span></p>
+                <p class="text-primary">Your Deviation from Creator: <span class="font-semibold">{{ typeof question.deviation_from_creator === 'number' ? question.deviation_from_creator.toFixed(2) : 'N/A' }}</span></p>
+                <p class="text-primary">Your Deviation from Others: <span class="font-semibold">{{ typeof question.deviation_from_others === 'number' ? question.deviation_from_others.toFixed(2) : 'N/A' }}</span></p>
               </template>
             </div>
             <div v-else-if="question.type === 'boolean'">
               <!-- Show percentages for both creator and participant -->
               <p class="text-primary">Percentage who answered Yes: <span class="font-semibold">{{ typeof question.true_percentage === 'number' ? question.true_percentage.toFixed(2) : 'N/A' }}%</span></p>
               <p class="text-primary">Percentage who answered No: <span class="font-semibold">{{ typeof question.false_percentage === 'number' ? question.false_percentage.toFixed(2) : 'N/A' }}%</span></p>
+              <p v-if="results.user_type === 'participant'" class="text-primary">Your Answer: <span class="font-semibold">{{ question.user_answer ? 'Yes' : 'No' }}</span></p>
             </div>
           </div>
         </div>
-
       </template>
     </div>
     <div v-else class="text-lg text-primary">No results available.</div>

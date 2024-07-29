@@ -1,6 +1,7 @@
 # app.py
 
 from statistics import StatisticsError, mean, stdev
+import time
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from flask_cors import CORS
@@ -359,7 +360,7 @@ def process_results(survey_id, user_code):
     return jsonify(results), 200
 
 def calculate_survey_statistics(survey, answers, user_code, is_creator):
-    logging.info(f"Calculating statistics for survey {survey['survey_id']}, user_code {user_code}, is_creator: {is_creator}")
+    logging.info(f"<O>Calculating statistics for survey {survey['survey_id']}, user_code {user_code}, is_creator: {is_creator}")
     
     questions = {q['id']: q for q in survey['questions']}
     results = {
@@ -376,11 +377,11 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
         results['total_responses'] = len(answers)
         user_answers = {q['id']: q['creator_answer'] for q in survey['questions']}
     else:
-        user_answers = next((a for a in answers if str(a.get('user_code')) == str(user_code)), None)
+        user_answers = next((a['answers'] for a in answers if str(a.get('user_code')) == str(user_code)), None)
 
     creator_answers = {q['id']: q['creator_answer'] for q in survey['questions']}
-    logging.info(f"User answers: {user_answers}")
-    logging.info(f"Creator answers: {creator_answers}")
+    logging.info(f"<O>User answers: {user_answers}")
+    logging.info(f"<O>Creator answers: {creator_answers}")
 
     all_deviations = []
     creator_deviations = []
@@ -419,6 +420,7 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
 
                 if creator_answer is not None:
                     creator_deviation = abs(user_score - creator_answer)
+                    q_stat['deviation_from_creator'] = round(creator_deviation, 2)
                     creator_deviations.append(creator_deviation)
 
                 # Exclude current user's answer to calculate deviation from others
@@ -426,6 +428,7 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
                 if other_answers:
                     other_avg = mean(other_answers)
                     other_deviation = abs(user_score - other_avg)
+                    q_stat['deviation_from_others'] = round(other_deviation, 2)
                     other_deviations.append(other_deviation)
 
             # Calculate deviations for all answers from creator's answer
@@ -451,18 +454,18 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
 
     # Calculate overall statistics
     if user_deviations:
-        results['overall_statistics']['average_user_deviation'] = round(mean(user_deviations), 2)
+        results['overall_statistics']['average_deviation_from_aggregate'] = round(mean(user_deviations), 2)
 
     if other_deviations:
         results['overall_statistics']['average_deviation_from_others'] = round(mean(other_deviations), 2)
 
     if creator_deviations:
-        results['overall_statistics']['deviation_from_creator'] = round(mean(creator_deviations), 2)
+        results['overall_statistics']['average_deviation_from_creator'] = round(mean(creator_deviations), 2)
 
     if all_deviations:
         results['overall_statistics']['overall_deviation'] = round(mean(all_deviations), 2)
 
-    logging.info(f"Final results: {results}")
+    logging.info(f"<O>Final results: {results}")
     return results
 
 
