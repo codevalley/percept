@@ -1,4 +1,5 @@
 const { defineConfig } = require('@vue/cli-service')
+const CopyWebpackPlugin = require('copy-webpack-plugin')
 
 module.exports = defineConfig({
   chainWebpack: config => {
