@@ -281,42 +281,48 @@
       </template>
 
       <!-- Published Section -->
-      <div v-if="isPublished" class="bg-accent-green rounded-[25px] p-7 mb-12">
-        <div class="w-full text-primary text-2xl font-bold font-['IBM Plex Sans'] leading-9 mb-6 text-left">
+      <div v-if="isPublished" class="bg-accent-green rounded-[25px] p-4 sm:p-7 mb-12">
+        <!-- Hide header on mobile -->
+        <div class="hidden sm:block w-full text-primary text-2xl font-bold font-['IBM Plex Sans'] leading-9 mb-6 text-left">
           The post is published and live!
         </div>
 
-        <div class="flex flex-col space-y-4">
-          <div class="flex items-center space-x-4">
-            <span class="text-primary text-lg font-normal leading-7">This is your review link</span>
-            <button
-              @click="openAndCopy('survey')"
-              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-            >
-              <span class="text-base font-medium mr-2">{{ surveyCode }}</span>
-              <inline-svg 
-                @click.stop="copyToClipboard('surveyCode')" 
-                src="assets/copy-icon.svg" 
+        <div class="flex flex-col space-y-6 sm:space-y-8">
+          <div class="flex flex-col space-y-1">
+            <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <span class="text-primary text-base sm:text-lg font-normal leading-7">Review link</span>
+              <button
+                @click="openAndCopy('survey')"
+                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary w-full sm:w-auto"
+              >
+                <span class="text-base font-medium truncate mr-2">{{ surveyCode }}</span>
+                <inline-svg 
+                  @click.stop="copyToClipboard('surveyCode')" 
+                  src="assets/copy-icon.svg"
+                  class="w-5 h-5 flex-shrink-0"
                 />
-            </button>
+              </button>
+            </div>
+            <span class="text-primary text-sm italic sm:ml-4">Share it with your friends for feedback</span>
           </div>
-          <span class="text-primary text-sm italic ml-4">Share it with your friends for feedback</span>
 
-          <div class="flex items-center space-x-4 mt-4">
-            <span class="text-primary text-lg font-normal leading-7">This is your results link</span>
-            <button
-              @click="openAndCopy('user')"
-              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-            >
-              <span class="text-base font-medium mr-2">{{ userCode }}</span>
-              <inline-svg 
-                @click.stop="copyToClipboard('userCode')" 
-                src="assets/copy-icon.svg" 
-                class="w-5 h-5 text-primary cursor-pointer" 
-              />
-            </button>
+          <div class="flex flex-col space-y-1">
+            <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <span class="text-primary text-base sm:text-lg font-normal leading-7">Result link</span>
+              <button
+                @click="openAndCopy('user')"
+                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary w-full sm:w-auto"
+              >
+                <span class="text-base font-medium truncate mr-2">{{ userCode }}</span>
+                <inline-svg 
+                  @click.stop="copyToClipboard('userCode')" 
+                  src="assets/copy-icon.svg" 
+                  class="w-5 h-5 flex-shrink-0" 
+                />
+              </button>
+            </div>
+            <span class="text-primary text-sm italic sm:ml-4">Bookmark and come here later to see results</span>
           </div>
-          <span class="text-primary text-sm italic ml-4">Bookmark and come here later to see results</span>
         </div>
       </div>
     </div>
@@ -1020,7 +1026,11 @@ textarea {
 .pb-24 {
   padding-bottom: 6rem;
 }
-
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .fixed {
   z-index: 50;
