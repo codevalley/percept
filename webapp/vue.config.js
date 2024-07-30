@@ -8,7 +8,11 @@ module.exports = defineConfig({
     svgRule.uses.clear();
     svgRule.use('vue-svg-loader').loader('vue-svg-loader');
 
-    // Add CopyWebpackPlugin
+    // Remove the existing copy plugin if it exists
+    config.plugins.delete('copy');
+
+    // Add a new copy plugin configuration
+    const CopyWebpackPlugin = require('copy-webpack-plugin')
     config.plugin('copy').use(CopyWebpackPlugin, [
       {
         patterns: [
@@ -16,7 +20,7 @@ module.exports = defineConfig({
             from: 'public',
             to: '',
             globOptions: {
-              ignore: ['.DS_Store'],
+              ignore: ['**/index.html'], // Ignore index.html to prevent conflict
             },
           },
         ],

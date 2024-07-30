@@ -137,7 +137,7 @@ import api from '@/services/api';
 import InlineSvg from 'vue-inline-svg';
 import FancyInput from '@/components/FancyInput.vue';
 import debounce from 'lodash/debounce';
-import { userMeta } from 'vue-meta'
+import { useMeta } from 'vue-meta'
 
 export default {
   name: 'TakeSurvey',
