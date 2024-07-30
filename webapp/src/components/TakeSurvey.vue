@@ -137,7 +137,7 @@ import api from '@/services/api';
 import InlineSvg from 'vue-inline-svg';
 import FancyInput from '@/components/FancyInput.vue';
 import debounce from 'lodash/debounce';
-import { useMeta } from 'vue-meta'
+import { useHead } from '@vueuse/head'
 
 export default {
   name: 'TakeSurvey',
@@ -180,7 +180,7 @@ export default {
 
     const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
 
-    const { meta } = useMeta(() => {
+    useHead(() => {
       if (!loadedSurveyData.value) return {}
 
       const title = `${loadedSurveyData.value.title} - Backwave Survey`;
@@ -374,7 +374,6 @@ export default {
       isCodeInvalid,
       rotateCode,
       handleCodeInput,
-      meta,
     };
   }
 }

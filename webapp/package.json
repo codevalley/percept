@@ -9,6 +9,7 @@
     "postinstall": "npm run build"
   },
   "dependencies": {
+    "@vueuse/head": "^2.0.0",
     "axios": "^1.7.2",
     "canvas-confetti": "^1.9.3",
     "chart.js": "^4.4.3",
