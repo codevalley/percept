@@ -105,26 +105,24 @@
                   v-tooltip="'Your unique participant code'"
                 />
               </div>
-              <button 
-                @click="nextQuestion" 
+              <FancyButton
+                :label="isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton')"
                 :disabled="currentAnswer === null || isSubmitting || !isCodeValid"
-                :class="[
-                  'px-4 sm:px-6 py-2 rounded-full transition-colors text-sm sm:text-base',
-                  (currentAnswer === null || isSubmitting || !isCodeValid) 
-                    ? 'bg-gray-100 text-neutral-300 cursor-not-allowed' 
-                    : 'bg-primary text-white'
-                ]"
-              >
-                <span v-if="!isSubmitting">
-                  {{ isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton') }}
-                </span>
-                <span v-else class="flex items-center">
-                  <svg class="animate-spin h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3" viewBox="0 0 24 24">
-                    <!-- Add your loading spinner SVG here -->
-                  </svg>
-                  {{ $t('takeSurvey.submittingButton') }}
-                </span>
-              </button>
+                :is-actioning="isSubmitting"
+                @click="nextQuestion"
+                :border-width="2"
+                button-height="40px"
+                icon-size="20px"
+                font-size="text-sm sm:text-base"
+                :min-width="'100px'"
+                bg-color="black"
+                border-color="primary"
+                loader-color="#6B7280"
+                disabled-bg-color="gray"
+                disabled-border-color="neutral-300"
+                text-color="text-white"
+                disabled-text-color="text-neutral-300"
+              />
             </div>
           </div>
         </div>
@@ -146,6 +144,7 @@ import InlineSvg from 'vue-inline-svg';
 import FancyInput from '@/components/FancyInput.vue';
 import debounce from 'lodash/debounce';
 import { useHead } from '@vueuse/head'
+import FancyButton from '@/components/FancyButton.vue';
 import SurveyChips from '@/components/SurveyChips.vue';
 
 export default {
@@ -153,6 +152,7 @@ export default {
   components: {
     InlineSvg,
     FancyInput,
+    FancyButton,
     SurveyChips,
   },
   props: {
@@ -330,13 +330,14 @@ export default {
           throw new Error('User code not found in API response');
         }
         
+        // Navigate to results page after a short delay
         router.push({
-          name: 'Results',
-          params: { 
-            surveyId: props.surveyId,
-            userCode: response.data.user_code 
-          }
-        });
+            name: 'Results',
+            params: { 
+              surveyId: props.surveyId,
+              userCode: response.data.user_code 
+            }
+          });
       } catch (error) {
         console.error('Error submitting survey:', error);
         handleError(error);

@@ -4,7 +4,7 @@
       <inline-svg src="/assets/analyze-icon.svg" class="w-4 h-4 mr-1" />
       Trending
     </div>
-    <div class="flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+    <div v-if="participantBucket" class="flex items-center px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
       <inline-svg src="/assets/scale-icon.svg" class="w-4 h-4 mr-1" />
       {{ participantBucket }} participants
     </div>

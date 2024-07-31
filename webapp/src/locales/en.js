@@ -1,7 +1,7 @@
 export default {
     createView: {
-      title: 'Help me improve myself',
-      description: 'Share feedback about myself to improve my awareness',
+      title: 'Share your honest view',
+      description: 'Helps me reflect on what I think of myself',
       inputPlaceholder: 'Enter your question here',
       ratingButton: 'Rating',
       yesNoButton: 'Yes/No',

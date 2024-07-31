@@ -8,3 +8,4 @@
 - tooltip auto show
 - Shorter URLs for surveys
 - Copy method on textboxes
+- Add test cases for updated methods in app.py
