@@ -1,5 +1,6 @@
 # app.py
 
+import datetime
 from statistics import StatisticsError, mean, stdev
 import time
 from flask import Flask, request, jsonify
@@ -91,6 +92,16 @@ def startup_logger():
 @app.route(f'{api_prefix}/')
 def home():
     return "Welcome to the Percept API", 200
+
+def get_participant_bucket(count):
+    if count < 10:
+        return "< 10"
+    elif 10 <= count < 100:
+        return "10-100"
+    elif 100 <= count < 1000:
+        return "100-1000"
+    else:
+        return "1000+"
 
 @app.route(f'{api_prefix}/v1/ids/check', methods=['GET'])
 def check_id():
@@ -198,6 +209,18 @@ def get_survey(survey_id):
     # Remove the _id field from the survey dict
     survey.pop('_id', None)
     
+    # Calculate trending status
+    twenty_four_hours_ago = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+    recent_answers = mongo.db.answers.find_one({
+        'survey_id': survey_id,
+        'submitted_at': {'$gte': twenty_four_hours_ago}
+    })
+    is_trending = bool(recent_answers)
+    
+    # Calculate participant bucket
+    total_answers = mongo.db.answers.count_documents({'survey_id': survey_id})
+    participant_bucket = get_participant_bucket(total_answers)
+    
     app.logger.debug(f"Found survey: {survey}")
     return jsonify({
         'survey_id': survey['survey_id'],
@@ -210,7 +233,9 @@ def get_survey(survey_id):
                 'response_type': q['response_type'],
                 'response_scale_max': q.get('response_scale_max')
             } for q in survey['questions']
-        ]
+        ],
+        'is_trending': is_trending,
+        'participant_bucket': participant_bucket
     })
 
 @app.route(f'{api_prefix}/v1/surveys/<string:survey_id>/answers', methods=['POST'])
@@ -258,7 +283,7 @@ def submit_answers(survey_id):
             'survey_id': survey_id,
             'user_code': user_code,
             'answers': {str(answer['question_id']): answer['answer'] for answer in data['answers']},
-            'submitted_at': snowflake.generate()
+            'submitted_at': datetime.datetime.now(datetime.UTC)
         }
         result = mongo.db.answers.insert_one(answer_submission)
         

@@ -4,30 +4,47 @@
       <p class="text-xl sm:text-2xl text-accent">{{ error }}</p>
     </div>
     <div v-else class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16">
-      <!-- User Code Input Section -->
-      <div class="mb-6 sm:mb-8 flex justify-center">
-        <FancyInput
-          v-model="userCode"
-          :icon="'/assets/user-icon.svg'"
-          :placeholder="'user-name'"
-          :is-checking="isCheckingCode"
-          :is-valid="isCodeValid"
-          :is-error="isCodeInvalid"
-          :loader-color="'#BE185D'"
-          :valid-border-color="'border-neutral-300'"
-          :neutral-border-color="'border-neutral-300'"
-          :text-color="'text-neutral-500'"
-          :icon-color="'text-neutral-500'"
-          @rotate="rotateCode"
-          @input="handleCodeInput"
-        />
-      </div>
-
       <div v-if="loadedSurveyData">
         <!-- Combined Header and Question Section -->
         <div class="rounded-3xl overflow-hidden">
           <!-- Header Section -->
           <div class="bg-neutral-100 p-4 sm:p-7">
+            <!-- User Code Input Section -->
+            <div class="mb-4 sm:mb-2 flex justify-center">
+              <FancyInput
+                v-model="userCode"
+                :icon="'/assets/user-icon.svg'"
+                placeholder="user-name"
+                :is-checking="isCheckingCode"
+                :is-valid="isCodeValid"
+                :is-error="isCodeInvalid"
+                :loader-color="'#BE185D'"
+                :valid-border-color="'border-neutral-300'"
+                :neutral-border-color="'border-neutral-300'"
+                :text-color="'text-neutral-500'"
+                :icon-color="'text-neutral-500'"
+                @rotate="rotateCode"
+                @input="handleCodeInput"
+                v-tooltip="'Your unique participant code'"
+              />
+            </div>
+
+            <!-- Option 1: Chips closer to participant code -->
+            <div class=" mb-4 sm:mb-6">
+              <SurveyChips 
+                :is-trending="loadedSurveyData.is_trending"
+                :participant-bucket="loadedSurveyData.participant_bucket"
+              />
+            </div>
+
+            <!-- Option 2: Chips closer to title (comment out the above div and uncomment this one to use) -->
+            <!-- <div class="mt-4 sm:mt-6 mb-2 sm:mb-3">
+              <SurveyChips 
+                :is-trending="loadedSurveyData.is_trending"
+                :participant-bucket="loadedSurveyData.participant_bucket"
+              />
+            </div> -->
+
             <div class="flex items-start">
               <div class="w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-full mr-3 sm:mr-5 mt-1 sm:mt-3 flex-shrink-0"></div>
               <div>
@@ -138,12 +155,14 @@ import InlineSvg from 'vue-inline-svg';
 import FancyInput from '@/components/FancyInput.vue';
 import debounce from 'lodash/debounce';
 import { useHead } from '@vueuse/head'
+import SurveyChips from '@/components/SurveyChips.vue';
 
 export default {
   name: 'TakeSurvey',
   components: {
     InlineSvg,
     FancyInput,
+    SurveyChips,
   },
   props: {
     surveyId: {
