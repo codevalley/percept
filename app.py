@@ -379,9 +379,23 @@ def process_results(survey_id, user_code):
         
         return jsonify(response), 202
 
+    # Calculate trending status
+    twenty_four_hours_ago = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+    recent_answers = mongo.db.answers.find_one({
+        'survey_id': survey_id,
+        'submitted_at': {'$gte': twenty_four_hours_ago}
+    })
+    is_trending = bool(recent_answers)
+
+    # Calculate participant bucket
+    total_answers = len(answers)
+    participant_bucket = get_participant_bucket(total_answers)
+    
     # Calculate statistics
     results = calculate_survey_statistics(survey, answers, user_code, is_creator)
-
+    results['is_trending'] = is_trending
+    results['participant_bucket'] = participant_bucket
+    
     return jsonify(results), 200
 
 def calculate_survey_statistics(survey, answers, user_code, is_creator):

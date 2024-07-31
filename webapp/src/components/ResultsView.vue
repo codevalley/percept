@@ -1,10 +1,17 @@
 <template>
   <div class="font-['IBM_Plex_Sans'] max-w-full sm:max-w-3xl mx-auto px-4 py-6 sm:py-8">
+    
     <h1 class="text-2xl sm:text-3xl font-bold text-primary mb-4 sm:mb-6">Survey Results</h1>
     <div v-if="loading" class="text-lg text-primary">Loading results...</div>
     <div v-else-if="error" class="text-lg text-accent">{{ error }}</div>
     <div v-else-if="results">
+      <SurveyChips 
+          :is-trending="results.is_trending"
+          :participant-bucket="results.participant_bucket"
+          class=" mb-4"
+        />
       <div class="bg-accent-green rounded-[25px] p-4 sm:p-7 mb-6 sm:mb-8">
+        
         <div class="flex flex-col space-y-6">
           <div v-if="results.user_type === 'creator'" class="flex flex-col space-y-1">
             <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
@@ -133,12 +140,14 @@ import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
 import InlineSvg from 'vue-inline-svg';
 import ToastView from '@/components/ToastView.vue';
+import SurveyChips from '@/components/SurveyChips.vue';
 
 export default {
   name: 'ResultsView',
   components: {
     InlineSvg,
     ToastView,
+    SurveyChips,
   },
   setup() {
     const { t } = useI18n();
