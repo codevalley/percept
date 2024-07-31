@@ -79,7 +79,7 @@
             <!-- Navigation Buttons and User Code Input -->
             <!-- Mobile Navigation -->
             <div class="sm:hidden flex flex-col items-center space-y-4">
-              <div class="w-full flex justify-center mb-4">
+              <div class="w-full flex justify-center">
                 <FancyInput
                   v-model="userCode"
                   :icon="'/assets/user-icon.svg'"
@@ -97,8 +97,8 @@
                   v-tooltip="'Your unique participant code'"
                   class="w-full max-w-xs"
                 />
-                <p class="text-xs text-neutral-500 mt-1">Your unique participant code</p>
               </div>
+              <p class="text-xs text-neutral-500 ">Your unique participant code</p>
               <div class="flex justify-between w-full space-x-2">
                 <button 
                   @click="previousQuestion" 
