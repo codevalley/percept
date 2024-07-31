@@ -36,6 +36,7 @@
           <div class="flex flex-col space-y-1">
             <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
               <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">
+                <!--`${baseUrl}/participate/`-->
                 {{ results.user_type === 'creator' ? 'This is your results link' : 'Your results code' }}
               </span>
               <button

@@ -18,6 +18,7 @@ export default {
       copySuccess: 'Copied to clipboard!',
       copyError: 'Failed to copy to clipboard',
       errorCheckingCode:'Cannot validate the id',
+      errorFetchingCodes: 'Error fetching suggestions. Please try again.',
       codeNotAvailable:'The id is already used or invalid (contains space, special characters)'
     },
     homeView: {
@@ -37,11 +38,17 @@ export default {
       loadingMessage: 'Loading survey...',
       submittingButton: 'Publishing...',
       errorSubmitting: 'Error submitting survey. Please try again.',
+      errorFetchingCodes: 'Error fetching suggestions. Please try again.',
       missingSurveyId: 'Survey ID is missing. Please check the URL and try again.',
       surveyNotFound: 'Survey not found. Please check the survey ID and try again.',
       errorLoading: 'An error occurred while loading the survey. Please try again later.',
       unexpectedError: 'An unexpected error occurred. Please try again.',
 
+    },
+    resultView:{
+      copySuccess: 'Copied to the clipboard',
+      copyError: 'Could not copy to the clipboard',
+      finishButton: 'Finish',
     },
     header: {
       title: 'Backwave',

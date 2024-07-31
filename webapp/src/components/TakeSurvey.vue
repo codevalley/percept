@@ -97,6 +97,7 @@
                   v-tooltip="'Your unique participant code'"
                   class="w-full max-w-xs"
                 />
+                <p class="text-xs text-neutral-500 mt-1">Your unique participant code</p>
               </div>
               <div class="flex justify-between w-full space-x-2">
                 <button 
