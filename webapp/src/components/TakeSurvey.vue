@@ -9,41 +9,13 @@
         <div class="rounded-3xl overflow-hidden">
           <!-- Header Section -->
           <div class="bg-neutral-100 p-4 sm:p-7">
-            <!-- User Code Input Section -->
-            <div class="mb-4 sm:mb-2 flex justify-center">
-              <FancyInput
-                v-model="userCode"
-                :icon="'/assets/user-icon.svg'"
-                placeholder="user-name"
-                :is-checking="isCheckingCode"
-                :is-valid="isCodeValid"
-                :is-error="isCodeInvalid"
-                :loader-color="'#BE185D'"
-                :valid-border-color="'border-neutral-300'"
-                :neutral-border-color="'border-neutral-300'"
-                :text-color="'text-neutral-500'"
-                :icon-color="'text-neutral-500'"
-                @rotate="rotateCode"
-                @input="handleCodeInput"
-                v-tooltip="'Your unique participant code'"
-              />
-            </div>
-
-            <!-- Option 1: Chips closer to participant code -->
-            <div class=" mb-4 sm:mb-6">
+            <!-- SurveyChips just above the title -->
+            <div class="mb-2">
               <SurveyChips 
                 :is-trending="loadedSurveyData.is_trending"
                 :participant-bucket="loadedSurveyData.participant_bucket"
               />
             </div>
-
-            <!-- Option 2: Chips closer to title (comment out the above div and uncomment this one to use) -->
-            <!-- <div class="mt-4 sm:mt-6 mb-2 sm:mb-3">
-              <SurveyChips 
-                :is-trending="loadedSurveyData.is_trending"
-                :participant-bucket="loadedSurveyData.participant_bucket"
-              />
-            </div> -->
 
             <div class="flex items-start">
               <div class="w-10 h-10 sm:w-12 sm:h-12 bg-secondary rounded-full mr-3 sm:mr-5 mt-1 sm:mt-3 flex-shrink-0"></div>
@@ -104,8 +76,8 @@
               </template>
             </div>
 
-            <!-- Navigation Buttons -->
-            <div class="absolute bottom-4 left-4 right-4 flex justify-between">
+            <!-- Navigation Buttons and User Code Input -->
+            <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
               <button 
                 @click="previousQuestion" 
                 v-if="currentQuestionIndex > 0"
@@ -114,13 +86,32 @@
                 {{ $t('takeSurvey.previousButton') }}
               </button>
               <div class="flex-grow"></div>
+              <!-- User Code Input -->
+              <div class="mt-2 mr-2 sm:mr-4">
+                <FancyInput
+                  v-model="userCode"
+                  :icon="'/assets/user-icon.svg'"
+                  placeholder="user-name"
+                  :is-checking="isCheckingCode"
+                  :is-valid="isCodeValid"
+                  :is-error="isCodeInvalid"
+                  :loader-color="'#BE185D'"
+                  :valid-border-color="'border-neutral-300'"
+                  :neutral-border-color="'border-neutral-300'"
+                  :text-color="'text-neutral-500'"
+                  :icon-color="'text-neutral-500'"
+                  @rotate="rotateCode"
+                  @input="handleCodeInput"
+                  v-tooltip="'Your unique participant code'"
+                />
+              </div>
               <button 
                 @click="nextQuestion" 
                 :disabled="currentAnswer === null || isSubmitting || !isCodeValid"
                 :class="[
                   'px-4 sm:px-6 py-2 rounded-full transition-colors text-sm sm:text-base',
                   (currentAnswer === null || isSubmitting || !isCodeValid) 
-                    ? 'bg-white text-neutral-300 cursor-not-allowed' 
+                    ? 'bg-gray-100 text-neutral-300 cursor-not-allowed' 
                     : 'bg-primary text-white'
                 ]"
               >
