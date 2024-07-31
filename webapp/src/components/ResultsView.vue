@@ -6,7 +6,7 @@
           v-if="results"
           :is-trending="results.is_trending"
           :participant-bucket="results.participant_bucket"
-          class="mt-2 sm:mt-0"
+          class="mt-2 mb-2 sm:mb-0 sm:mt-0"
         />
     </div>
     <div v-if="loading" class="text-lg text-primary">Loading results...</div>

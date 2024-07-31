@@ -77,17 +77,9 @@
             </div>
 
             <!-- Navigation Buttons and User Code Input -->
-            <div class="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-              <button 
-                @click="previousQuestion" 
-                v-if="currentQuestionIndex > 0"
-                class="px-4 sm:px-6 py-2 bg-primary text-white rounded-full text-sm sm:text-base"
-              >
-                {{ $t('takeSurvey.previousButton') }}
-              </button>
-              <div class="flex-grow"></div>
-              <!-- User Code Input -->
-              <div class="mt-2 mr-2 sm:mr-4">
+            <!-- Mobile Navigation -->
+            <div class="sm:hidden flex flex-col items-center space-y-4">
+              <div class="w-full flex justify-center mb-4">
                 <FancyInput
                   v-model="userCode"
                   :icon="'/assets/user-icon.svg'"
@@ -103,6 +95,64 @@
                   @rotate="rotateCode"
                   @input="handleCodeInput"
                   v-tooltip="'Your unique participant code'"
+                  class="w-full max-w-xs"
+                />
+              </div>
+              <div class="flex justify-between w-full space-x-2">
+                <button 
+                  @click="previousQuestion" 
+                  class="px-4 sm:px-6 py-2 bg-primary text-white rounded-full text-sm sm:text-base"
+                  :class="{ 'invisible': currentQuestionIndex === 0 }"
+                >
+                  {{ $t('takeSurvey.previousButton') }}
+                </button>
+                <FancyButton
+                  :label="isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton')"
+                  :disabled="currentAnswer === null || isSubmitting || !isCodeValid"
+                  :is-actioning="isSubmitting"
+                  @click="nextQuestion"
+                  :border-width="2"
+                  button-height="40px"
+                  icon-size="20px"
+                  font-size="text-sm sm:text-base"
+                  :min-width="'100px'"
+                  bg-color="black"
+                  border-color="primary"
+                  loader-color="#6B7280"
+                  disabled-bg-color="gray"
+                  disabled-border-color="neutral-300"
+                  text-color="text-white"
+                  disabled-text-color="text-neutral-300"
+                />
+              </div>
+            </div>
+
+            <!-- Desktop Navigation -->
+            <div class="hidden sm:flex items-center justify-between w-full space-x-2">
+              <button 
+                @click="previousQuestion" 
+                class="px-4 sm:px-6 py-2 bg-primary text-white rounded-full text-sm sm:text-base"
+                :class="{ 'invisible': currentQuestionIndex === 0 }"
+              >
+                {{ $t('takeSurvey.previousButton') }}
+              </button>
+              <div class="flex justify-center flex-grow">
+                <FancyInput
+                  v-model="userCode"
+                  :icon="'/assets/user-icon.svg'"
+                  placeholder="user-name"
+                  :is-checking="isCheckingCode"
+                  :is-valid="isCodeValid"
+                  :is-error="isCodeInvalid"
+                  :loader-color="'#BE185D'"
+                  :valid-border-color="'border-neutral-300'"
+                  :neutral-border-color="'border-neutral-300'"
+                  :text-color="'text-neutral-500'"
+                  :icon-color="'text-neutral-500'"
+                  @rotate="rotateCode"
+                  @input="handleCodeInput"
+                  v-tooltip="'Your unique participant code'"
+                  class="w-full max-w-xs"
                 />
               </div>
               <FancyButton
@@ -124,6 +174,7 @@
                 disabled-text-color="text-neutral-300"
               />
             </div>
+
           </div>
         </div>
       </div>
@@ -133,6 +184,8 @@
     </div>
   </div>
 </template>
+
+
 
 
 <script>
