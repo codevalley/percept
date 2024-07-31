@@ -1,15 +1,18 @@
 <template>
   <div class="font-['IBM_Plex_Sans'] max-w-full sm:max-w-3xl mx-auto px-4 py-6 sm:py-8">
-    
-    <h1 class="text-2xl sm:text-3xl font-bold text-primary mb-4 sm:mb-6">Survey Results</h1>
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between  sm:mb-2">
+      <h1 class="text-2xl sm:text-3xl font-bold text-primary sm:mb-1">Survey Results</h1>
+      <SurveyChips 
+          v-if="results"
+          :is-trending="results.is_trending"
+          :participant-bucket="results.participant_bucket"
+          class="mt-2 sm:mt-0"
+        />
+    </div>
     <div v-if="loading" class="text-lg text-primary">Loading results...</div>
     <div v-else-if="error" class="text-lg text-accent">{{ error }}</div>
     <div v-else-if="results">
-      <SurveyChips 
-          :is-trending="results.is_trending"
-          :participant-bucket="results.participant_bucket"
-          class=" mb-4"
-        />
+      
       <div class="bg-accent-green rounded-[25px] p-4 sm:p-7 mb-6 sm:mb-8">
         
         <div class="flex flex-col space-y-6">

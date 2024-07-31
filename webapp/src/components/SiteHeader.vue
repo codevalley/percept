@@ -3,8 +3,8 @@
     <div class="max-w-[859px] mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16 sm:h-20">
         <div class="flex items-center cursor-pointer" @click="navigateTo('/')">
-          <img src="/assets/backwave.svg" alt="Backwave logo" class="w-10 h-10 sm:w-16 sm:h-16" />
-          <h1 class="text-xl sm:text-3xl md:text-5xl font-bold ml-2 text-primary self-start mt-1">{{ $t('header.title') }}</h1>
+          <img src="/assets/backwave.svg" alt="Backwave logo" class="w-10 h-10 sm:w-10 sm:h-10 md:w-16 md:h-16" />
+          <h1 class="text-3xl sm:text-3xl md:text-5xl font-bold ml-2 text-primary self-start mt-1">{{ $t('header.title') }}</h1>
         </div>
         <nav class="hidden sm:flex items-center space-x-4 sm:space-x-8">
           <NavItem 
@@ -34,34 +34,37 @@
       </div>
 
       <div v-if="(activeTab === 'participate' && route.name !== 'TakeSurvey') || (activeTab === 'analyze' && route.name !== 'Results')" class="mt-4">
-        <div class="flex flex-col bg-neutral-100 rounded-3xl sm:rounded-full w-full sm:w-[420px]">
-          <div class="flex items-center w-full p-2 sm:p-0 sm:pl-4">
-            <img :src="activeTab === 'participate' ? '/assets/hash-icon.svg' : '/assets/analyze-icon.svg'" :alt="activeTab" class="w-8 h-8 mr-2" />
-            <input
-              v-if="activeTab === 'participate'"
-              v-model="participateCode"
-              type="text"
-              :placeholder="$t('header.participatePlaceholder')"
-              class="bg-transparent text-lg font-regular text-neutral-400 w-full flex-grow focus:outline-none"
+        <div class="flex items-center bg-neutral-100 rounded-full w-full sm:w-[420px]">
+          <img :src="activeTab === 'participate' ? '/assets/hash-icon.svg' : '/assets/analyze-icon.svg'" :alt="activeTab" class="hidden sm:block w-10 h-10 ml-4 mr-2" />
+          <input
+            v-if="activeTab === 'participate'"
+            v-model="participateCode"
+            type="text"
+            :placeholder="$t('header.participatePlaceholder')"
+            class="bg-transparent text-lg sm:text-xl font-regular text-neutral-400 flex-grow px-4 sm:px-2 py-2 focus:outline-none"
+          />
+          <input
+            v-else
+            v-model="creatorCode"
+            type="text"
+            :placeholder="$t('header.analyzePlaceholder')"
+            class="bg-transparent text-lg sm:text-xl font-regular text-neutral-400 flex-grow px-4 sm:px-2 py-2 focus:outline-none"
+          />
+          <button
+            @click="activeTab === 'participate' ? submitParticipateCode() : handleAnalyze()"
+            :disabled="isLoading"
+            class="bg-primary text-white rounded-full flex-shrink-0 w-10 h-10 sm:w-auto sm:h-auto sm:px-8 sm:py-2 flex items-center justify-center"
+          >
+            <span v-if="!isLoading" class="hidden sm:inline text-lg sm:text-xl font-bold">
+              {{ $t(activeTab === 'participate' ? 'header.participateButton' : 'header.analyzeButton') }}
+            </span>
+            <inline-svg 
+              v-if="!isLoading" 
+              :src="activeTab === 'participate' ? '/assets/hash-icon.svg' : '/assets/analyze-icon.svg'" 
+              class="w-6 h-6 sm:hidden text-white"
             />
-            <input
-              v-else
-              v-model="creatorCode"
-              type="text"
-              :placeholder="$t('header.analyzePlaceholder')"
-              class="bg-transparent text-lg font-regular text-neutral-400 w-full flex-grow focus:outline-none"
-            />
-          </div>
-          <div class="px-2 pb-2 sm:pr-1 sm:pb-1">
-            <button
-              @click="activeTab === 'participate' ? submitParticipateCode() : handleAnalyze()"
-              :disabled="isLoading"
-              class="bg-primary text-white text-lg font-bold px-6 py-2 rounded-full w-full"
-            >
-              <span v-if="!isLoading">{{ $t(activeTab === 'participate' ? 'header.participateButton' : 'header.analyzeButton') }}</span>
-              <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
-            </button>
-          </div>
+            <span v-else class="inline-block animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></span>
+          </button>
         </div>
       </div>
       
