@@ -166,8 +166,8 @@ export default {
     const surveyCode = computed(() => results.value?.survey_id ?? '');
 
     const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
-    const surveyLink = computed(() => `${baseUrl.value}/participate/${surveyCode.value}`);
-    const resultsLink = computed(() => `${baseUrl.value}/results/${userCode.value}`);
+    const surveyLink = computed(() => `${baseUrl.value}/${surveyCode.value}`);
+    const resultsLink = computed(() => `${baseUrl.value}/u/${userCode.value}`);
 
     const openAndCopy = (type) => {
       const url = type === 'survey' ? surveyLink.value : resultsLink.value;

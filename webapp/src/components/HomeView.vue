@@ -11,7 +11,7 @@
           {{ $t('homeView.subtitle') }}
         </p>
         <div class="flex justify-center">
-          <router-link to="/create" class="bg-accent-green text-primary text-lg sm:text-xl font-bold px-6 sm:px-8 py-2 rounded-full">
+          <router-link to="/new" class="bg-accent-green text-primary text-lg sm:text-xl font-bold px-6 sm:px-8 py-2 rounded-full">
             {{ $t('homeView.createButton') }}
           </router-link>
         </div>

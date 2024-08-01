@@ -784,8 +784,8 @@ export default {
 
         const response = await api.createSurvey(surveyData);
         console.log('Survey created', response.data);
-        surveyLink.value =  `${baseUrl.value}/participate/${surveyCode.value}`;
-        resultsLink.value = `${baseUrl.value}/results/${surveyCode.value}/${userCode.value}`;
+        surveyLink.value =  `${baseUrl.value}/${surveyCode.value}`;
+        resultsLink.value = `${baseUrl.value}/u/${userCode.value}`;
         isSubmitted.value = true;
         isPublished.value = true;
         showSuccess.value = true;

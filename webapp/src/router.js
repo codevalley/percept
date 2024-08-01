@@ -12,12 +12,12 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/create',
+    path: '/new',
     name: 'Create',
     component: CreateView
   },
   {
-    path: '/participate/:surveyId',  // This ensures surveyId must be a number
+    path: '/:surveyId',  // This ensures surveyId must be a number
     name: 'TakeSurvey',
     component: TakeSurvey,
     props: route => ({ 
@@ -26,13 +26,13 @@ const routes = [
     }),
   },
   {
-    path: '/results/:userCode',
+    path: '/u/:userCode',
     name: 'Results',
     component: ResultsView,
     props: true
   },
   {
-    path: '/results/:surveyId/:userCode',
+    path: '/u/:surveyId/:userCode',
     name: 'SurveyResults',
     component: ResultsView,
     props: true

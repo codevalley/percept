@@ -116,7 +116,7 @@ export default {
 
     const handleNavItemClick = (tabName) => {
       if (tabName === 'create') {
-        navigateTo('/create');
+        navigateTo('/new');
       } else {
         activeTab.value = activeTab.value === tabName ? null : tabName;
       }

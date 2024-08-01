@@ -45,7 +45,7 @@ export default {
       unexpectedError: 'An unexpected error occurred. Please try again.',
 
     },
-    resultView:{
+    resultsView:{
       copySuccess: 'Copied to the clipboard',
       copyError: 'Could not copy to the clipboard',
       finishButton: 'Finish',
