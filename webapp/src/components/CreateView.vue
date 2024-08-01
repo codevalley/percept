@@ -80,18 +80,11 @@
         <div v-if="questions.length > 0" class="bg-neutral-100 rounded-[25px] p-4 sm:p-7 mb-8 sm:mb-12">
           <transition-group name="list" tag="div" class="space-y-6">
             <div v-for="(question, index) in questions" :key="question.id" 
-                 class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-0 bg-white sm:bg-transparent rounded-2xl sm:rounded-none shadow-sm sm:shadow-none">
+                class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-0 bg-white sm:bg-transparent rounded-2xl sm:rounded-none shadow-sm sm:shadow-none">
               <div class="flex items-center mb-4 sm:mb-0">
                 <button @click="editQuestion(index)" class="text-accent hover:text-accent-dark focus:outline-none mr-2 sm:ml-0">
                   <inline-svg src="assets/edit-icon.svg" class="w-5 h-5" />
                 </button>
-                <inline-svg
-                  :src="question.response_type === 'scale' ? 'assets/scale-icon.svg' : 'assets/yes-no-icon.svg'"
-                  :class="[
-                    creatorAnswers[index] !== null ? 'text-primary' : 'text-neutral-400 sm:text-primary', 
-                    'w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0 mr-2 sm:mr-4'
-                  ]"
-                />
                 <span class="text-lg sm:text-2xl sm:mr-2 break-words"
                       :class="creatorAnswers[index] !== null ? 'text-primary' : 'text-neutral-400 sm:text-primary'">
                   {{ question.text }}
