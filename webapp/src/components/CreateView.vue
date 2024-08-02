@@ -684,9 +684,9 @@ export default {
       } else if (type === 'user') {
         textToCopy = resultsLink.value;
       } else if (type === 'surveyCode') {
-        textToCopy = surveyCode.value;
+        textToCopy = surveyLink.value;
       } else if (type === 'userCode') {
-        textToCopy = userCode.value;
+        textToCopy = surveyLink.value;
       }
 
       navigator.clipboard.writeText(textToCopy).then(() => {
