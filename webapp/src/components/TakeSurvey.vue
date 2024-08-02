@@ -1,7 +1,9 @@
 <template>
   <div class="font-sans min-h-screen bg-white">
-    <div v-if="error" class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16 text-center">
-      <p class="text-xl sm:text-2xl text-accent">{{ error }}</p>
+    <div v-if="error || isSurveyExpired" class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16 text-center">
+      <p class="text-xl sm:text-2xl text-accent">
+        {{ isSurveyExpired ? $t('takeSurvey.surveyExpired') : error }}
+      </p>
     </div>
     <div v-else class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16">
       <div v-if="loadedSurveyData">
@@ -119,7 +121,7 @@
                 </button>
                 <FancyButton
                   :label="isLastQuestion ? $t('takeSurvey.finishButton') : $t('takeSurvey.nextButton')"
-                  :disabled="currentAnswer === null || isSubmitting || !isCodeValid"
+                  :disabled="currentAnswer === null || isSubmitting || !isCodeValid || isSurveyExpired"
                   :is-actioning="isSubmitting"
                   @click="nextQuestion"
                   :border-width="2"
@@ -254,6 +256,13 @@ export default {
 
     const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
     
+    const isSurveyExpired = computed(() => {
+      if (!loadedSurveyData.value || !loadedSurveyData.value.expiration_date) {
+        return false;
+      }
+      const expirationDate = new Date(loadedSurveyData.value.expiration_date);
+      return expirationDate < new Date();
+    });
     useHead(() => {
       if (!loadedSurveyData.value) return {}
 
@@ -310,11 +319,14 @@ export default {
           loadedSurveyData.value = props.surveyData;
         } else {
           const response = await api.getSurvey(props.surveyId);
-          console.log('Survey response:', response);
           loadedSurveyData.value = response.data;
         }
         if(loadedSurveyData.value){
-          updateTimeLeft();
+          if (isSurveyExpired.value) {
+            error.value = t('takeSurvey.surveyExpired');
+          } else {
+            updateTimeLeft();
+          }
         }
       } catch (err) {
         console.error('Error fetching survey:', err);
@@ -386,7 +398,7 @@ export default {
     }
 
     async function nextQuestion() {
-      if (currentAnswer.value === null || !isCodeValid.value) return;
+      if (currentAnswer.value === null || !isCodeValid.value || isSurveyExpired.value) return;
 
       answers.value[currentQuestion.value.id] = currentAnswer.value;
       

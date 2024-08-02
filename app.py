@@ -36,6 +36,7 @@ snowflake = Snowflake53(1,1)
 MINIMUM_RESPONSES = 5
 ID_SUGGESTIONS = 5
 INITIAL_ID_RESERVE = 50  # Number of IDs to generate initially
+DEFAULT_EXPIRY = datetime.timedelta(days=5)  # New constant for default expiry
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -156,6 +157,13 @@ def create_survey():
             app.logger.warning(f"Requested user code is not available: user_code={user_code}")
             return jsonify({'error': 'Requested user code is not available'}), 400
 
+        # Handle expiry date
+        expiry_date = data.get('expiry')
+        if expiry_date:
+            expiry_date = datetime.datetime.fromisoformat(expiry_date)
+        else:
+            expiry_date = datetime.datetime.now(datetime.UTC) + DEFAULT_EXPIRY
+
         survey = {
             'survey_id': survey_id,
             'title': data['title'],
@@ -169,7 +177,8 @@ def create_survey():
                     'creator_answer': q['creator_answer']
                 } for i, q in enumerate(data['questions'])
             ],
-            'user_code': user_code
+            'user_code': user_code,
+            'expiry_date': expiry_date
         }
         
         # Insert the survey into the database
@@ -186,7 +195,8 @@ def create_survey():
                 'survey_id': survey_id,
                 'share_link': f"/participate/{survey_id}",
                 'user_code': user_code,
-                'questions': [{'id': q['id'], 'text': q['text']} for q in survey['questions']]
+                'questions': [{'id': q['id'], 'text': q['text']} for q in survey['questions']],
+                'expiry_date': expiry_date.isoformat()
             })
             app.logger.debug(f"Sending response: {response.get_data(as_text=True)}")
             return response, 201
@@ -206,11 +216,18 @@ def get_survey(survey_id):
         app.logger.warning(f"Survey not found: {survey_id}")
         return jsonify({'error': 'Survey not found'}), 404
     
+    # Check if the survey has expired
+    expiry_date = survey.get('expiry_date', datetime.datetime.now(datetime.UTC) + DEFAULT_EXPIRY)
+    is_expired = expiry_date < datetime.datetime.now(datetime.UTC)
+    
+    if is_expired:
+        return jsonify({'error': 'Survey has expired', 'expired': True}), 410
+    
     # Remove the _id field from the survey dict
     survey.pop('_id', None)
     
     # Calculate trending status
-    twenty_four_hours_ago = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+    twenty_four_hours_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=24)
     recent_answers = mongo.db.answers.find_one({
         'survey_id': survey_id,
         'submitted_at': {'$gte': twenty_four_hours_ago}
@@ -235,7 +252,9 @@ def get_survey(survey_id):
             } for q in survey['questions']
         ],
         'is_trending': is_trending,
-        'participant_bucket': participant_bucket
+        'participant_bucket': participant_bucket,
+        'expiry_date': expiry_date.isoformat(),
+        'expired': is_expired
     })
 
 @app.route(f'{api_prefix}/v1/surveys/<string:survey_id>/answers', methods=['POST'])
@@ -359,9 +378,9 @@ def process_results(survey_id, user_code):
     logging.info(f"Creator ID is: {survey['user_code']}")
     
     current_responses = len(answers)
-    
+    now_time = datetime.datetime.now(datetime.UTC)
     # Calculate trending status
-    twenty_four_hours_ago = datetime.datetime.utcnow() - datetime.timedelta(hours=24)
+    twenty_four_hours_ago = now_time - datetime.timedelta(hours=24)
     recent_answers = mongo.db.answers.find_one({
         'survey_id': survey_id,
         'submitted_at': {'$gte': twenty_four_hours_ago}
@@ -371,6 +390,11 @@ def process_results(survey_id, user_code):
     total_answers = len(answers)
     is_trending = bool(recent_answers)
     participant_bucket = get_participant_bucket(total_answers)
+
+    # Check expiry
+    expiry_date = survey.get('expiry_date', now_time + DEFAULT_EXPIRY)
+    is_expired = expiry_date < now_time
+
     # Check for minimum responses for creator
     if current_responses < MINIMUM_RESPONSES:
         if is_creator:
@@ -380,17 +404,21 @@ def process_results(survey_id, user_code):
                 'minimum_responses': MINIMUM_RESPONSES,
                 'remaining_responses': MINIMUM_RESPONSES - current_responses,
                 'is_creator': True,
-                'user_code' : user_code,
-                'survey_id' : survey_id,
+                'user_code': user_code,
+                'survey_id': survey_id,
                 'is_trending': is_trending,
-                'participant_bucket': participant_bucket
+                'participant_bucket': participant_bucket,
+                'expiry_date': expiry_date.isoformat(),
+                'expired': is_expired
             }
         else:
             response = {
                 'status': 'incomplete',
                 'is_creator': False,
                 'is_trending': is_trending,
-                'participant_bucket': participant_bucket
+                'participant_bucket': participant_bucket,
+                'expiry_date': expiry_date.isoformat(),
+                'expired': is_expired
             }
         return jsonify(response), 202
 
@@ -398,6 +426,8 @@ def process_results(survey_id, user_code):
     results = calculate_survey_statistics(survey, answers, user_code, is_creator)
     results['is_trending'] = is_trending
     results['participant_bucket'] = participant_bucket
+    results['expiry_date'] = expiry_date.isoformat()
+    results['expired'] = is_expired
     
     return jsonify(results), 200
 
@@ -405,6 +435,7 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
     logging.info(f"<O>Calculating statistics for survey {survey['survey_id']}, user_code {user_code}, is_creator: {is_creator}")
     
     questions = {q['id']: q for q in survey['questions']}
+    now_time = datetime.datetime.now(datetime.UTC)
     results = {
         'survey_id': survey['survey_id'],
         'title': survey['title'],
@@ -412,7 +443,9 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
         'created_at': survey['survey_id'],
         'user_type': 'creator' if is_creator else 'participant',
         'questions': [],
-        'overall_statistics': {}
+        'overall_statistics': {},
+        'expiry_date': survey.get('expiry_date', now_time + DEFAULT_EXPIRY).isoformat(),
+        'expired': survey.get('expiry_date', now_time + DEFAULT_EXPIRY) < now_time
     }
 
     if is_creator:
