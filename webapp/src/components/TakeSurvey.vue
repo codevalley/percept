@@ -23,6 +23,7 @@
               <SurveyChips 
                 :is-trending="loadedSurveyData.is_trending"
                 :participant-bucket="loadedSurveyData.participant_bucket"
+                :time-left="timeLeftInMinutes"
               />
             </div>
 
@@ -199,7 +200,7 @@
 
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
@@ -252,7 +253,7 @@ export default {
     const isCodeInvalid = computed(() => codeStatus.value === 'invalid');
 
     const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
-
+    
     useHead(() => {
       if (!loadedSurveyData.value) return {}
 
@@ -277,8 +278,25 @@ export default {
         ],
       }
     })
+    const timeLeftInSeconds = ref(0);
+    const timeLeftInMinutes = computed(() => {
+      return Math.ceil(timeLeftInSeconds.value / 60);
+    });
 
+    const calculateTotalTime = (questions) => {
+      return questions.reduce((total, question) => {
+        return total + (question.response_type === 'boolean' ? 15 : 30);
+      }, 0);
+    };
 
+    const updateTimeLeft = () => {
+      if (loadedSurveyData.value && loadedSurveyData.value.questions) {
+        const unansweredQuestions = loadedSurveyData.value.questions.slice(currentQuestionIndex.value);
+        timeLeftInSeconds.value = calculateTotalTime(unansweredQuestions);
+      }
+    };
+
+    watch(currentQuestionIndex, updateTimeLeft);
     onMounted(async () => {
       if (!props.surveyId) {
         error.value = t('takeSurvey.missingSurveyId');
@@ -294,6 +312,9 @@ export default {
           const response = await api.getSurvey(props.surveyId);
           console.log('Survey response:', response);
           loadedSurveyData.value = response.data;
+        }
+        if(loadedSurveyData.value){
+          updateTimeLeft();
         }
       } catch (err) {
         console.error('Error fetching survey:', err);
@@ -374,6 +395,7 @@ export default {
       } else {
         currentQuestionIndex.value++;
         currentAnswer.value = answers.value[currentQuestion.value.id] || null;
+        updateTimeLeft();
       }
     }
 
@@ -448,6 +470,7 @@ export default {
       isCodeInvalid,
       rotateCode,
       handleCodeInput,
+      timeLeftInMinutes,
     };
   }
 }

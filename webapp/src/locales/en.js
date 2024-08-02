@@ -1,4 +1,9 @@
 export default {
+    global: {
+      surveyRoute: "",
+      resultsRoute: "u",
+      createRoute: "new"
+    },
     createView: {
       title: 'Share your honest view',
       description: 'Helps me reflect on what I think of myself',
