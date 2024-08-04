@@ -50,6 +50,13 @@ mongo = PyMongo(app)
 # Initialize IDManager
 id_manager = IDManager(mongo.db)
 
+# At the top of the file, add this function
+def make_tz_aware(dt):
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=datetime.UTC)
+    return dt
+
+
 def initialize_db(max_retries=5, delay=5):
     for attempt in range(max_retries):
         try:
@@ -139,15 +146,22 @@ def create_survey():
     app.logger.debug("Received POST request to /api/v1/surveys")
     data = request.json
     app.logger.debug(f"Request data: {data}")
+    if 'survey_id' not in data :
+        data['survey_id'] = id_manager.get_ids()[0]
+        app.logger.debug("Creating surveryID: "+data['survey_id'])
     
-    if not data or 'title' not in data or 'questions' not in data or 'survey_id' not in data or 'user_code' not in data:
+    if 'user_code' not in data :
+        data['user_code'] = id_manager.get_ids()[0]
+        app.logger.debug("Creating userCode: "+data['user_code'])
+
+    if not data or 'title' not in data or 'questions' not in data or 'user_code' not in data:
         app.logger.warning("Invalid request data")
         return jsonify({'error': 'Invalid request data'}), 400
     
     try:
         survey_id = data['survey_id']
         user_code = data['user_code']
-        
+    
         # Check if the IDs are available
         if not id_manager.is_id_available(survey_id):
             app.logger.warning(f"Requested survey ID is not available: survey_id={survey_id}")
@@ -160,9 +174,9 @@ def create_survey():
         # Handle expiry date
         expiry_date = data.get('expiry')
         if expiry_date:
-            expiry_date = datetime.datetime.fromisoformat(expiry_date)
+            expiry_date = make_tz_aware(datetime.datetime.fromisoformat(expiry_date))
         else:
-            expiry_date = datetime.datetime.now(datetime.UTC) + DEFAULT_EXPIRY
+            expiry_date = make_tz_aware(datetime.datetime.now(datetime.UTC) + DEFAULT_EXPIRY)
 
         survey = {
             'survey_id': survey_id,
@@ -217,7 +231,7 @@ def get_survey(survey_id):
         return jsonify({'error': 'Survey not found'}), 404
     
     # Check if the survey has expired
-    expiry_date = survey.get('expiry_date', datetime.datetime.now(datetime.UTC) + DEFAULT_EXPIRY)
+    expiry_date = make_tz_aware(survey.get('expiry_date', datetime.datetime.now(datetime.UTC) + DEFAULT_EXPIRY))
     is_expired = expiry_date < datetime.datetime.now(datetime.UTC)
     
     if is_expired:
@@ -392,7 +406,7 @@ def process_results(survey_id, user_code):
     participant_bucket = get_participant_bucket(total_answers)
 
     # Check expiry
-    expiry_date = survey.get('expiry_date', now_time + DEFAULT_EXPIRY)
+    expiry_date = make_tz_aware(survey.get('expiry_date', now_time + DEFAULT_EXPIRY))
     is_expired = expiry_date < now_time
 
     # Check for minimum responses for creator
@@ -444,8 +458,8 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
         'user_type': 'creator' if is_creator else 'participant',
         'questions': [],
         'overall_statistics': {},
-        'expiry_date': survey.get('expiry_date', now_time + DEFAULT_EXPIRY).isoformat(),
-        'expired': survey.get('expiry_date', now_time + DEFAULT_EXPIRY) < now_time
+        'expiry_date': make_tz_aware(survey.get('expiry_date', now_time + DEFAULT_EXPIRY)).isoformat(),
+        'expired': make_tz_aware(survey.get('expiry_date', now_time + DEFAULT_EXPIRY)) < now_time
     }
 
     if is_creator:
