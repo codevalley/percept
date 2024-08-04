@@ -1,7 +1,7 @@
 import unittest
 import json
 from datetime import datetime, timedelta, UTC
-from app import app, mongo, id_manager,make_tz_aware
+from app import app, mongo, id_manager,make_tz_aware, MINIMUM_RESPONSES
 
 class TestSurveyResults(unittest.TestCase):
     
@@ -305,11 +305,10 @@ class TestSurveyResults(unittest.TestCase):
         data = json.loads(response.data)
         self.assertFalse(data['available'])
 
-
-def test_survey_expiry(self):
+    def test_survey_expiry(self):
         # Test creating a survey with expiry date
         survey_data = self.survey_data.copy()
-        survey_data['expiry_date'] = make_aware(datetime.now() + timedelta(days=1)).isoformat()
+        survey_data['expiry_date'] = make_tz_aware(datetime.now() + timedelta(days=1)).isoformat()
         response = self.client.post('/v1/surveys',
                                     data=json.dumps(survey_data),
                                     content_type='application/json')
@@ -325,48 +324,85 @@ def test_survey_expiry(self):
         with app.app_context():
             mongo.db.surveys.update_one(
                 {'survey_id': survey_id},
-                {'$set': {'expiry_date': make_aware(datetime.now() - timedelta(days=1)).isoformat()}}
+                {'$set': {'expiry_date': make_tz_aware(datetime.now() - timedelta(days=1)).isoformat()}}
             )
         response = self.client.get(f'/v1/surveys/{survey_id}')
         self.assertEqual(response.status_code, 410)
         self.assertTrue(json.loads(response.data)['expired'])
 
-def test_trending_survey(self):
-    # Add multiple responses within 24 hours
-    for _ in range(5):
-        self.add_sample_responses()
+    def test_trending_survey(self):
+        # Add multiple responses within 24 hours
+        for _ in range(5):
+            self.add_sample_responses()
 
-    # Check if the survey is trending
-    response = self.client.get(f'/v1/surveys/{self.survey_id}')
-    self.assertEqual(response.status_code, 200)
-    data = json.loads(response.data)
-    self.assertTrue(data['is_trending'])
+        # Check if the survey is trending
+        response = self.client.get(f'/v1/surveys/{self.survey_id}')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['is_trending'])
 
-def test_participant_bucket(self):
-    # Test with less than 10 participants
-    response = self.client.get(f'/v1/surveys/{self.survey_id}')
-    self.assertEqual(response.status_code, 200)
-    data = json.loads(response.data)
-    self.assertEqual(data['participant_bucket'], '< 10')
+    def test_participant_bucket(self):
+        # Test with less than 10 participants
+        response = self.client.get(f'/v1/surveys/{self.survey_id}')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['participant_bucket'], '< 10')
 
-    # Add more responses to change the bucket
-    for _ in range(10):
-        self.add_sample_responses()
+        # Add more responses to change the bucket
+        for _ in range(10):
+            self.add_sample_responses()
 
-    response = self.client.get(f'/v1/surveys/{self.survey_id}')
-    self.assertEqual(response.status_code, 200)
-    data = json.loads(response.data)
-    self.assertEqual(data['participant_bucket'], '10-100')
+        response = self.client.get(f'/v1/surveys/{self.survey_id}')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['participant_bucket'], '10-100')
 
-def test_survey_results_with_new_fields(self):
-    response = self.client.get(f'/v1/surveys/{self.survey_id}/results?user_code={self.creator_code}')
-    self.assertEqual(response.status_code, 200)
+    def test_survey_results_with_new_fields(self):
+        response = self.client.get(f'/v1/surveys/{self.survey_id}/results?user_code={self.creator_code}')
+        self.assertEqual(response.status_code, 200)
+        
+        data = json.loads(response.data)
+        self.assertIn('is_trending', data)
+        self.assertIn('participant_bucket', data)
+        self.assertIn('expiry_date', data)
+        self.assertIn('expired', data)
     
-    data = json.loads(response.data)
-    self.assertIn('is_trending', data)
-    self.assertIn('participant_bucket', data)
-    self.assertIn('expiry_date', data)
-    self.assertIn('expired', data)
+    def test_survey_with_no_responses(self):
+        # Create a new survey without adding any responses
+        response = self.client.post('/v1/surveys',
+                                    data=json.dumps(self.survey_data),
+                                    content_type='application/json')
+        new_survey_id = json.loads(response.data)['survey_id']
+        new_creator_code = json.loads(response.data)['user_code']
+
+        # Get results for this survey
+        response = self.client.get(f'/v1/surveys/{new_survey_id}/results?user_code={new_creator_code}')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertEqual(data['status'], 'incomplete')
+        self.assertEqual(data['current_responses'], 0)
+        self.assertEqual(data['minimum_responses'], MINIMUM_RESPONSES)
+        self.assertEqual(data['remaining_responses'], MINIMUM_RESPONSES)
+        self.assertTrue(data['is_creator'])
+        self.assertEqual(data['participant_bucket'], '< 10')
+        self.assertFalse(data['is_trending'])
+
+    def test_survey_about_to_expire(self):
+        # Create a survey that expires in 5 minutes
+        survey_data = self.survey_data.copy()
+        survey_data['expiry_date'] = make_tz_aware(datetime.now(UTC) + timedelta(minutes=5)).isoformat()
+        response = self.client.post('/v1/surveys',
+                                    data=json.dumps(survey_data),
+                                    content_type='application/json')
+        survey_id = json.loads(response.data)['survey_id']
+
+        # Check the survey
+        response = self.client.get(f'/v1/surveys/{survey_id}')
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertFalse(data['expired'])
+        # You might want to add an 'expiring_soon' field to your API for this case
+        # self.assertTrue(data['expiring_soon'])
 
 if __name__ == '__main__':
     unittest.main()

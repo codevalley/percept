@@ -50,8 +50,9 @@ mongo = PyMongo(app)
 # Initialize IDManager
 id_manager = IDManager(mongo.db)
 
-# At the top of the file, add this function
 def make_tz_aware(dt):
+    if isinstance(dt, str):
+        dt = datetime.datetime.fromisoformat(dt)
     if dt.tzinfo is None:
         return dt.replace(tzinfo=datetime.UTC)
     return dt
@@ -415,6 +416,7 @@ def process_results(survey_id, user_code):
             response = {
                 'status': 'incomplete',
                 'current_responses': current_responses,
+                'total_responses': current_responses,
                 'minimum_responses': MINIMUM_RESPONSES,
                 'remaining_responses': MINIMUM_RESPONSES - current_responses,
                 'is_creator': True,
@@ -425,6 +427,7 @@ def process_results(survey_id, user_code):
                 'expiry_date': expiry_date.isoformat(),
                 'expired': is_expired
             }
+            return jsonify(response), 200
         else:
             response = {
                 'status': 'incomplete',
@@ -434,7 +437,7 @@ def process_results(survey_id, user_code):
                 'expiry_date': expiry_date.isoformat(),
                 'expired': is_expired
             }
-        return jsonify(response), 202
+            return jsonify(response), 202
 
     # Calculate statistics
     results = calculate_survey_statistics(survey, answers, user_code, is_creator)
