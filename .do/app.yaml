@@ -23,7 +23,7 @@ services:
     value: "5001"
   - key: MONGO_URI
     scope: RUN_AND_BUILD_TIME
-    value: mongodb+srv://doadmin:st7039T142lw6Lfo@db-mongo-backwave-eb4142b3.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=db-mongo-backwave
+    value: mongodb+srv://doadmin:<password>@db-mongo-backwave-eb4142b3.mongo.ondigitalocean.com/admin?tls=true&authSource=admin&replicaSet=db-mongo-backwave
   - key: APP_URL
     scope: RUN_AND_BUILD_TIME
     value: ${APP_URL}
