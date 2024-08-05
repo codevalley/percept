@@ -1,6 +1,6 @@
 import unittest
 import json
-from datetime import datetime, timedelta, UTC
+from datetime import datetime, timedelta, timezone
 from app import app, mongo, id_manager,make_tz_aware, MINIMUM_RESPONSES
 
 class TestSurveyResults(unittest.TestCase):
@@ -49,7 +49,7 @@ class TestSurveyResults(unittest.TestCase):
                     "creator_answer": True
                 }
             ],
-            "expiry_date": make_tz_aware(datetime.now(UTC) + timedelta(days=7)).isoformat(),
+            "expiry_date": make_tz_aware(datetime.now(timezone.UTC) + timedelta(days=7)).isoformat(),
         }
         
         response = self.client.post('/v1/surveys',
@@ -390,7 +390,7 @@ class TestSurveyResults(unittest.TestCase):
     def test_survey_about_to_expire(self):
         # Create a survey that expires in 5 minutes
         survey_data = self.survey_data.copy()
-        survey_data['expiry_date'] = make_tz_aware(datetime.now(UTC) + timedelta(minutes=5)).isoformat()
+        survey_data['expiry_date'] = make_tz_aware(datetime.now(timezone.UTC) + timedelta(minutes=5)).isoformat()
         response = self.client.post('/v1/surveys',
                                     data=json.dumps(survey_data),
                                     content_type='application/json')
