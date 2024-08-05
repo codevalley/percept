@@ -1,0 +1,13 @@
+name: Gitleaks
+
+on: [push, pull_request]
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: '0'
+      - name: Gitleaks
+        uses: zricethezav/gitleaks-action@master
