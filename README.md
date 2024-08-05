@@ -1,3 +1,4 @@
+[![codecov](https://codecov.io/gh/codevalley/percept/branch/main/graph/badge.svg?token=YOUR_CODECOV_TOKEN)](https://codecov.io/gh/codevalley/percept)
 # Backwave
 
 Backwave is a web application designed to help individuals improve their self-awareness by collecting anonymous feedback from their peers. This repository contains both the backend API implemented using Flask and MongoDB, and the frontend implemented in Vue.js.
