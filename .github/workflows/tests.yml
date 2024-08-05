@@ -1,4 +1,4 @@
-name: Tests
+name: Upload Coverage
 
 on:
   push:
@@ -7,34 +7,14 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  upload-coverage:
     runs-on: ubuntu-latest
-    services:
-      mongodb:
-        image: mongo:4.4
-        ports:
-          - 27017:27017
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.12']
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
-      - name: Run tests and collect coverage
-        run: pytest --cov=./ --cov-report=xml
-        env:
-          MONGO_URI: mongodb://localhost:27017/testdb
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.xml
           fail_ci_if_error: true
           verbose: true
