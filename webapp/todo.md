@@ -6,4 +6,3 @@
     - Include option to enter userID in ResultsView error state
 - Tag / group
 - Admin view
-- Add test cases for updated methods in app.py
