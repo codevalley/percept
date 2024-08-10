@@ -393,23 +393,29 @@ export default {
       return typeof code === 'string' && code.length >= 5 && validFormat.test(code);
     };
 
-    const handleCodeInput = (type) => {
+    const handleCodeInput = debounce((type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
       const otherCode = type === 'survey' ? userCode.value : surveyCode.value;
+      const fetchedIdsForType = availableCodes.value[type];
+
       if (isValidFormat(code)) {
         if (code === otherCode) {
           codeStatus.value[type] = 'invalid';
           isChecking[type] = false;
+        } else if (fetchedIdsForType.includes(code)) {
+          // If the code is one of the fetched IDs, mark it as valid without checking
+          codeStatus.value[type] = 'valid';
+          isChecking[type] = false;
         } else {
           codeStatus.value[type] = null;
           isChecking[type] = true;
-          debounceCheckCode(type);
+          checkCodeAvailability(type);
         }
       } else {
         codeStatus.value[type] = 'invalid';
         isChecking[type] = false;
       }
-    };
+    }, 300);
 
     const debounceCheckCode = debounce((type) => {
       const code = type === 'survey' ? surveyCode.value : userCode.value;
@@ -476,7 +482,6 @@ export default {
 
     async function fetchInitialCodes() {
       console.log('Starting fetchInitialCodes');
-
       
       isChecking.survey = true;
       isChecking.user = true;
@@ -487,12 +492,9 @@ export default {
         surveyCode.value = availableCodes.value.survey[0];
         userCode.value = availableCodes.value.user[0];
 
-        
-        // Validate the codes
-        await Promise.all([
-          checkCodeAvailability('survey'),
-          checkCodeAvailability('user')
-        ]);
+        // Set initial status as valid for fetched IDs
+        codeStatus.value.survey = 'valid';
+        codeStatus.value.user = 'valid';
       } catch (error) {
         console.error('Error fetching initial codes:', error);
         toastMessage.value = t('createView.errorFetchingCodes');
@@ -500,12 +502,11 @@ export default {
         codeStatus.value.survey = 'invalid';
         codeStatus.value.user = 'invalid';
       } finally {
-        // Add a small delay before setting isChecking to false
         setTimeout(() => {
           isChecking.survey = false;
           isChecking.user = false;
           console.log('Finished fetchInitialCodes, isChecking:', isChecking);
-        }, 1000); // 1 second delay
+        }, 1000);
       }    
     }
 
@@ -530,23 +531,14 @@ export default {
 
       try {
         const response = await api.checkIdAvailability(code);
-
-        // Ensure the animation runs for at least 1 second
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         if (!response.data || typeof response.data.available !== 'boolean') {
           throw new Error('Unexpected API response format');
         }
 
-        if (response.data.available) {
-          codeStatus.value[type] = 'valid';
-          if (type === 'survey') {
-            availableCodes.value.survey[0] = surveyCode.value;
-          } else {
-            availableCodes.value.user[0] = userCode.value;
-          }
-        } else {
-          codeStatus.value[type] = 'invalid';
+        codeStatus.value[type] = response.data.available ? 'valid' : 'invalid';
+        if (!response.data.available) {
           console.log(`${type} code ${code} is not available`);
           toastMessage.value = t('createView.codeNotAvailable');
           toastType.value = 'error';
