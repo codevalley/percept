@@ -1,107 +1,118 @@
 <template>
-    <div class="bg-accent-green rounded-[25px] p-4 sm:p-7 mb-6 sm:mb-8">
-      <div class="flex flex-col space-y-6 sm:space-y-8">
-        <div v-if="showSurveyLink" class="flex flex-col space-y-1">
-          <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-            <span class="text-primary text-base sm:text-lg font-normal leading-7">{{ surveyLinkLabel }}</span>
-            <button
-              @click="openAndCopy('survey')"
-              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary w-full sm:w-auto"
-            >
-              <span class="text-base font-medium truncate mr-2">{{ surveyCode }}</span>
-              <inline-svg 
-                @click.stop="copyToClipboard('surveyCode')" 
-                src="/assets/copy-icon.svg"
-                class="w-5 h-5 flex-shrink-0"
-              />
-            </button>
-          </div>
-          <span class="text-primary text-sm italic sm:ml-4">{{ surveyLinkDescription }}</span>
+  <div class="border border-neutral-300 rounded-[25px] p-3 sm:p-5">
+    <div :class="{'grid grid-cols-1 sm:grid-cols-2 gap-4': isCreator, 'flex justify-center': !isCreator}">
+      <!-- Review Column (always visible) -->
+      <div class="flex flex-col items-center p-2 sm:p-3">
+        <h2 class="text-lg font-bold mb-2">{{ surveyLinkLabel }}</h2>
+        <div @click="handleQRClick('survey')" class="cursor-pointer mb-4">
+          <QRCode :value="surveyLink" :size="200" level="M" />
         </div>
-  
-        <div class="flex flex-col space-y-1">
-          <div class="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-            <span class="text-primary text-base sm:text-lg font-normal leading-7">{{ userLinkLabel }}</span>
-            <button
-              @click="openAndCopy('user')"
-              class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary w-full sm:w-auto"
-            >
-              <span class="text-base font-medium truncate mr-2">{{ userCode }}</span>
-              <inline-svg 
-                @click.stop="copyToClipboard('userCode')" 
-                src="/assets/copy-icon.svg" 
-                class="w-5 h-5 flex-shrink-0" 
-              />
-            </button>
-          </div>
-          <span class="text-primary text-sm italic sm:ml-4">{{ userLinkDescription }}</span>
+        <FancyButton
+          :label="surveyCode"
+          icon="/assets/copy-icon.svg"
+          :disabled="false"
+          :is-actioning="false"
+          @click="copyToClipboard('surveyCode')"
+          :border-width="1"
+          button-height="40px"
+          icon-size="20px"
+          font-size="text-sm"
+          :min-width="'60%'"
+          bg-color="white"
+          border-color="black"
+          text-color="text-primary"
+          disabled-bg-color="gray"
+          disabled-border-color="gray"
+          disabled-text-color="text-gray-400"
+        />
+        <p class="text-sm text-gray-600 mt-2">{{ surveyLinkDescription }}</p>
+      </div>
+
+      <!-- Result Column (only for creators) -->
+      <div v-if="isCreator" class="flex flex-col items-center p-2 sm:p-3">
+        <h2 class="text-lg font-bold mb-2">{{ userLinkLabel }}</h2>
+        <div @click="handleQRClick('results')" class="cursor-pointer mb-4">
+          <QRCode :value="resultsLink" :size="200" level="M" />
         </div>
+        <FancyButton
+          :label="userCode"
+          icon="/assets/copy-icon.svg"
+          :disabled="false"
+          :is-actioning="false"
+          @click="copyToClipboard('userCode')"
+          :border-width="1"
+          button-height="40px"
+          icon-size="20px"
+          font-size="text-sm"
+          :min-width="'60%'"
+          bg-color="white"
+          border-color="black"
+          text-color="text-primary"
+          disabled-bg-color="gray"
+          disabled-border-color="gray"
+          disabled-text-color="text-gray-400"
+        />
+        <p class="text-sm text-gray-600 mt-2">{{ userLinkDescription }}</p>
       </div>
     </div>
-  </template>
-  
-  <script>
-  import { computed } from 'vue';
-  import InlineSvg from 'vue-inline-svg';
-  
-  export default {
-    name: 'LinkShareSection',
-    components: {
-      InlineSvg,
-    },
-    props: {
-      surveyCode: {
-        type: String,
-        required: true,
-      },
-      userCode: {
-        type: String,
-        required: true,
-      },
-      isCreator: {
-        type: Boolean,
-        default: false,
-      },
-      showSurveyLink: {
-        type: Boolean,
-        default: true,
-      },
-    },
-    setup(props, { emit }) {
-      const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
-      const surveyLink = computed(() => `${baseUrl.value}/${props.surveyCode}`);
-      const resultsLink = computed(() => `${baseUrl.value}/u/${props.userCode}`);
-  
-      const surveyLinkLabel = computed(() => props.isCreator ? "Review link" : "This is your review link");
-      const userLinkLabel = computed(() => props.isCreator ? "Result link" : "Your results code");
-      const surveyLinkDescription = computed(() => "Share it with your friends for feedback");
-      const userLinkDescription = computed(() => props.isCreator 
-        ? "Bookmark and come here later to see results" 
-        : "Use this code to access your results in the future");
-  
-      const openAndCopy = (type) => {
-        const url = type === 'survey' ? surveyLink.value : resultsLink.value;
-        window.open(url, '_blank');
-        copyToClipboard(type === 'survey' ? 'surveyCode' : 'userCode');
-      };
-  
-      const copyToClipboard = (type) => {
-        let textToCopy = type === 'surveyCode' ? surveyLink.value : resultsLink.value;
-        navigator.clipboard.writeText(textToCopy).then(() => {
-          emit('copy-success');
-        }, () => {
-          emit('copy-error');
-        });
-      };
-  
-      return {
-        surveyLinkLabel,
-        userLinkLabel,
-        surveyLinkDescription,
-        userLinkDescription,
-        openAndCopy,
-        copyToClipboard,
-      };
-    },
+  </div>
+</template>
+
+
+<script>
+import { computed } from 'vue';
+import QRCode from 'qrcode.vue';
+import FancyButton from '@/components/FancyButton.vue';
+
+export default {
+  name: 'ShareView',
+  components: {
+    QRCode,
+    FancyButton,
+  },
+  props: {
+    surveyCode: String,
+    userCode: String,
+    isCreator: Boolean,
+  },
+  setup(props, { emit }) {
+    const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
+    const surveyLink = computed(() => `${baseUrl.value}/${props.surveyCode}`);
+    const resultsLink = computed(() => `${baseUrl.value}/u/${props.userCode}`);
+
+    const surveyLinkLabel = computed(() => props.isCreator ? "Review link" : "Your review link");
+    const userLinkLabel = computed(() => "Result link");
+    const surveyLinkDescription = computed(() => "Share it with your friends for feedback");
+    const userLinkDescription = computed(() => "Bookmark and come here later to see results");
+
+    const copyToClipboard = (type) => {
+      const textToCopy = type === 'surveyCode' ? surveyLink.value : resultsLink.value;
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        emit('copy-success', `Link copied to clipboard`);
+      }, () => {
+        emit('copy-error', 'Failed to copy link');
+      });
+    };
+
+    const handleQRClick = (type) => {
+      const link = type === 'survey' ? surveyLink.value : resultsLink.value;
+      navigator.clipboard.writeText(link).then(() => {
+        emit('copy-success', `QR code link copied to clipboard`);
+      }, () => {
+        emit('copy-error', 'Failed to copy QR code link');
+      });
+    };
+
+    return {
+      surveyLink,
+      resultsLink,
+      surveyLinkLabel,
+      userLinkLabel,
+      surveyLinkDescription,
+      userLinkDescription,
+      copyToClipboard,
+      handleQRClick,
+    };
   }
-  </script>
+}
+</script>

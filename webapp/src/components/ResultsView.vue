@@ -30,7 +30,7 @@
         @copy-success="handleCopySuccess"
         @copy-error="handleCopyError"
       />
-      
+      <div class="mb-6"></div>
       <div v-if="results.status === 'incomplete'" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 text-sm sm:text-base">
         <p class="font-bold">Results Not Available Yet</p>
         <template v-if="results.is_creator">
