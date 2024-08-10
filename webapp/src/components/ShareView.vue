@@ -11,7 +11,7 @@
               <span class="text-base font-medium truncate mr-2">{{ surveyCode }}</span>
               <inline-svg 
                 @click.stop="copyToClipboard('surveyCode')" 
-                src="assets/copy-icon.svg"
+                src="/assets/copy-icon.svg"
                 class="w-5 h-5 flex-shrink-0"
               />
             </button>
@@ -29,7 +29,7 @@
               <span class="text-base font-medium truncate mr-2">{{ userCode }}</span>
               <inline-svg 
                 @click.stop="copyToClipboard('userCode')" 
-                src="assets/copy-icon.svg" 
+                src="/assets/copy-icon.svg" 
                 class="w-5 h-5 flex-shrink-0" 
               />
             </button>

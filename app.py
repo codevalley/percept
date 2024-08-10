@@ -458,7 +458,7 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
         'title': survey['title'],
         'description': survey.get('description', ''),
         'created_at': survey['survey_id'],
-        'user_type': 'creator' if is_creator else 'participant',
+        'is_creator': is_creator,
         'questions': [],
         'overall_statistics': {},
         'expiry_date': make_tz_aware(survey.get('expiry_date', now_time + DEFAULT_EXPIRY)).isoformat(),

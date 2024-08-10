@@ -5,68 +5,32 @@
       
       <div class="flex flex-wrap items-center gap-2">
         <SurveyExpiryChip 
-              v-if="results"
-              :expiry-date="results.expiry_date"
-              :is-expired="results.expired"
-            />
+          v-if="results"
+          :expiry-date="results.expiry_date"
+          :is-expired="results.expired"
+        />
         <SurveyChips 
-            v-if="results"
-            :is-trending="results.is_trending"
-            :participant-bucket="results.participant_bucket"
-            class="mt-2 mb-2 sm:mb-0 sm:mt-0"
-          />
+          v-if="results"
+          :is-trending="results.is_trending"
+          :participant-bucket="results.participant_bucket"
+          class="mt-2 mb-2 sm:mb-0 sm:mt-0"
+        />
       </div>
     </div>
+
     <div v-if="loading" class="text-lg text-primary">Loading results...</div>
     <div v-else-if="error" class="text-lg text-accent">{{ error }}</div>
     <div v-else-if="results">
+      <!-- Always show LinkShareSection for both creators and participants -->
+      <LinkShareSection 
+        :surveyCode="surveyCode"
+        :userCode="userCode"
+        :isCreator="results.is_creator"
+        :showSurveyLink="results.user_type === 'creator'"
+        @copy-success="handleCopySuccess"
+        @copy-error="handleCopyError"
+      />
       
-      <div class="bg-accent-green rounded-[25px] p-4 sm:p-7 mb-6 sm:mb-8">
-        
-        <div class="flex flex-col space-y-6">
-          <div v-if="results.user_type === 'creator'" class="flex flex-col space-y-1">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
-              <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">This is your review link</span>
-              <button
-                @click="openAndCopy('survey')"
-                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-              >
-                <span class="text-base font-medium mr-2">{{ surveyCode }}</span>
-                <inline-svg 
-                  @click.stop="copyToClipboard('surveyCode')" 
-                  src="/assets/copy-icon.svg" 
-                  class="w-5 h-5 text-primary cursor-pointer" 
-                />
-              </button>
-            </div>
-            <span class="text-primary text-sm italic ml-0 sm:ml-4">Share it with your friends for feedback</span>
-          </div>
-          <div class="flex flex-col space-y-1">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
-              <span class="text-primary text-base sm:text-lg font-normal leading-7 mb-2 sm:mb-0">
-                <!--`${baseUrl}/participate/`-->
-                {{ results.user_type === 'creator' ? 'This is your results link' : 'Your results code' }}
-              </span>
-              <button
-                @click="openAndCopy('user')"
-                class="h-10 bg-white text-primary rounded-full flex items-center justify-between px-4 border border-primary"
-              >
-                <span class="text-base font-medium mr-2">{{ userCode }}</span>
-                <inline-svg 
-                  @click.stop="copyToClipboard('userCode')" 
-                  src="/assets/copy-icon.svg" 
-                  class="w-5 h-5 text-primary cursor-pointer" 
-                />
-              </button>
-            </div>
-            <span class="text-primary text-sm italic ml-0 sm:ml-4">
-              {{ results.user_type === 'creator' 
-                ? 'Bookmark and come here later to see results' 
-                : 'Use this code to access your results in the future' }}
-            </span>
-          </div>
-        </div>
-      </div>
       <div v-if="results.status === 'incomplete'" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 text-sm sm:text-base">
         <p class="font-bold">Results Not Available Yet</p>
         <template v-if="results.is_creator">
@@ -150,18 +114,20 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import api from '@/services/api';
-import InlineSvg from 'vue-inline-svg';
+//import InlineSvg from 'vue-inline-svg';
 import ToastView from '@/components/ToastView.vue';
 import SurveyChips from '@/components/SurveyChips.vue';
 import SurveyExpiryChip from '@/components/SurveyExpiryChip.vue';
+import LinkShareSection from '@/components/ShareView.vue'
 
 export default {
   name: 'ResultsView',
   components: {
-    InlineSvg,
+    
     ToastView,
     SurveyChips,
     SurveyExpiryChip,
+    LinkShareSection,
   },
   setup() {
     const { t } = useI18n();
@@ -174,16 +140,6 @@ export default {
 
     const userCode = computed(() => route.params.userCode || (results.value?.user_code ?? ''));
     const surveyCode = computed(() => results.value?.survey_id ?? '');
-
-    const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
-    const surveyLink = computed(() => `${baseUrl.value}/${surveyCode.value}`);
-    const resultsLink = computed(() => `${baseUrl.value}/u/${userCode.value}`);
-
-    const openAndCopy = (type) => {
-      const url = type === 'survey' ? surveyLink.value : resultsLink.value;
-      window.open(url, '_blank');
-      copyToClipboard(type === 'survey' ? 'surveyCode' : 'userCode');
-    };
 
 
     const handleError = (err) => {
@@ -232,30 +188,20 @@ export default {
       }
     };
 
-
-    const copyToClipboard = (type) => {
-      let textToCopy;
-      if (type === 'surveyCode') {
-        textToCopy = surveyLink.value;
-      } else if (type === 'userCode') {
-        textToCopy = resultsLink.value;
-      }
-
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        toastMessage.value = t('resultsView.copySuccess');
-        toastType.value = 'success';
-      }, (err) => {
-        console.error('Could not copy text: ', err);
-        toastMessage.value = t('resultsView.copyError');
-        toastType.value = 'error';
-      });
-    };
-
     const clearToast = () => {
       toastMessage.value = '';
       toastType.value = '';
     };
 
+    const handleCopySuccess = () => {
+      toastMessage.value = t('copySuccess');
+      toastType.value = 'success';
+    };
+
+    const handleCopyError = () => {
+      toastMessage.value = t('copyError');
+      toastType.value = 'error';
+    };
     onMounted(() => {
       console.log('Component mounted. Fetching results...');
       fetchResults();
@@ -267,11 +213,13 @@ export default {
       error,
       userCode,
       surveyCode,
-      copyToClipboard,
+      //copyToClipboard,
       toastMessage,
       toastType,
-      openAndCopy,
-      clearToast
+      //openAndCopy,
+      clearToast,
+      handleCopyError,
+      handleCopySuccess
     };
   }
 }
