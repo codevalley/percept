@@ -7,3 +7,5 @@
 - Tag / group
 - Admin view
 - Randomize the id fetch to avoid conflict
+- handle expired survey (when participating)
+- handle expired survey (in result view)
