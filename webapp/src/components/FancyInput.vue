@@ -167,7 +167,7 @@ export default {
     }));
 
     const inputStyle = computed(() => ({
-      height: props.inputHeight,
+      height: `calc(${props.inputHeight} - ${props.borderWidth * 2}px)`,
       paddingRight: '8px',
       paddingLeft: props.icon ? `0` : `8px`,
       textAlign: props.icon ? 'left' : 'center',

@@ -115,7 +115,7 @@ export default {
       width: props.fullWidth ? '100%' : dynamicWidth.value,
       maxWidth: props.maxWidth,
       minWidth: props.minWidth,
-      display: 'block', // Ensure the button is always displayed
+      display: 'inline-block', // Change to inline-block
     }));
 
     const backgroundStyle = computed(() => ({
@@ -125,7 +125,9 @@ export default {
     }));
 
     const innerStyle = computed(() => ({
-      minHeight: props.buttonHeight,
+      minHeight: `calc(${props.buttonHeight} - ${props.borderWidth * 2}px)`,
+      width: `calc(100% - ${props.borderWidth * 2}px)`,
+      height: `calc(100% - ${props.borderWidth * 2}px)`,
       backgroundColor: props.disabled && !props.isActioning ? props.disabledBgColor : props.bgColor,
     }));
 
@@ -161,7 +163,7 @@ export default {
       if (buttonRef.value) {
         const iconWidth = props.icon ? parseInt(props.iconSize) : 0;
         const textWidth = buttonRef.value.offsetWidth;
-        const newWidth = `${textWidth + iconWidth + (props.icon ? 36 : 32)}px`;
+        const newWidth = `${textWidth + iconWidth + (props.icon ? 36 : 32) + props.borderWidth * 2}px`;
         dynamicWidth.value = newWidth;
       }
     };
@@ -194,11 +196,10 @@ export default {
 
 <style scoped>
 .fancy-button-wrapper {
-  display: inline-flex;
-  align-items: center;
   position: relative;
-  z-index: 50; /* Add z-index to ensure visibility */
+  z-index: 50;
 }
+
 
 .fancy-background {
   position: relative;
@@ -252,13 +253,12 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%; /* Ensure the inner button takes full width */
-  min-height: var(--button-height); /* Use min-height instead of height */
 }
 
 .fancy-inner:disabled {
   cursor: not-allowed;
 }
+
 
 @keyframes rotate {
   0% {
