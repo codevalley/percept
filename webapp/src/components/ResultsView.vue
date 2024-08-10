@@ -26,7 +26,7 @@
         :surveyCode="surveyCode"
         :userCode="userCode"
         :isCreator="results.is_creator"
-        :showSurveyLink="results.user_type === 'creator'"
+        :showSurveyLink="results.is_creator"
         @copy-success="handleCopySuccess"
         @copy-error="handleCopyError"
       />
