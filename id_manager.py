@@ -3,6 +3,7 @@ import nltk
 from nltk.corpus import wordnet as wn
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from pymongo.errors import DuplicateKeyError
+import time
 import re
 import os
 
@@ -14,14 +15,16 @@ MIN_LEMMA_LEN = 3
 MAX_LEMMA_LEN = 10
 MIN_ID_LEN = 5
 ID_VALID_PATTERN = re.compile(r'^[a-zA-Z0-9-]+$')
+RESERVE_TIMEOUT = 3600 # 1 hour
 
 nltk.data.path.append(os.environ.get('NLTK_DATA', '/workspace/nltk_data')) 
 
 class IDManager:
-    def __init__(self, db, collection_name='id_reserve', min_reserve=20):
+    def __init__(self, db, collection_name='id_reserve', min_reserve=20, reservation_timeout = RESERVE_TIMEOUT):
         self.db = db
         self.reserve = self.db[collection_name]
         self.min_reserve = min_reserve
+        self.reservation_timeout = reservation_timeout
         self.sia = SentimentIntensityAnalyzer()
     
     def initialize_reserve(self, count=100):
@@ -30,6 +33,38 @@ class IDManager:
         print(new_ids)
         self.reserve.insert_many([{'_id': id, 'status': 'available'} for id in new_ids], ordered=False)
     
+    def reserve_id(self, id):
+        """Temporarily reserve an ID."""
+        result = self.reserve.update_one(
+            {'_id': id, 'status': 'available'},
+            {'$set': {'status': 'reserved', 'reserved_at': time.time()}}
+        )
+        return result.modified_count > 0
+    def release_id(self, id):
+        """Release a reserved ID."""
+        self.reserve.update_one(
+            {'_id': id, 'status': 'reserved'},
+            {'$set': {'status': 'available'}}
+        )
+    def cleanup_expired_reservations(self):
+        """Clean up expired reservations."""
+        expired_time = time.time() - self.reservation_timeout
+        self.reserve.update_many(
+            {'status': 'reserved', 'reserved_at': {'$lt': expired_time}},
+            {'$set': {'status': 'available'}}
+        )
+    def is_id_available(self, id):
+        """Check if an ID is available and has a valid format."""
+        if not self.is_valid_id_format(id):
+            return False
+        self.cleanup_expired_reservations()  # Clean up before checking
+        doc = self.reserve.find_one({'_id': id})
+        if doc is None:
+            # ID is not in the reserve, so it's available
+            return True
+        # If the ID is in the reserve, it's available only if its status is 'available'
+        return doc['status'] == 'available'
+
     def get_id(self):
         """Get a single available ID from the reserve."""
         id_doc = self.reserve.find_one_and_update(
@@ -44,6 +79,7 @@ class IDManager:
             raise Exception("No available IDs in the reserve")
 
     def get_ids(self, count=1, preferred=None):
+        self.cleanup_expired_reservations()
         """Get a list of available IDs, including preferred if available."""
         ids = []
         if preferred and self.is_id_available(preferred):
@@ -69,17 +105,6 @@ class IDManager:
             len(id) >= MIN_ID_LEN and
             ID_VALID_PATTERN.match(id) is not None
         )
-
-    def is_id_available(self, id):
-        """Check if an ID is available and has a valid format."""
-        if not self.is_valid_id_format(id):
-            return False
-        doc = self.reserve.find_one({'_id': id})
-        if doc is None:
-            # ID is not in the reserve, so it's available
-            return True
-        # If the ID is in the reserve, it's available only if its status is 'available'
-        return doc['status'] == 'available'
 
     def add_custom_id(self, id):
         """Add a custom ID to the reserve and mark it as used."""
