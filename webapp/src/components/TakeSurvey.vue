@@ -2,7 +2,7 @@
   <div class="font-sans min-h-screen bg-white">
     <div v-if="error || isSurveyExpired" class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16 text-center">
       <p class="text-xl sm:text-2xl text-accent">
-        {{ isSurveyExpired ? $t('takeSurvey.surveyExpired') : error }}
+        {{ error || t('takeSurvey.surveyExpired') }}
       </p>
     </div>
     <div v-else class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16">
@@ -321,7 +321,7 @@ export default {
           const response = await api.getSurvey(props.surveyId);
           loadedSurveyData.value = response.data;
         }
-        if(loadedSurveyData.value){
+        if (loadedSurveyData.value) {
           if (isSurveyExpired.value) {
             error.value = t('takeSurvey.surveyExpired');
           } else {
@@ -451,6 +451,9 @@ export default {
             break;
           case 403:
             error.value = t('takeSurvey.surveyAccessDenied');
+            break;
+          case 410:
+            error.value = t('takeSurvey.surveyExpired');
             break;
           default:
             error.value = t('takeSurvey.errorLoading');

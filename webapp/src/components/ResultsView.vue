@@ -26,7 +26,7 @@
         :surveyCode="surveyCode"
         :userCode="userCode"
         :isCreator="results.is_creator"
-        :showSurveyLink="results.is_creator"
+        :showSurveyLink="results.is_creator && !results.expired"
         @copy-success="handleCopySuccess"
         @copy-error="handleCopyError"
       />
@@ -140,7 +140,7 @@ export default {
 
     const userCode = computed(() => route.params.userCode || (results.value?.user_code ?? ''));
     const surveyCode = computed(() => results.value?.survey_id ?? '');
-
+    const isExpired = computed(() => results.value?.expired ?? false);
 
     const handleError = (err) => {
       console.error('Error fetching results:', err);
@@ -219,7 +219,8 @@ export default {
       //openAndCopy,
       clearToast,
       handleCopyError,
-      handleCopySuccess
+      handleCopySuccess,
+      isExpired,
     };
   }
 }

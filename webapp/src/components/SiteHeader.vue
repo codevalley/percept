@@ -144,17 +144,29 @@ export default {
       try {
         const response = await api.getSurvey(participateCode.value);
         if (response.data && response.data.questions) {
-          router.push({ 
-            name: 'TakeSurvey', 
-            params: { surveyId: participateCode.value },
-            props: { surveyData: response.data }
-          });
-          activeTab.value = null;
+          if(response.data.expired){
+            toastMessage.value = t('header.surveyExpired');
+            toastType.value = 'error';
+          }else{
+            router.push({ 
+              name: 'TakeSurvey', 
+              params: { surveyId: participateCode.value },
+              props: { surveyData: response.data }
+            });
+            activeTab.value = null;
+          }
         } else {
           throw new Error('Invalid survey data received');
         }
       } catch (error) {
         console.error('Error fetching survey:', error);
+        if (error.response && error.response.status === 410) {
+          toastMessage.value = t('header.surveyExpired');
+          errorMessage.value = t('header.surveyExpired');
+        } else {
+          toastMessage.value = t('header.errorLoadingSurvey');
+        }
+        toastType.value = 'error';
         errorMessage.value = t('header.errorLoadingSurvey');
       } finally {
         isLoading.value = false;
