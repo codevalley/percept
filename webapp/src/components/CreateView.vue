@@ -277,8 +277,14 @@
       <LinkShareSection 
         v-if="isPublished"
         :surveyCode="surveyCode"
-        :userCode="userCode"
-        :isCreator="true"
+        :resultsCode="userCode"
+        :showSurveyLink="true"
+        :showResultsLink="true"
+        :surveyLinkLabel="'Review link'"
+        :resultsLinkLabel="'Result link'"
+        :surveyLinkDescription="'Share it with your friends for feedback'"
+        :resultsLinkDescription="'Bookmark and come here later to see results'"
+        :baseUrl="baseUrl"
         @copy-success="handleCopySuccess"
         @copy-error="handleCopyError"
       />
