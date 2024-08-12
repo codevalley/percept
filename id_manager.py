@@ -110,7 +110,9 @@ class IDManager:
         if doc is None:
             return True
         if include_reserved:
+            app.logger.warning(f"Checking on both reserved & available")
             return doc['status'] in ['available', 'reserved']
+        app.logger.warning(f"Checking only on available")
         return doc['status'] == 'available'
         
     def is_valid_id_format(self, id):
