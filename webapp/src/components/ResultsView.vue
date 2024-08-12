@@ -23,10 +23,16 @@
     <div v-else-if="results">
       <!-- Always show LinkShareSection for both creators and participants -->
       <LinkShareSection 
+        v-if="results.is_creator || !isExpired"
+        :showSurveyLink="results.is_creator && !isExpired"
+        :showResultsLink="true"
         :surveyCode="surveyCode"
-        :userCode="userCode"
-        :isCreator="results.is_creator"
-        :showSurveyLink="results.is_creator && !results.expired"
+        :resultsCode="userCode"
+        :surveyLinkLabel="results.is_creator ? 'Review link' : 'Your review link'"
+        :resultsLinkLabel="results.is_creator ? 'Result link' : 'Your results link'"
+        :surveyLinkDescription="'Share it with your friends for feedback'"
+        :resultsLinkDescription="results.is_creator ? 'Bookmark and come here later to see results' : 'Bookmark this link to view your results later'"
+        :baseUrl="baseUrl"
         @copy-success="handleCopySuccess"
         @copy-error="handleCopyError"
       />
@@ -141,7 +147,8 @@ export default {
     const userCode = computed(() => route.params.userCode || (results.value?.user_code ?? ''));
     const surveyCode = computed(() => results.value?.survey_id ?? '');
     const isExpired = computed(() => results.value?.expired ?? false);
-
+    const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
+    
     const handleError = (err) => {
       console.error('Error fetching results:', err);
       if (err.response) {
