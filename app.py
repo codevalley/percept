@@ -149,7 +149,7 @@ def create_survey():
     app.logger.debug(f"Request data: {data}")
     if 'survey_id' not in data :
         data['survey_id'] = id_manager.get_ids()[0]
-        app.logger.debug("Creating surveryID: "+data['survey_id'])
+        app.logger.debug("Creating surveyID: "+data['survey_id'])
     
     if 'user_code' not in data :
         data['user_code'] = id_manager.get_ids()[0]
@@ -163,14 +163,15 @@ def create_survey():
         survey_id = data['survey_id']
         user_code = data['user_code']
     
-        # Check if the IDs are available
-        if not id_manager.is_id_available(survey_id):
+        # Check if the IDs are available, including reserved IDs
+        if not id_manager.is_id_available(survey_id, include_reserved=True):
             app.logger.warning(f"Requested survey ID is not available: survey_id={survey_id}")
             return jsonify({'error': 'Requested survey ID is not available'}), 400
         
-        if not id_manager.is_id_available(user_code):
+        if not id_manager.is_id_available(user_code, include_reserved=True):
             app.logger.warning(f"Requested user code is not available: user_code={user_code}")
             return jsonify({'error': 'Requested user code is not available'}), 400
+
 
         # Handle expiry date
         expiry_date = data.get('expiry')

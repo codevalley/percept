@@ -92,14 +92,27 @@ class IDManager:
             {'$set': {'status': 'available'}, '$unset': {'reserved_at': ''}}
         )
 
-    def is_id_available(self, id):
-        """Check if an ID is available and has a valid format."""
+    def is_id_available(self, id, include_reserved=False):
+        """
+        Check if an ID is available and has a valid format.
+        
+        Args:
+            id (str): The ID to check.
+            include_reserved (bool): If True, consider reserved IDs as available.
+        
+        Returns:
+            bool: True if the ID is available (and valid), False otherwise.
+        """
         if not self.is_valid_id_format(id):
             return False
         self.cleanup_expired_reservations()
         doc = self.reserve.find_one({'_id': id})
-        return doc is None or doc['status'] == 'available'
-
+        if doc is None:
+            return True
+        if include_reserved:
+            return doc['status'] in ['available', 'reserved']
+        return doc['status'] == 'available'
+        
     def is_valid_id_format(self, id):
         """Check if the ID has a valid format."""
         return (
