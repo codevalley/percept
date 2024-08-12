@@ -228,6 +228,7 @@ export default {
       handleCopyError,
       handleCopySuccess,
       isExpired,
+      baseUrl,
     };
   }
 }
