@@ -25,7 +25,7 @@
       <LinkShareSection 
         v-if="results.is_creator || !isExpired"
         :showSurveyLink="results.is_creator && !isExpired"
-        :showResultsLink="true"
+        :showResultsLink="false"
         :surveyCode="surveyCode"
         :resultsCode="userCode"
         :surveyLinkLabel="results.is_creator ? 'Review link' : 'Your review link'"
