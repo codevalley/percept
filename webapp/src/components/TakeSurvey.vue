@@ -8,13 +8,13 @@
     <div v-else class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16">
       <div v-if="loadedSurveyData">
         <!-- Privacy Note -->
-     <div class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16 mb-6">
-      <div class="inline-flex items-center px-2 py-1 bg-yellow-100 text-gray-800 rounded-full text-xs font-semibold h-6">
-        <inline-svg src="/assets/safe-icon.svg" class="w-4 h-4 mr-1 flex-shrink-0"/>
-        <span class="whitespace-nowrap leading-none">
-            {{ $t('takeSurvey.privacyNote') }}</span>
-      </div>
-    </div>
+        <div class="mb-2">
+            <div class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold h-6">
+              <inline-svg src="/assets/safe-icon.svg" class="w-4 h-4 mr-1 flex-shrink-0"/>
+              <span class="whitespace-nowrap leading-none">
+                  {{ $t('takeSurvey.privacyNote') }}</span>
+            </div>
+        </div>
         <!-- Combined Header and Question Section -->
         <div class="rounded-3xl overflow-hidden">
           <!-- Header Section -->

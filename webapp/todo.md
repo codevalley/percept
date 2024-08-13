@@ -6,3 +6,4 @@
     - Include option to enter userID in ResultsView error state
 - Tag / group
 - Admin view
+- Extract various params to environment variables (Flask)
