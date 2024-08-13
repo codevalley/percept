@@ -88,12 +88,18 @@
                 :median="calculateMedian(question.distribution)"
                 :max="question.scale_max"
                 :user-score="question.user_score"
+                active-color="bg-accent-green"
+                complementary-color="text-primary"
+                :use-progressive-color="true"
               />
-              <p class="text-primary mt-2">Your Answer: <span class="font-semibold">{{ question.user_score || 'N/A' }}</span></p>
-              <p class="text-primary">Deviation from Average: <span class="font-semibold">{{ typeof question.user_deviation === 'number' ? question.user_deviation.toFixed(2) : 'N/A' }}</span></p>
+              <p class="text-primary mt-2">Deviation from Average: <span class="font-semibold">{{ typeof question.user_deviation === 'number' ? question.user_deviation.toFixed(2) : 'N/A' }}</span></p>
             </div>
             <div v-else-if="question.type === 'boolean'">
-              <BarChart :percentage="question.true_percentage" />
+              <BarChart 
+                :percentage="question.true_percentage" 
+                active-color="bg-accent-green"
+                complementary-color="text-primary"
+              />
               <p class="text-primary mt-2">Your Answer: <span class="font-semibold">{{ question.user_answer ? 'Yes' : 'No' }}</span></p>
             </div>
           </div>
@@ -269,4 +275,8 @@ export default {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+:root {
+  --color-primary: #1F2937;
+  --color-accent-green: #D8F89D;
+}
 </style>

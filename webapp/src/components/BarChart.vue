@@ -1,25 +1,36 @@
 <template>
-    <div class="w-full">
-      <div class="flex items-center">
-        <div class="w-full bg-gray-200 rounded-full h-6 mr-2">
-          <div class="bg-green-500 h-6 rounded-full" :style="{ width: `${percentage}%` }"></div>
-        </div>
-        <span class="text-sm font-medium">{{ percentage.toFixed(1) }}%</span>
-      </div>
-      <div class="flex justify-between mt-1 text-xs text-gray-500">
-        <span>No</span>
-        <span>Yes</span>
+  <div class="w-full">
+    <div class="relative h-6 bg-neutral-200 rounded-full overflow-hidden">
+      <div 
+        class="absolute top-0 left-0 h-full rounded-full flex items-center justify-end pr-2"
+        :class="activeColor"
+        :style="{ width: `${percentage}%` }"
+      >
+        <span class="text-xs font-medium" :class="complementaryColor">{{ percentage.toFixed(1) }}%</span>
       </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    props: {
-      percentage: {
-        type: Number,
-        required: true
-      }
+    <div class="flex justify-between mt-1 text-xs" :class="complementaryColor">
+      <span>No</span>
+      <span>Yes</span>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    percentage: {
+      type: Number,
+      required: true
+    },
+    activeColor: {
+      type: String,
+      default: 'bg-accent-green'
+    },
+    complementaryColor: {
+      type: String,
+      default: 'text-primary'
     }
   }
-  </script>
+}
+</script>
