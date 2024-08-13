@@ -9,13 +9,11 @@
       <div v-if="loadedSurveyData">
         <!-- Privacy Note -->
      <div class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16 mb-6">
-      <div class="bg-gray-400 rounded-full p-2 sm:p-3 flex items-center shadow-lg">
-        <inline-svg src="/assets/safe-icon.svg" class="w-8 h-8 sm:w-10 sm:h-10 mr-3 sm:mr-4 text-white flex-shrink-0"/>
-        <p class="text-xs sm:text-sm text-gray-100 flex-grow pr-2">
-            {{ $t('takeSurvey.privacyNote') }}
-        </p>
+      <div class="inline-flex items-center px-2 py-1 bg-yellow-100 text-gray-800 rounded-full text-xs font-semibold h-6">
+        <inline-svg src="/assets/safe-icon.svg" class="w-4 h-4 mr-1 flex-shrink-0"/>
+        <span class="whitespace-nowrap leading-none">
+            {{ $t('takeSurvey.privacyNote') }}</span>
       </div>
-
     </div>
         <!-- Combined Header and Question Section -->
         <div class="rounded-3xl overflow-hidden">
