@@ -842,6 +842,7 @@ export default {
       showUserCodeTooltip,
       showSurveyCodeTooltip,
       editQuestion,
+      baseUrl,
       editingQuestionIndex,
     };
   }

@@ -49,7 +49,7 @@ export default {
       errorLoading: 'An error occurred while loading the survey. Please try again later.',
       unexpectedError: 'An unexpected error occurred. Please try again.',
       surveyExpired: "This survey has expired and is no longer available.",
-      privacyNote: "This page ONLY collects the answers choices and the handle you choose. The handle is (only) for you to view the results later, the answer choices are used to calculate stats.",
+      privacyNote: "This page ONLY collects the answers choices and the handle you choose.",
     },
     resultsView:{
       copySuccess: 'Copied to the clipboard',
