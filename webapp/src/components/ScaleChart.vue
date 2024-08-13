@@ -71,7 +71,7 @@
             whiteSpace: 'nowrap',
             textAlign: 'center',
             width: '32px',
-            top: '-24px' // Move the user label above the bar
+            top: '-48px' // Move the user label above the bar
           }"
         >
           <span :class="complementaryColor">{{ userScore.toFixed(1) }} (U)</span>
