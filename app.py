@@ -35,7 +35,7 @@ snowflake = Snowflake53(1,1)
 # Constants
 MINIMUM_RESPONSES = 5
 ID_SUGGESTIONS = 5
-INITIAL_ID_RESERVE = 50  # Number of IDs to generate initially
+INITIAL_ID_RESERVE = 300  # Number of IDs to generate initially
 DEFAULT_EXPIRY = datetime.timedelta(days=5)  # New constant for default expiry
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
