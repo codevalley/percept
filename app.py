@@ -450,7 +450,7 @@ def process_results(survey_id, user_code):
     return jsonify(results), 200
 
 def calculate_survey_statistics(survey, answers, user_code, is_creator):
-    logging.info(f"<O>Calculating statistics for survey {survey['survey_id']}, user_code {user_code}, is_creator: {is_creator}")
+    logging.info(f"Calculating statistics for survey {survey['survey_id']}, user_code {user_code}, is_creator: {is_creator}")
     
     questions = {q['id']: q for q in survey['questions']}
     now_time = datetime.datetime.now(datetime.UTC)
@@ -463,29 +463,26 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
         'questions': [],
         'overall_statistics': {},
         'expiry_date': make_tz_aware(survey.get('expiry_date', now_time + DEFAULT_EXPIRY)).isoformat(),
-        'expired': make_tz_aware(survey.get('expiry_date', now_time + DEFAULT_EXPIRY)) < now_time
+        'expired': make_tz_aware(survey.get('expiry_date', now_time + DEFAULT_EXPIRY)) < now_time,
+        'total_responses': len(answers)
     }
 
-    if is_creator:
-        results['total_responses'] = len(answers)
-        user_answers = {q['id']: q['creator_answer'] for q in survey['questions']}
-    else:
-        user_answers = next((a['answers'] for a in answers if str(a.get('user_code')) == str(user_code)), None)
-
     creator_answers = {q['id']: q['creator_answer'] for q in survey['questions']}
-    logging.info(f"<O>User answers: {user_answers}")
-    logging.info(f"<O>Creator answers: {creator_answers}")
+    user_answers = creator_answers if is_creator else next((a['answers'] for a in answers if str(a.get('user_code')) == str(user_code)), None)
+
+    logging.info(f"User answers: {user_answers}")
+    logging.info(f"Creator answers: {creator_answers}")
 
     all_deviations = []
-    creator_deviations = []
     user_deviations = []
-    other_deviations = []
-    aggregate_deviations = []
 
     for q_id, question in questions.items():
         q_answers = [a['answers'][str(q_id)] for a in answers if str(q_id) in a['answers']]
         creator_answer = creator_answers.get(q_id)
         avg_score = mean(q_answers) if q_answers else None
+        
+        logging.info(f"Processing question ID: {q_id}")
+        logging.info(f"Question type: {question['response_type']}")
         
         if question['response_type'] == 'scale':
             try:
@@ -499,37 +496,38 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
                 'type': 'scale',
                 'scale_max': question['response_scale_max'],
                 'average_score': round(avg_score, 2) if avg_score is not None else None,
-                'standard_deviation': round(std_dev, 2)
+                'standard_deviation': round(std_dev, 2),
+                'distribution': {score: q_answers.count(score) for score in range(1, question['response_scale_max'] + 1)}
             }
             
-            if is_creator:
-                q_stat['distribution'] = {score: q_answers.count(score) for score in range(1, question['response_scale_max'] + 1)}
+            logging.info(f"User answers: {user_answers}")
+            logging.info(f"Checking if q_id {q_id} is in user_answers: {q_id in user_answers}")
             
-            if user_answers and str(q_id) in user_answers:
-                user_score = user_answers[str(q_id)]
+            if user_answers and q_id in user_answers:
+                logging.info("Processing user-specific statistics for scale question")
+                user_score = user_answers[q_id]
                 q_stat['user_score'] = user_score
-                user_deviation = abs(user_score - avg_score) if avg_score is not None else 0
-                q_stat['user_deviation'] = round(user_deviation, 2)
-                user_deviations.append(user_deviation)
+                if avg_score is not None:
+                    user_deviation = abs(user_score - avg_score)
+                    q_stat['user_deviation'] = round(user_deviation, 2)
+                    user_deviations.append(user_deviation)
 
+                # Calculate deviation from creator for all users, including creator
                 if creator_answer is not None:
                     creator_deviation = abs(user_score - creator_answer)
                     q_stat['deviation_from_creator'] = round(creator_deviation, 2)
-                    creator_deviations.append(creator_deviation)
 
-                # Exclude current user's answer to calculate deviation from others
-                other_answers = [a for a in q_answers if a != user_score]
+                # Calculate deviation from others
+                other_answers = q_answers if is_creator else [a for a in q_answers if a != user_score]
                 if other_answers:
                     other_avg = mean(other_answers)
                     other_deviation = abs(user_score - other_avg)
                     q_stat['deviation_from_others'] = round(other_deviation, 2)
-                    other_deviations.append(other_deviation)
 
-            # Calculate deviations for all answers from creator's answer
+            # Calculate overall deviation for this question
             if creator_answer is not None:
                 question_deviations = [abs(ans - creator_answer) for ans in q_answers]
                 all_deviations.extend(question_deviations)
-                aggregate_deviations.append(mean(question_deviations))
             
         elif question['response_type'] == 'boolean':
             true_count = sum(q_answers)
@@ -543,28 +541,21 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
                 'false_percentage': round((total_count - true_count) / total_count * 100, 2) if total_count > 0 else 0
             }
             
-            if user_answers and str(q_id) in user_answers:
-                q_stat['user_answer'] = user_answers[str(q_id)]
+            if user_answers and q_id in user_answers:
+                q_stat['user_answer'] = user_answers[q_id]
 
         results['questions'].append(q_stat)
 
     # Calculate overall statistics
-    if user_deviations:
-        results['overall_statistics']['average_deviation_from_aggregate'] = round(mean(user_deviations), 2)
+    results['overall_statistics'] = {
+        'average_deviation_from_aggregate': round(mean(user_deviations), 2) if user_deviations else None,
+        'overall_deviation': round(mean(all_deviations), 2) if all_deviations else None,
+    }
 
-    if other_deviations:
-        results['overall_statistics']['average_deviation_from_others'] = round(mean(other_deviations), 2)
+    # Remove None values from overall_statistics
+    results['overall_statistics'] = {k: v for k, v in results['overall_statistics'].items() if v is not None}
 
-    if creator_deviations:
-        results['overall_statistics']['average_deviation_from_creator'] = round(mean(creator_deviations), 2)
-
-    if all_deviations:
-        results['overall_statistics']['overall_deviation'] = round(mean(all_deviations), 2)
-
-    if aggregate_deviations:
-        results['overall_statistics']['average_deviation_from_aggregate'] = round(mean(aggregate_deviations), 2)
-
-    logging.info(f"<O>Final results: {results}")
+    logging.info(f"Final results: {results}")
     return results
 
 

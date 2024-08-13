@@ -52,27 +52,29 @@
       <template v-else>
         <div class="bg-neutral-100 p-4 sm:p-6 rounded-lg mb-6 sm:mb-8">
           <h2 class="text-xl sm:text-2xl font-semibold text-primary mb-3 sm:mb-4">Overall Statistics</h2>
-          <!-- Overall Statistics -->
+          <p class="text-primary text-sm sm:text-base mb-2">
+            Total Participants: <span class="font-semibold">{{ results.total_participants || 'N/A' }}</span>
+          </p>
           <template v-if="results.user_type === 'creator'">
             <p v-if="typeof results.overall_statistics.overall_deviation === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-              Overall Deviation: {{ results.overall_statistics.overall_deviation.toFixed(2) }}
+              Overall Deviation: <span class="font-semibold">{{ results.overall_statistics.overall_deviation.toFixed(2) }}</span>
             </p>
             <p v-if="typeof results.overall_statistics.average_deviation_from_aggregate === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-              Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate.toFixed(2) }}
+              Average Deviation from Aggregate: <span class="font-semibold">{{ results.overall_statistics.average_deviation_from_aggregate.toFixed(2) }}</span>
             </p>
           </template>
           <template v-else>
             <p v-if="typeof results.overall_statistics.average_deviation_from_aggregate === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-              Average Deviation from Aggregate: {{ results.overall_statistics.average_deviation_from_aggregate.toFixed(2) }}
+              Average Deviation from Aggregate: <span class="font-semibold">{{ results.overall_statistics.average_deviation_from_aggregate.toFixed(2) }}</span>
             </p>
             <p v-if="typeof results.overall_statistics.average_deviation_from_creator === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-              Average Deviation from Creator: {{ results.overall_statistics.average_deviation_from_creator.toFixed(2) }}
+              Average Deviation from Creator: <span class="font-semibold">{{ results.overall_statistics.average_deviation_from_creator.toFixed(2) }}</span>
             </p>
             <p v-if="typeof results.overall_statistics.average_deviation_from_others === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-              Average Deviation from Others: {{ results.overall_statistics.average_deviation_from_others.toFixed(2) }}
+              Average Deviation from Others: <span class="font-semibold">{{ results.overall_statistics.average_deviation_from_others.toFixed(2) }}</span>
             </p>
             <p v-if="typeof results.overall_statistics.overall_deviation === 'number'" class="mb-2 text-primary text-sm sm:text-base">
-              Overall Deviation: {{ results.overall_statistics.overall_deviation.toFixed(2) }}
+              Overall Deviation: <span class="font-semibold">{{ results.overall_statistics.overall_deviation.toFixed(2) }}</span>
             </p>
           </template>
         </div>
@@ -81,30 +83,18 @@
           <div v-for="question in results.questions" :key="question.id" class="bg-white border border-neutral-200 p-4 sm:p-6 rounded-lg mb-4 shadow-sm">
             <h3 class="text-lg sm:text-xl font-medium text-primary mb-2 sm:mb-3">{{ question.text }}</h3>
             <div v-if="question.type === 'scale'">
-              <!-- For creators, show distribution and average without user-specific scores -->
-              <template v-if="results.user_type === 'creator'">
-                <p class="text-primary">Average Score: <span class="font-semibold">{{ typeof question.average_score === 'number' ? question.average_score.toFixed(2) : 'N/A' }}</span></p>
-                <p class="text-primary">Standard Deviation: <span class="font-semibold">{{ typeof question.standard_deviation === 'number' ? question.standard_deviation.toFixed(2) : 'N/A' }}</span></p>
-                <div v-if="question.distribution">
-                  <p class="text-primary" v-for="(count, score) in question.distribution" :key="score">
-                    {{ score }}: {{ count }} responses
-                  </p>
-                </div>
-              </template>
-              <!-- For participants, show their score, average and their deviation -->
-              <template v-else>
-                <p class="text-primary">Your Answer: <span class="font-semibold">{{ question.user_score || 'N/A' }}</span></p>
-                <p class="text-primary">Average Score: <span class="font-semibold">{{ typeof question.average_score === 'number' ? question.average_score.toFixed(2) : 'N/A' }}</span></p>
-                <p class="text-primary">Your Deviation from Average: <span class="font-semibold">{{ typeof question.user_deviation === 'number' ? question.user_deviation.toFixed(2) : 'N/A' }}</span></p>
-                <p class="text-primary">Your Deviation from Creator: <span class="font-semibold">{{ typeof question.deviation_from_creator === 'number' ? question.deviation_from_creator.toFixed(2) : 'N/A' }}</span></p>
-                <p class="text-primary">Your Deviation from Others: <span class="font-semibold">{{ typeof question.deviation_from_others === 'number' ? question.deviation_from_others.toFixed(2) : 'N/A' }}</span></p>
-              </template>
+              <ScaleChart 
+                :average="question.average_score" 
+                :median="calculateMedian(question.distribution)"
+                :max="question.scale_max"
+                :user-score="question.user_score"
+              />
+              <p class="text-primary mt-2">Your Answer: <span class="font-semibold">{{ question.user_score || 'N/A' }}</span></p>
+              <p class="text-primary">Deviation from Average: <span class="font-semibold">{{ typeof question.user_deviation === 'number' ? question.user_deviation.toFixed(2) : 'N/A' }}</span></p>
             </div>
             <div v-else-if="question.type === 'boolean'">
-              <!-- Show percentages for both creator and participant -->
-              <p class="text-primary">Percentage who answered Yes: <span class="font-semibold">{{ typeof question.true_percentage === 'number' ? question.true_percentage.toFixed(2) : 'N/A' }}%</span></p>
-              <p class="text-primary">Percentage who answered No: <span class="font-semibold">{{ typeof question.false_percentage === 'number' ? question.false_percentage.toFixed(2) : 'N/A' }}%</span></p>
-              <p v-if="results.user_type === 'participant'" class="text-primary">Your Answer: <span class="font-semibold">{{ question.user_answer ? 'Yes' : 'No' }}</span></p>
+              <BarChart :percentage="question.true_percentage" />
+              <p class="text-primary mt-2">Your Answer: <span class="font-semibold">{{ question.user_answer ? 'Yes' : 'No' }}</span></p>
             </div>
           </div>
         </div>
@@ -125,6 +115,8 @@ import ToastView from '@/components/ToastView.vue';
 import SurveyChips from '@/components/SurveyChips.vue';
 import SurveyExpiryChip from '@/components/SurveyExpiryChip.vue';
 import LinkShareSection from '@/components/ShareView.vue'
+import BarChart from '@/components/BarChart.vue';
+import ScaleChart from '@/components/ScaleChart.vue';
 
 export default {
   name: 'ResultsView',
@@ -134,6 +126,8 @@ export default {
     SurveyChips,
     SurveyExpiryChip,
     LinkShareSection,
+    BarChart,
+    ScaleChart,
   },
   setup() {
     const { t } = useI18n();
@@ -149,6 +143,16 @@ export default {
     const isExpired = computed(() => results.value?.expired ?? false);
     const baseUrl = computed(() => process.env.VUE_APP_BASE_URL || '');
     
+    const calculateMedian = (distribution) => {
+      const scores = Object.entries(distribution)
+        .flatMap(([score, count]) => Array(count).fill(Number(score)))
+        .sort((a, b) => a - b);
+      const middleIndex = Math.floor(scores.length / 2);
+      return scores.length % 2 !== 0
+        ? scores[middleIndex]
+        : (scores[middleIndex - 1] + scores[middleIndex]) / 2;
+    };
+
     const handleError = (err) => {
       console.error('Error fetching results:', err);
       if (err.response) {
@@ -183,7 +187,34 @@ export default {
         const response = await api.getSurveyResultsByUserCode(userCode.value);
         if (response && response.data) {
           results.value = response.data;
-          console.log('Successfully fetched data:', results.value);
+          
+          // Handle 'incomplete' status
+          if (results.value.status === 'incomplete') {
+            console.log('Survey status is incomplete');
+            return;  // Exit the function early, the template will handle the display
+          }
+
+          // Process questions
+          results.value.questions = results.value.questions.map(question => {
+            if (question.type === 'scale') {
+              // Ensure average_score is a number
+              question.average_score = Number(question.average_score);
+              
+              // Calculate median if distribution is available
+              if (question.distribution) {
+                const sortedScores = Object.entries(question.distribution)
+                  .flatMap(([score, count]) => Array(count).fill(Number(score)))
+                  .sort((a, b) => a - b);
+                const middleIndex = Math.floor(sortedScores.length / 2);
+                question.median_score = sortedScores.length % 2 !== 0
+                  ? sortedScores[middleIndex]
+                  : (sortedScores[middleIndex - 1] + sortedScores[middleIndex]) / 2;
+              }
+            }
+            return question;
+          });
+          
+          console.log('Successfully fetched and processed data:', results.value);
         } else {
           throw new Error('Invalid API response');
         }
@@ -229,6 +260,8 @@ export default {
       handleCopySuccess,
       isExpired,
       baseUrl,
+      calculateMedian,
+      
     };
   }
 }
