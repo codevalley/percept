@@ -539,7 +539,7 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
             }
             
             if user_answers and str(q_id) in user_answers:
-                q_stat['user_answer'] = user_answers[q_id]
+                q_stat['user_answer'] = user_answers[str(q_id)]
 
         results['questions'].append(q_stat)
 
