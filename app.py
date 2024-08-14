@@ -467,7 +467,7 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
         'total_responses': len(answers)
     }
 
-    creator_answers = {q['id']: q['creator_answer'] for q in survey['questions']}
+    creator_answers = {str(q['id']): q['creator_answer'] for q in survey['questions']}
     user_answers = creator_answers if is_creator else next((a['answers'] for a in answers if str(a.get('user_code')) == str(user_code)), None)
 
     logging.info(f"User answers: {user_answers}")
@@ -500,12 +500,9 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
                 'distribution': {score: q_answers.count(score) for score in range(1, question['response_scale_max'] + 1)}
             }
             
-            logging.info(f"User answers: {user_answers}")
-            logging.info(f"Checking if q_id {q_id} is in user_answers: {q_id in user_answers}")
             
-            if user_answers and q_id in user_answers:
-                logging.info("Processing user-specific statistics for scale question")
-                user_score = user_answers[q_id]
+            if user_answers and str(q_id) in user_answers:
+                user_score = user_answers[str(q_id)]
                 q_stat['user_score'] = user_score
                 if avg_score is not None:
                     user_deviation = abs(user_score - avg_score)
@@ -554,7 +551,8 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
 
     # Remove None values from overall_statistics
     results['overall_statistics'] = {k: v for k, v in results['overall_statistics'].items() if v is not None}
-
+    results['total_participants'] = len(answers) 
+    
     logging.info(f"Final results: {results}")
     return results
 

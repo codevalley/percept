@@ -30,7 +30,7 @@
         class="absolute bottom-0 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent"
         :class="[complementaryColor]"
         :style="{ 
-          left: `${calculatePosition(median)}%`, 
+          left: `calc(${calculatePosition(median)}% - 4px)`, 
           borderBottomColor: 'currentColor',
           bottom: '-4px'
         }"
@@ -42,7 +42,7 @@
         class="absolute top-0 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent"
         :class="[complementaryColor]"
         :style="{ 
-          left: `${calculatePosition(userScore)}%`, 
+          left: `calc(${calculatePosition(userScore)}% - 4px)`, 
           borderTopColor: 'currentColor',
           top: '-4px'
         }"
@@ -136,16 +136,14 @@ export default {
   },
   methods: {
     calculateWidth(value) {
-      // Adjust the calculation to account for rounded corners
       const adjustedMax = this.max - 1;
       const adjustedValue = value - 1;
-      return (adjustedValue / adjustedMax) * 94 + 3; // 94% is the width of the rectangular part, 3% for left rounded corner
+      return (adjustedValue / adjustedMax) * 94 + 3;
     },
     calculatePosition(value) {
-      // Adjust the position calculation to account for rounded corners
       const adjustedMax = this.max - 1;
       const adjustedValue = value - 1;
-      return (adjustedValue / adjustedMax) * 94 + 3; // 94% is the width of the rectangular part, 3% for left rounded corner
+      return (adjustedValue / adjustedMax) * 94 + 3;
     }
   }
 }
