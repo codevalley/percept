@@ -538,7 +538,7 @@ def calculate_survey_statistics(survey, answers, user_code, is_creator):
                 'false_percentage': round((total_count - true_count) / total_count * 100, 2) if total_count > 0 else 0
             }
             
-            if user_answers and q_id in user_answers:
+            if user_answers and str(q_id) in user_answers:
                 q_stat['user_answer'] = user_answers[q_id]
 
         results['questions'].append(q_stat)
