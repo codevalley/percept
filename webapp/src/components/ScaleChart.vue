@@ -1,26 +1,23 @@
 <template>
   <div class="w-full">
-    <div class="relative w-full h-6 bg-neutral-200 rounded-full mt-6 overflow-hidden">
+    <div class="relative w-full h-6 bg-neutral-200 rounded-full overflow-visible mt-6"> <!-- Changed to overflow-visible -->
       <!-- Progress Bar -->
       <div 
-        class="absolute top-0 left-0 h-full rounded-full"
+        class="absolute top-0 h-full rounded-full"
         :class="{ [activeColor]: !useProgressiveColor }"
-        :style="[
-          barStyle,
-          { width: `${calculateWidth(average)}%` }
-        ]"
+        :style="barStyle"
       ></div>
       
       <!-- Average Value -->
       <div 
         class="absolute top-0 h-full flex items-center"
-        :style="{ left: `${calculatePosition(average)}%` }"
+        :style="{ left: `calc(${calculatePosition(average)}% - 8px)` }"
       >
         <span class="text-xs font-medium text-primary">{{ average.toFixed(1) }}</span>
       </div>
       
       <!-- Min/Max Labels -->
-      <div class="absolute w-full h-full flex items-center justify-between px-4">
+      <div class="absolute w-full h-full flex items-center justify-between px-2">
         <span class="text-xs font-medium" :class="complementaryColor">1</span>
         <span class="text-xs font-medium" :class="complementaryColor">{{ max }}</span>
       </div>
@@ -53,10 +50,10 @@
         v-if="userScore"
         class="absolute flex items-center"
         :style="{ 
-          left: `${calculatePosition(userScore)}%`, 
-          transform: 'translateX(-50%)',
+          left: `calc(${calculatePosition(userScore)}% - 16px)`, 
           whiteSpace: 'nowrap',
           textAlign: 'center',
+          width: '32px',
           top: '-24px'
         }"
       >
@@ -71,7 +68,7 @@
         <div 
           class="absolute flex items-center"
           :style="{ 
-            left: `${calculatePosition(median)}%`, 
+            left: `calc(${calculatePosition(median)}% - 16px)`, 
             transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
             textAlign: 'center',
@@ -127,23 +124,26 @@ export default {
           return Math.round(start + (end - start) * ratio);
         });
         return {
+          width: `${this.calculateWidth(this.average)}%`,
           backgroundColor: `rgb(${color[0]}, ${color[1]}, ${color[2]})`
         };
       } else {
-        return {};
+        return { width: `${this.calculateWidth(this.average)}%` };
       }
     }
   },
   methods: {
     calculateWidth(value) {
+      // Adjust the calculation to account for rounded corners
       const adjustedMax = this.max - 1;
       const adjustedValue = value - 1;
-      return (adjustedValue / adjustedMax) * 94 + 3;
+      return (adjustedValue / adjustedMax) * 94 + 3; // 94% is the width of the rectangular part, 3% for left rounded corner
     },
     calculatePosition(value) {
+      // Adjust the position calculation to account for rounded corners
       const adjustedMax = this.max - 1;
       const adjustedValue = value - 1;
-      return (adjustedValue / adjustedMax) * 94 + 3;
+      return (adjustedValue / adjustedMax) * 94 + 3; // 94% is the width of the rectangular part, 3% for left rounded corner
     }
   }
 }
