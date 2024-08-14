@@ -1,23 +1,26 @@
 <template>
   <div class="w-full">
-    <div class="relative w-full h-6 bg-neutral-200 rounded-full overflow-hidden">
+    <div class="relative w-full h-6 bg-neutral-200 rounded-full mt-6 overflow-hidden">
       <!-- Progress Bar -->
       <div 
-        class="absolute top-0 h-full rounded-full"
+        class="absolute top-0 left-0 h-full rounded-full"
         :class="{ [activeColor]: !useProgressiveColor }"
-        :style="barStyle"
+        :style="[
+          barStyle,
+          { width: `${calculateWidth(average)}%` }
+        ]"
       ></div>
       
       <!-- Average Value -->
       <div 
         class="absolute top-0 h-full flex items-center"
-        :style="{ left: `calc(${(average / max) * 100}% - 8px)` }"
+        :style="{ left: `${calculatePosition(average)}%` }"
       >
         <span class="text-xs font-medium text-primary">{{ average.toFixed(1) }}</span>
       </div>
       
       <!-- Min/Max Labels -->
-      <div class="absolute w-full h-full flex items-center justify-between px-2">
+      <div class="absolute w-full h-full flex items-center justify-between px-4">
         <span class="text-xs font-medium" :class="complementaryColor">1</span>
         <span class="text-xs font-medium" :class="complementaryColor">{{ max }}</span>
       </div>
@@ -27,9 +30,9 @@
         class="absolute bottom-0 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent"
         :class="[complementaryColor]"
         :style="{ 
-          left: `calc(${(median / max) * 100}% - 4px)`, 
+          left: `${calculatePosition(median)}%`, 
           borderBottomColor: 'currentColor',
-          bottom: median === 1 || median === max ? '-4px' : '0'
+          bottom: '-4px'
         }"
       ></div>
       
@@ -39,42 +42,42 @@
         class="absolute top-0 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent"
         :class="[complementaryColor]"
         :style="{ 
-          left: `calc(${(userScore / max) * 100}% - 4px)`, 
+          left: `${calculatePosition(userScore)}%`, 
           borderTopColor: 'currentColor',
-          top: userScore === 1 || userScore === max ? '-4px' : '0'
+          top: '-4px'
         }"
       ></div>
+      
+      <!-- User Score Label -->
+      <div 
+        v-if="userScore"
+        class="absolute flex items-center"
+        :style="{ 
+          left: `${calculatePosition(userScore)}%`, 
+          transform: 'translateX(-50%)',
+          whiteSpace: 'nowrap',
+          textAlign: 'center',
+          top: '-24px'
+        }"
+      >
+        <span :class="complementaryColor">{{ userScore.toFixed(1) }} (U)</span>
+      </div>
     </div>
     
-    <!-- Labels for Median and User Score -->
+    <!-- Labels for Median -->
     <div class="relative mt-1">
       <div class="absolute left-0 right-0 flex justify-between text-xs">
         <!-- Median Label -->
         <div 
           class="absolute flex items-center"
           :style="{ 
-            left: `calc(${(median / max) * 100}% - 16px)`, 
+            left: `${calculatePosition(median)}%`, 
+            transform: 'translateX(-50%)',
             whiteSpace: 'nowrap',
             textAlign: 'center',
-            width: '32px'
           }"
         >
           <span :class="complementaryColor">{{ median.toFixed(1) }} (M)</span>
-        </div>
-        
-        <!-- User Score Label -->
-        <div 
-          v-if="userScore"
-          class="absolute flex items-center"
-          :style="{ 
-            left: `calc(${(userScore / max) * 100}% - 16px)`, 
-            whiteSpace: 'nowrap',
-            textAlign: 'center',
-            width: '32px',
-            top: '-48px' // Move the user label above the bar
-          }"
-        >
-          <span :class="complementaryColor">{{ userScore.toFixed(1) }} (U)</span>
         </div>
       </div>
     </div>
@@ -124,12 +127,25 @@ export default {
           return Math.round(start + (end - start) * ratio);
         });
         return {
-          width: `${(this.average / this.max) * 100}%`,
           backgroundColor: `rgb(${color[0]}, ${color[1]}, ${color[2]})`
         };
       } else {
-        return { width: `${(this.average / this.max) * 100}%` };
+        return {};
       }
+    }
+  },
+  methods: {
+    calculateWidth(value) {
+      // Adjust the calculation to account for rounded corners
+      const adjustedMax = this.max - 1;
+      const adjustedValue = value - 1;
+      return (adjustedValue / adjustedMax) * 94 + 3; // 94% is the width of the rectangular part, 3% for left rounded corner
+    },
+    calculatePosition(value) {
+      // Adjust the position calculation to account for rounded corners
+      const adjustedMax = this.max - 1;
+      const adjustedValue = value - 1;
+      return (adjustedValue / adjustedMax) * 94 + 3; // 94% is the width of the rectangular part, 3% for left rounded corner
     }
   }
 }
