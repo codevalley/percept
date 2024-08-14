@@ -95,12 +95,12 @@
               <p class="text-primary mt-2">Deviation from Average: <span class="font-semibold">{{ typeof question.user_deviation === 'number' ? question.user_deviation.toFixed(2) : 'N/A' }}</span></p>
             </div>
             <div v-else-if="question.type === 'boolean'">
-              <BarChart 
+              <BarChart  
                 :percentage="question.true_percentage" 
                 active-color="bg-accent-green"
                 complementary-color="text-primary"
               />
-              <p class="text-primary mt-2">Your Answer: <span class="font-semibold">{{ question.user_answer ? 'Yes' : 'No' }}</span></p>
+              <p class="text-primary mt-2">Your Answer: <span class="font-semibold">{{ question.user_answer }}</span></p>
             </div>
           </div>
         </div>
