@@ -45,15 +45,15 @@
         }"
       ></div>
       
-      <!-- User Score Label -->
+      <!-- Labels for userscore -->
       <div 
         v-if="userScore"
-        class="absolute flex items-center"
+        class="absolute flex items-center text-xs" 
         :style="{ 
           left: `calc(${calculatePosition(userScore)}% - 16px)`, 
+          transform: 'translateX(-50%)',
           whiteSpace: 'nowrap',
           textAlign: 'center',
-          width: '32px',
           top: '-24px'
         }"
       >
