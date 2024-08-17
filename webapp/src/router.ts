@@ -1,11 +1,11 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 import HomeView from '@/components/HomeView.vue'
 import CreateView from '@/components/CreateView.vue'
 import TakeSurvey from '@/components/TakeSurvey.vue'
 import ResultsView from '@/components/ResultsView.vue'
 import NotFound from './components/NotFound.vue'
 
-const routes = [
+const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'Home',
@@ -17,12 +17,12 @@ const routes = [
     component: CreateView
   },
   {
-    path: '/:surveyId',  // This ensures surveyId must be a number
+    path: '/:surveyId',
     name: 'TakeSurvey',
     component: TakeSurvey,
-    props: route => ({ 
-      surveyId: route.params.surveyId ? route.params.surveyId : null,
-      surveyData: null  // We'll pass null for surveyData by default
+    props: (route) => ({ 
+      surveyId: route.params.surveyId ? route.params.surveyId as string : null,
+      surveyData: null
     }),
   },
   {
@@ -36,10 +36,11 @@ const routes = [
     name: 'SurveyResults',
     component: ResultsView,
     props: true
-  },{
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: NotFound  // Create a NotFound component for 404 errors
+    component: NotFound
   }
 ]
 

@@ -5,11 +5,12 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import SiteHeader from '@/components/SiteHeader.vue';
 
-export default {
+export default defineComponent({
   name: 'App',
   components: {
     SiteHeader,
@@ -17,7 +18,7 @@ export default {
   setup() {
     const router = useRouter();
 
-    const handlePageChange = (page) => {
+    const handlePageChange = (page: string) => {
       console.log(`Page changed to: ${page}`);
       // Handle navigation based on the page
       switch(page) {
@@ -42,7 +43,7 @@ export default {
       handlePageChange
     };
   }
-}
+});
 </script>
 
 <style>

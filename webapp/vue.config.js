@@ -12,7 +12,6 @@ module.exports = defineConfig({
     config.plugins.delete('copy');
 
     // Add a new copy plugin configuration
-    const CopyWebpackPlugin = require('copy-webpack-plugin')
     config.plugin('copy').use(CopyWebpackPlugin, [
       {
         patterns: [
@@ -26,6 +25,11 @@ module.exports = defineConfig({
         ],
       },
     ]);
+
+    // Add TypeScript support
+    config.resolve.extensions
+      .add('.ts')
+      .add('.tsx')
   },
 
   // Public path configuration
@@ -39,6 +43,13 @@ module.exports = defineConfig({
         target: process.env.VUE_APP_API_URL || 'http://localhost:5001',
         changeOrigin: true
       }
+    }
+  },
+
+  // Add TypeScript support
+  configureWebpack: {
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.vue', '.json']
     }
   }
 });
