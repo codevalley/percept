@@ -5,20 +5,16 @@
       <div class="mt-8 p-6 sm:p-8 bg-neutral-100 rounded-3xl min-h-[320px] sm:min-h-[420px] flex flex-col justify-end">
         <inline-svg src="/assets/high-five.svg" class="text-neutral-700 w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6" />
         
-        <TextAnimate 
-          :text="$t('homeView.title')" 
-          type="fadeIn"
-          :delay="0.3"
-          :duration="0.75"
-          class="text-3xl sm:text-4xl font-bold text-center text-primary mb-1"
-        >
-          <!-- Fallback content -->
-          <template #fallback>
-            <h2 class="text-3xl sm:text-4xl font-bold text-center text-primary mb-1">
-              {{ $t('homeView.title') }}
-            </h2>
-          </template>
-        </TextAnimate>
+        <div class="text-center"> <!-- Centering container -->
+          <TextAnimate 
+            :text="$t('homeView.title')" 
+            type="popIn"
+            :delay="0.3"
+            :duration="0.75"
+            class="text-3xl sm:text-4xl font-bold text-primary mb-1"
+          />
+
+        </div>
         <TypeWriter 
           :texts="subtitleTexts" 
           class="text-lg sm:text-xl text-center text-primary mb-6 sm:mb-8"

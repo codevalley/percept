@@ -1,36 +1,41 @@
 <template>
-  <component :is="wrapperTag" :class="wrapperClass" ref="textContainer">
+  <component :is="wrapperTag" ref="textContainer">
+    <!-- Handle word-based animation types -->
     <template v-if="['rollIn', 'whipIn'].includes(type)">
       <span
         v-for="(word, wordIndex) in words"
         :key="`word-${wordIndex}`"
-        class="inline-block mr-[0.25em] whitespace-nowrap"
+        class="inline-block whitespace-nowrap"
       >
         <transition-group
           :name="type"
           tag="span"
           :style="getWordTransitionStyle(wordIndex)"
+          appear
         >
           <span
             v-for="(char, charIndex) in word.split('')"
             :key="`char-${wordIndex}-${charIndex}`"
-            class="inline-block -mr-[0.01em]"
+            class="inline-block"
           >
             {{ char }}
           </span>
         </transition-group>
+        {{ wordIndex < words.length - 1 ? ' ' : '' }}
       </span>
     </template>
+    <!-- Handle letter-based animation types -->
     <template v-else>
       <transition-group
         :name="type"
         tag="span"
-        :style="{ display: 'flex', overflow: 'hidden' }"
+        appear
       >
         <span
           v-for="(letter, index) in letters"
           :key="`letter-${index}`"
           :style="getLetterStyle(index)"
+          class="inline-block"
         >
           {{ letter === ' ' ? '\u00A0' : letter }}
         </span>
@@ -40,7 +45,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, watch } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 export default {
   name: 'TextAnimate',
@@ -51,7 +56,7 @@ export default {
     },
     type: {
       type: String,
-      default: 'whipInUp',
+      default: 'fadeIn',
       validator: (value) => [
         'fadeIn',
         'fadeInUp',
@@ -65,7 +70,7 @@ export default {
     },
     delay: {
       type: Number,
-      default: 0
+      default: 0.25
     },
     duration: {
       type: Number,
@@ -74,52 +79,26 @@ export default {
   },
   setup(props) {
     const textContainer = ref(null);
-    const isVisible = ref(false);
-
     const words = computed(() => props.text.split(' '));
     const letters = computed(() => Array.from(props.text));
 
     const wrapperTag = computed(() => ['rollIn', 'whipIn'].includes(props.type) ? 'h2' : 'span');
-    const wrapperClass = computed(() => [
-      'mt-10 text-4xl font-black text-black dark:text-neutral-100 py-5 pb-8 px-8 md:text-5xl',
-      { 'flex flex-wrap': !['rollIn', 'whipIn'].includes(props.type) }
-    ]);
 
     const getWordTransitionStyle = (index) => ({
-      '--delay': `${index * 0.13}s`,
+      '--delay': `${props.delay + index * 0.13}s`,
       '--stagger': '0.025s'
     });
 
     const getLetterStyle = (index) => ({
       '--index': index,
       '--total': letters.value.length,
-      '--delay': `${props.delay + (index * 0.05)}s`
+      '--delay': `${props.delay + index * 0.05}s`,
+      'animation-delay': `calc(var(--delay) + ${index * 0.05}s)`
     });
 
     onMounted(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          isVisible.value = entry.isIntersecting;
-        },
-        { threshold: 0.1 }
-      );
-
       if (textContainer.value) {
-        observer.observe(textContainer.value);
-      }
-
-      return () => {
-        if (textContainer.value) {
-          observer.unobserve(textContainer.value);
-        }
-      };
-    });
-
-    watch(isVisible, (newValue) => {
-      if (newValue) {
-        textContainer.value.classList.add('animate');
-      } else {
-        textContainer.value.classList.remove('animate');
+        textContainer.value.style.setProperty('--duration', `${props.duration}s`);
       }
     });
 
@@ -128,13 +107,13 @@ export default {
       words,
       letters,
       wrapperTag,
-      wrapperClass,
       getWordTransitionStyle,
       getLetterStyle
     };
   }
 };
 </script>
+
 
 <style scoped>
 .fade-in-enter-active,
@@ -153,9 +132,9 @@ export default {
 .whip-in-up-leave-active,
 .calm-in-up-enter-active,
 .calm-in-up-leave-active {
-  transition-duration: v-bind('duration + "s"');
+  transition-duration: var(--duration);
   transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transition-delay: calc(var(--delay) + var(--index) * 0.05s);
+  transition-delay: var(--delay);
 }
 
 .fade-in-enter-from,
@@ -185,7 +164,7 @@ export default {
 .whip-in-enter-from,
 .whip-in-leave-to {
   opacity: 0;
-  transform: translateY(0.25em);
+  transform: translateY(0.35em);
 }
 
 .whip-in-up-enter-from,
@@ -193,13 +172,5 @@ export default {
   transform: translateY(200%);
 }
 
-.calm-in-up-enter-from,
-.calm-in-up-leave-to {
-  transform: translateY(200%);
-}
-
-.roll-in-enter-active,
-.whip-in-enter-active {
-  transition-delay: calc(var(--delay) + var(--index) * var(--stagger));
-}
+/* Add custom styles for each animation type as needed */
 </style>
