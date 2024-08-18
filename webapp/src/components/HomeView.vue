@@ -8,9 +8,10 @@
         <div class="text-center"> <!-- Centering container -->
           <TextAnimate 
             :text="$t('homeView.title')" 
-            type="popIn"
+            type="calmInUp"
             :delay="0.3"
-            :duration="0.75"
+            :duration="0.5"
+            :stagger="0.03"
             class="text-3xl sm:text-4xl font-bold text-primary mb-1"
           />
 
@@ -42,7 +43,7 @@
       <div class="hidden sm:block mt-12">
         <TextAnimate 
           :text="$t('homeView.participateTitle')"
-          type="fadeInUp"
+          type="none"
           :delay="0.5"
           class="text-xl font-semibold text-primary text-left mb-2"
         />

@@ -1,51 +1,35 @@
 <template>
-  <component :is="wrapperTag" ref="textContainer">
-    <!-- Handle word-based animation types -->
-    <template v-if="['rollIn', 'whipIn'].includes(type)">
+  <span class="inline-block">
+    <template v-if="shouldAnimate">
       <span
-        v-for="(word, wordIndex) in words"
-        :key="`word-${wordIndex}`"
-        class="inline-block whitespace-nowrap"
+        v-for="(char, index) in characters"
+        :key="`char-${index}`"
+        :style="getCharStyle(index)"
+        :class="`animate-${type}`"
+        class="inline-block opacity-0"
       >
-        <transition-group
-          :name="type"
-          tag="span"
-          :style="getWordTransitionStyle(wordIndex)"
-          appear
-        >
-          <span
-            v-for="(char, charIndex) in word.split('')"
-            :key="`char-${wordIndex}-${charIndex}`"
-            class="inline-block"
-          >
-            {{ char }}
-          </span>
-        </transition-group>
-        {{ wordIndex < words.length - 1 ? ' ' : '' }}
+        {{ char === ' ' ? '\u00A0' : char }}
       </span>
     </template>
-    <!-- Handle letter-based animation types -->
     <template v-else>
-      <transition-group
-        :name="type"
-        tag="span"
-        appear
-      >
-        <span
-          v-for="(letter, index) in letters"
-          :key="`letter-${index}`"
-          :style="getLetterStyle(index)"
-          class="inline-block"
-        >
-          {{ letter === ' ' ? '\u00A0' : letter }}
-        </span>
-      </transition-group>
+      {{ text }}
     </template>
-  </component>
+  </span>
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue';
+import { computed } from 'vue';
+
+const validAnimationTypes = [
+  'fadeIn',
+  'fadeInUp',
+  'popIn',
+  'shiftInUp',
+  'rollIn',
+  'whipIn',
+  'whipInUp',
+  'calmInUp'
+];
 
 export default {
   name: 'TextAnimate',
@@ -56,121 +40,92 @@ export default {
     },
     type: {
       type: String,
-      default: 'fadeIn',
-      validator: (value) => [
-        'fadeIn',
-        'fadeInUp',
-        'popIn',
-        'shiftInUp',
-        'rollIn',
-        'whipIn',
-        'whipInUp',
-        'calmInUp'
-      ].includes(value)
+      default: 'fadeIn'
     },
     delay: {
       type: Number,
-      default: 0.25
+      default: 0
     },
     duration: {
       type: Number,
       default: 0.75
+    },
+    stagger: {
+      type: Number,
+      default: 0.03
     }
   },
   setup(props) {
-    const textContainer = ref(null);
-    const words = computed(() => props.text.split(' '));
-    const letters = computed(() => Array.from(props.text));
+    const characters = computed(() => props.text.split(''));
 
-    const wrapperTag = computed(() => ['rollIn', 'whipIn'].includes(props.type) ? 'h2' : 'span');
+    const shouldAnimate = computed(() => 
+      props.type !== 'none' && validAnimationTypes.includes(props.type)
+    );
 
-    const getWordTransitionStyle = (index) => ({
-      '--delay': `${props.delay + index * 0.13}s`,
-      '--stagger': '0.025s'
-    });
-
-    const getLetterStyle = (index) => ({
-      '--index': index,
-      '--total': letters.value.length,
-      '--delay': `${props.delay + index * 0.05}s`,
-      'animation-delay': `calc(var(--delay) + ${index * 0.05}s)`
-    });
-
-    onMounted(() => {
-      if (textContainer.value) {
-        textContainer.value.style.setProperty('--duration', `${props.duration}s`);
-      }
+    const getCharStyle = (index) => ({
+      'animation-delay': `${props.delay + props.stagger * index}s`,
+      'animation-duration': `${props.duration}s`,
+      'animation-fill-mode': 'forwards'
     });
 
     return {
-      textContainer,
-      words,
-      letters,
-      wrapperTag,
-      getWordTransitionStyle,
-      getLetterStyle
+      characters,
+      shouldAnimate,
+      getCharStyle
     };
   }
 };
 </script>
 
-
 <style scoped>
-.fade-in-enter-active,
-.fade-in-leave-active,
-.fade-in-up-enter-active,
-.fade-in-up-leave-active,
-.pop-in-enter-active,
-.pop-in-leave-active,
-.shift-in-up-enter-active,
-.shift-in-up-leave-active,
-.roll-in-enter-active,
-.roll-in-leave-active,
-.whip-in-enter-active,
-.whip-in-leave-active,
-.whip-in-up-enter-active,
-.whip-in-up-leave-active,
-.calm-in-up-enter-active,
-.calm-in-up-leave-active {
-  transition-duration: var(--duration);
-  transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transition-delay: var(--delay);
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
-.fade-in-enter-from,
-.fade-in-leave-to {
-  opacity: 0;
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
-.fade-in-up-enter-from,
-.fade-in-up-leave-to {
-  opacity: 0;
-  transform: translateY(20px);
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
-.pop-in-enter-from,
-.pop-in-leave-to {
-  opacity: 0;
-  transform: scale(0);
+@keyframes shiftInUp {
+  0% { opacity: 0; transform: translateY(100%); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
-.shift-in-up-enter-from,
-.shift-in-up-leave-to {
-  transform: translateY(100%);
+@keyframes rollIn {
+  0% { opacity: 0; transform: translateY(0.35em) rotate(-15deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
 }
 
-.roll-in-enter-from,
-.roll-in-leave-to,
-.whip-in-enter-from,
-.whip-in-leave-to {
-  opacity: 0;
-  transform: translateY(0.35em);
+@keyframes whipIn {
+  0% { opacity: 0; transform: translateY(0.35em) skewY(5deg); }
+  100% { opacity: 1; transform: translateY(0) skewY(0); }
 }
 
-.whip-in-up-enter-from,
-.whip-in-up-leave-to {
-  transform: translateY(200%);
+@keyframes whipInUp {
+  0% { opacity: 0; transform: translateY(200%) skewY(-10deg); }
+  100% { opacity: 1; transform: translateY(0) skewY(0); }
 }
 
-/* Add custom styles for each animation type as needed */
+@keyframes calmInUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Add classes for each animation type */
+.animate-fadeIn { animation-name: fadeIn; }
+.animate-fadeInUp { animation-name: fadeInUp; }
+.animate-popIn { animation-name: popIn; }
+.animate-shiftInUp { animation-name: shiftInUp; }
+.animate-rollIn { animation-name: rollIn; }
+.animate-whipIn { animation-name: whipIn; }
+.animate-whipInUp { animation-name: whipInUp; }
+.animate-calmInUp { animation-name: calmInUp; }
 </style>
