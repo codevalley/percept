@@ -91,7 +91,6 @@
             @update:modelValue="handleQuestionReorder"
           >
           <template #default="{ item: question }">
-            <div>
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 sm:p-0 bg-white sm:bg-transparent rounded-2xl sm:rounded-none shadow-sm sm:shadow-none mb-4">
                 <div class="flex items-center mb-4 sm:mb-0">
                   <button @click="editQuestion(question.index)" class="text-accent hover:text-accent-dark focus:outline-none mr-2 sm:ml-0">
@@ -136,7 +135,6 @@
                   </div>
                 </div>
               </div>
-            </div>
           </template>
 
 
