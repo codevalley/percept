@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 const validAnimationTypes = [
   'fadeIn',
@@ -53,19 +53,39 @@ export default {
     stagger: {
       type: Number,
       default: 0.03
+    },
+    disableAnimation: {
+      type: Boolean,
+      default: false
     }
   },
   setup(props) {
     const characters = computed(() => props.text.split(''));
+    const hasAnimated = ref(false);
 
     const shouldAnimate = computed(() => 
-      props.type !== 'none' && validAnimationTypes.includes(props.type)
+      !props.disableAnimation &&
+      !hasAnimated.value &&
+      props.type !== 'none' &&
+      validAnimationTypes.includes(props.type)
     );
 
     const getCharStyle = (index) => ({
       'animation-delay': `${props.delay + props.stagger * index}s`,
       'animation-duration': `${props.duration}s`,
       'animation-fill-mode': 'forwards'
+    });
+
+    watch(() => props.text, () => {
+      hasAnimated.value = false;
+    });
+
+    watch(shouldAnimate, (newValue) => {
+      if (newValue) {
+        setTimeout(() => {
+          hasAnimated.value = true;
+        }, (props.delay + props.duration + props.stagger * props.text.length) * 1000);
+      }
     });
 
     return {
