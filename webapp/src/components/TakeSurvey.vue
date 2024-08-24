@@ -52,111 +52,75 @@
             </div>
 
             <!-- Answer Options -->
-            <div class="flex justify-center space-x-2 sm:space-x-5 mb-12 sm:mb-16">
+            <div class="flex justify-center space-x-2 sm:space-x-5 mb-4 sm:mb-6">
               <template v-if="currentQuestion.response_type === 'scale'">
                 <div v-for="n in (currentQuestion.response_scale_max || 5)" :key="n" class="flex flex-col items-center">
                   <button 
                     @click="selectAnswer(n)"
+                    :disabled="currentAnswer !== null"
                     :class="[
                       'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center text-sm sm:text-base mb-2',
-                      n <= currentAnswer ? 'bg-primary border-primary text-white' : 'bg-white border-neutral-200 text-primary'
+                      n === currentAnswer ? 'bg-primary border-primary text-white' : 
+                      currentAnswer !== null ? 'bg-white border-neutral-300 text-neutral-300' :
+                      'bg-white border-neutral-200 text-primary hover:bg-neutral-100'
                     ]"
                   >
                     {{ n }}
                   </button>
-                  <span v-if="showDistribution" class="text-xs text-gray-600">
-                    {{ ((currentQuestion.answer_distribution[n] || 0)).toFixed(1) }}%
-                  </span>
+                  <div class="h-5 flex items-center justify-center"> <!-- Fixed height container -->
+                    <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
+                      {{ ((currentQuestion.answer_distribution[n] || 0)).toFixed(1) }}%
+                    </span>
+                  </div>
                 </div>
               </template>
               <template v-else-if="currentQuestion.response_type === 'boolean'">
                 <div class="flex flex-col items-center">
                   <button 
                     @click="selectAnswer(true)"
+                    :disabled="currentAnswer !== null"
                     :class="[
                       'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center mb-2',
-                      currentAnswer === true ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
+                      currentAnswer === true ? 'bg-primary border-primary' : 
+                      currentAnswer !== null ? 'bg-white border-neutral-300' :
+                      'bg-white border-neutral-200 hover:bg-neutral-100'
                     ]"
                   >
-                    <inline-svg src="/assets/yes-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === true ? 'text-white' : 'text-primary'"/>
+                    <inline-svg src="/assets/yes-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === true ? 'text-white' : currentAnswer !== null ? 'text-neutral-300' : 'text-primary'"/>
                   </button>
-                  <span v-if="showDistribution" class="text-xs text-gray-600">
-                    {{ currentQuestion.answer_distribution.true_percentage.toFixed(1) }}%
-                  </span>
+                  <div class="h-5 flex items-center justify-center"> <!-- Fixed height container -->
+                    <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
+                      {{ currentQuestion.answer_distribution.true_percentage.toFixed(1) }}%
+                    </span>
+                  </div>
                 </div>
                 <div class="flex flex-col items-center">
                   <button 
                     @click="selectAnswer(false)"
+                    :disabled="currentAnswer !== null"
                     :class="[
                       'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center mb-2',
-                      currentAnswer === false ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
+                      currentAnswer === false ? 'bg-primary border-primary' : 
+                      currentAnswer !== null ? 'bg-white border-neutral-300' :
+                      'bg-white border-neutral-200 hover:bg-neutral-100'
                     ]"
                   >
-                    <inline-svg src="/assets/no-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === false ? 'text-white' : 'text-primary'"/>
+                    <inline-svg src="/assets/no-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === false ? 'text-white' : currentAnswer !== null ? 'text-neutral-300' : 'text-primary'"/>
                   </button>
-                  <span v-if="showDistribution" class="text-xs text-gray-600">
-                    {{ currentQuestion.answer_distribution.false_percentage.toFixed(1) }}%
-                  </span>
+                  <div class="h-5 flex items-center justify-center"> <!-- Fixed height container -->
+                    <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
+                      {{ currentQuestion.answer_distribution.false_percentage.toFixed(1) }}%
+                    </span>
+                  </div>
                 </div>
               </template>
             </div>
 
             <!-- Answer trend footnote -->
-            <div v-if="showDistribution" class="text-center mt-2">
+            <div v-if="showDistribution && currentAnswer !== null" class="text-center mt-1 mb-4">
               <span class="text-xs text-gray-600">Answer trend</span>
             </div>
 
-            <!-- Display Answer Distribution (if available) -->
-            <div v-if="currentAnswer !== null" class="mt-8">
-              <div v-if="loadedSurveyData && loadedSurveyData.total_responses >= MINIMUM_RESPONSES && currentQuestion && currentQuestion.answer_distribution">
-                <h3 class="text-lg font-semibold mb-4">Answer Distribution</h3>
-                <!-- Scale question distribution -->
-                <div v-if="currentQuestion.response_type === 'scale'" class="flex justify-between">
-                  <div v-for="n in currentQuestion.response_scale_max" :key="n" class="flex flex-col items-center">
-                    <div
-                      class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm mb-2"
-                      :class="{
-                        'bg-primary border-primary text-white': n <= currentAnswer,
-                        'bg-white border-neutral-200 text-primary': n > currentAnswer
-                      }"
-                    >
-                      {{ n }}
-                    </div>
-                    <span class="text-xs">{{ ((currentQuestion.answer_distribution[n] || 0) ).toFixed(1) }}%</span>
-                  </div>
-                </div>
-                <!-- Boolean question distribution -->
-                <div v-else-if="currentQuestion.response_type === 'boolean'" class="flex justify-around">
-                  <div class="flex flex-col items-center">
-                    <button
-                      class="w-8 h-8 rounded-full border-2 flex items-center justify-center mb-2"
-                      :class="{
-                        'bg-primary border-primary': currentAnswer === true,
-                        'bg-white border-neutral-200': currentAnswer !== true
-                      }"
-                    >
-                      <inline-svg src="/assets/yes-icon.svg" class="w-6 h-6" :class="currentAnswer === true ? 'text-white' : 'text-primary'" />
-                    </button>
-                    <span class="text-sm">Yes: {{ currentQuestion.answer_distribution.true_percentage.toFixed(1) }}%</span>
-                  </div>
-                  <div class="flex flex-col items-center">
-                    <button
-                      class="w-8 h-8 rounded-full border-2 flex items-center justify-center mb-2"
-                      :class="{
-                        'bg-primary border-primary': currentAnswer === false,
-                        'bg-white border-neutral-200': currentAnswer !== false
-                      }"
-                    >
-                      <inline-svg src="/assets/no-icon.svg" class="w-6 h-6" :class="currentAnswer === false ? 'text-white' : 'text-primary'" />
-                    </button>
-                    <span class="text-sm">No: {{ currentQuestion.answer_distribution.false_percentage.toFixed(1) }}%</span>
-                  </div>
-                </div>
-              </div>
-              <div v-else-if="loadedSurveyData && loadedSurveyData.total_responses < MINIMUM_RESPONSES" class="text-sm text-gray-600">
-                <p>Thank you for your answer! The results will be available once more responses are collected.</p>
-              </div>
-            </div>
 
             <!-- Navigation Buttons and User Code Input -->
             <!-- Mobile Navigation -->
@@ -326,6 +290,11 @@ export default {
       }
       return null;
     });
+    watch([currentQuestion, answers], () => {
+      if (currentQuestion.value) {
+        currentAnswer.value = answers.value[currentQuestion.value.id] || null;
+      }
+    }, { immediate: true });
     const progress = computed(() => {
       if (loadedSurveyData.value && Array.isArray(loadedSurveyData.value.questions) && loadedSurveyData.value.questions.length > 0) {
         return ((currentQuestionIndex.value + 1) / loadedSurveyData.value.questions.length) * 100;
@@ -339,8 +308,7 @@ export default {
       return false;
     });
     const showDistribution = computed(() => {
-      return currentAnswer.value !== null && 
-            loadedSurveyData.value && 
+      return loadedSurveyData.value && 
             loadedSurveyData.value.status === 'complete' && 
             currentQuestion.value && 
             currentQuestion.value.answer_distribution;
@@ -501,11 +469,11 @@ export default {
       }
     }
 
-    async function selectAnswer(value) {
-      if (currentAnswer.value === null && currentQuestion.value) {
+    function selectAnswer(value) {
+      if (currentQuestion.value) {
         currentAnswer.value = value;
-        // Fetch the answer distribution after selecting an answer
-        await fetchAnswerDistribution();
+        answers.value[currentQuestion.value.id] = value;
+        fetchAnswerDistribution();
       }
     }
 
@@ -527,7 +495,6 @@ export default {
       if (currentQuestionIndex.value > 0) {
         currentQuestionIndex.value--;
         currentAnswer.value = answers.value[currentQuestion.value.id] || null;
-        // If there's a previous answer, fetch its distribution
         if (currentAnswer.value !== null) {
           fetchAnswerDistribution();
         }
@@ -537,13 +504,11 @@ export default {
     async function nextQuestion() {
       if (currentAnswer.value === null || !isCodeValid.value || isSurveyExpired.value) return;
 
-      answers.value[currentQuestion.value.id] = currentAnswer.value;
-
       if (isLastQuestion.value) {
         await submitSurvey();
       } else {
         currentQuestionIndex.value++;
-        currentAnswer.value = null; // Reset the current answer
+        currentAnswer.value = answers.value[currentQuestion.value.id] || null;
         updateTimeLeft();
       }
     }
