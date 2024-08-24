@@ -67,10 +67,11 @@
                   >
                     {{ n }}
                   </button>
-                  <div class="h-5 flex items-center justify-center"> <!-- Fixed height container -->
+                  <div class="h-5 flex items-center justify-center"> <!-- Always render this container -->
                     <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
                       {{ ((currentQuestion.answer_distribution[n] || 0)).toFixed(1) }}%
                     </span>
+                    <span v-else class="text-xs text-transparent">00.0%</span> <!-- Invisible placeholder -->
                   </div>
                 </div>
               </template>
@@ -88,10 +89,11 @@
                   >
                     <inline-svg src="/assets/yes-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === true ? 'text-white' : currentAnswer !== null ? 'text-neutral-300' : 'text-primary'"/>
                   </button>
-                  <div class="h-5 flex items-center justify-center"> <!-- Fixed height container -->
+                  <div class="h-5 flex items-center justify-center"> <!-- Always render this container -->
                     <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
                       {{ currentQuestion.answer_distribution.true_percentage.toFixed(1) }}%
                     </span>
+                    <span v-else class="text-xs text-transparent">00.0%</span> <!-- Invisible placeholder -->
                   </div>
                 </div>
                 <div class="flex flex-col items-center">
@@ -107,18 +109,22 @@
                   >
                     <inline-svg src="/assets/no-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === false ? 'text-white' : currentAnswer !== null ? 'text-neutral-300' : 'text-primary'"/>
                   </button>
-                  <div class="h-5 flex items-center justify-center"> <!-- Fixed height container -->
+                  <div class="h-5 flex items-center justify-center"> <!-- Always render this container -->
                     <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
                       {{ currentQuestion.answer_distribution.false_percentage.toFixed(1) }}%
                     </span>
+                    <span v-else class="text-xs text-transparent">00.0%</span> <!-- Invisible placeholder -->
                   </div>
                 </div>
               </template>
             </div>
 
             <!-- Answer trend footnote -->
-            <div v-if="showDistribution && currentAnswer !== null" class="text-center mt-1 mb-4">
-              <span class="text-xs text-gray-600">Answer trend</span>
+            <div class="text-center mb-4 h-5"> <!-- Always render this container with fixed height -->
+              <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
+                Answer trend
+              </span>
+              <span v-else class="text-xs text-transparent">Answer trend</span> <!-- Invisible placeholder -->
             </div>
 
 
