@@ -5,15 +5,16 @@
         {{ error || t('takeSurvey.surveyExpired') }}
       </p>
     </div>
-    <div v-else class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16">
+    <div v-else-if="loadedSurveyData && loadedSurveyData.questions" class="max-w-[768px] mx-auto px-4 pt-8 sm:pt-16">
       <div v-if="loadedSurveyData">
         <!-- Privacy Note -->
         <div class="mb-2">
-            <div class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold h-6">
-              <inline-svg src="/assets/safe-icon.svg" class="w-4 h-4 mr-1 flex-shrink-0"/>
-              <span class="whitespace-nowrap leading-none">
-                  {{ $t('takeSurvey.privacyNote') }}</span>
-            </div>
+          <div class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold h-6">
+            <inline-svg src="/assets/safe-icon.svg" class="w-4 h-4 mr-1 flex-shrink-0"/>
+            <span class="whitespace-nowrap leading-none">
+              {{ $t('takeSurvey.privacyNote') }}
+            </span>
+          </div>
         </div>
         <!-- Combined Header and Question Section -->
         <div class="rounded-3xl overflow-hidden">
@@ -87,9 +88,61 @@
               </template>
             </div>
 
+            <!-- Display Answer Distribution (if available) -->
+            <div v-if="currentAnswer !== null" class="mt-8">
+              <div v-if="loadedSurveyData && loadedSurveyData.total_responses >= MINIMUM_RESPONSES && currentQuestion && currentQuestion.answer_distribution">
+                <h3 class="text-lg font-semibold mb-4">Answer Distribution</h3>
+                <!-- Scale question distribution -->
+                <div v-if="currentQuestion.response_type === 'scale'" class="flex justify-between">
+                  <div v-for="n in currentQuestion.response_scale_max" :key="n" class="flex flex-col items-center">
+                    <div
+                      class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm mb-2"
+                      :class="{
+                        'bg-primary border-primary text-white': n <= currentAnswer,
+                        'bg-white border-neutral-200 text-primary': n > currentAnswer
+                      }"
+                    >
+                      {{ n }}
+                    </div>
+                    <span class="text-xs">{{ ((currentQuestion.answer_distribution[n] || 0) * 100).toFixed(1) }}%</span>
+                  </div>
+                </div>
+                <!-- Boolean question distribution -->
+                <div v-else-if="currentQuestion.response_type === 'boolean'" class="flex justify-around">
+                  <div class="flex flex-col items-center">
+                    <button
+                      class="w-8 h-8 rounded-full border-2 flex items-center justify-center mb-2"
+                      :class="{
+                        'bg-primary border-primary': currentAnswer === true,
+                        'bg-white border-neutral-200': currentAnswer !== true
+                      }"
+                    >
+                      <inline-svg src="/assets/yes-icon.svg" class="w-6 h-6" :class="currentAnswer === true ? 'text-white' : 'text-primary'" />
+                    </button>
+                    <span class="text-sm">Yes: {{ currentQuestion.answer_distribution.true_percentage.toFixed(1) }}%</span>
+                  </div>
+                  <div class="flex flex-col items-center">
+                    <button
+                      class="w-8 h-8 rounded-full border-2 flex items-center justify-center mb-2"
+                      :class="{
+                        'bg-primary border-primary': currentAnswer === false,
+                        'bg-white border-neutral-200': currentAnswer !== false
+                      }"
+                    >
+                      <inline-svg src="/assets/no-icon.svg" class="w-6 h-6" :class="currentAnswer === false ? 'text-white' : 'text-primary'" />
+                    </button>
+                    <span class="text-sm">No: {{ currentQuestion.answer_distribution.false_percentage.toFixed(1) }}%</span>
+                  </div>
+                </div>
+              </div>
+              <div v-else-if="loadedSurveyData && loadedSurveyData.total_responses < MINIMUM_RESPONSES" class="text-sm text-gray-600">
+                <p>Thank you for your answer! The results will be available once more responses are collected.</p>
+              </div>
+            </div>
+
             <!-- Navigation Buttons and User Code Input -->
             <!-- Mobile Navigation -->
-            <div class="sm:hidden flex flex-col items-center space-y-4">
+            <div class="sm:hidden flex flex-col items-center space-y-4 mt-8">
               <div class="w-full flex justify-center">
                 <FancyInput
                   v-model="userCode"
@@ -109,7 +162,7 @@
                   class="w-full max-w-xs"
                 />
               </div>
-              <p class="text-xs text-neutral-500 ">Your unique participant code</p>
+              <p class="text-xs text-neutral-500">Your unique participant code</p>
               <div class="flex justify-between w-full space-x-2">
                 <button 
                   @click="previousQuestion" 
@@ -140,7 +193,7 @@
             </div>
 
             <!-- Desktop Navigation -->
-            <div class="hidden sm:flex items-center justify-between w-full space-x-2">
+            <div class="hidden sm:flex items-center justify-between w-full space-x-2 mt-8">
               <button 
                 @click="previousQuestion" 
                 class="px-4 sm:px-6 py-2 bg-primary text-white rounded-full text-sm sm:text-base"
@@ -194,9 +247,11 @@
         <p class="text-xl sm:text-2xl text-primary">{{ $t('takeSurvey.loadingMessage') }}</p>
       </div>
     </div>
+    <div v-else class="flex justify-center items-center h-64">
+      <p class="text-xl sm:text-2xl text-primary">{{ $t('takeSurvey.loadingMessage') }}</p>
+    </div>
   </div>
 </template>
-
 
 
 
@@ -212,6 +267,7 @@ import { useHead } from '@vueuse/head'
 import FancyButton from '@/components/FancyButton.vue';
 import SurveyChips from '@/components/SurveyChips.vue';
 
+const MINIMUM_RESPONSES = 5;
 export default {
   name: 'TakeSurvey',
   components: {
@@ -235,6 +291,7 @@ export default {
     const router = useRouter();
     const loadedSurveyData = ref(null);
     const error = ref(null);
+    
     const currentQuestionIndex = ref(0);
     const answers = ref({});
     const currentAnswer = ref(null);
@@ -245,9 +302,24 @@ export default {
     const codeStatus = ref(null);
     const isChecking = ref(false);
 
-    const currentQuestion = computed(() => loadedSurveyData.value?.questions[currentQuestionIndex.value]);
-    const progress = computed(() => ((currentQuestionIndex.value + 1) / loadedSurveyData.value?.questions.length) * 100);
-    const isLastQuestion = computed(() => currentQuestionIndex.value === loadedSurveyData.value?.questions.length - 1);
+    const currentQuestion = computed(() => {
+      if (loadedSurveyData.value && Array.isArray(loadedSurveyData.value.questions)) {
+        return loadedSurveyData.value.questions[currentQuestionIndex.value] || null;
+      }
+      return null;
+    });
+    const progress = computed(() => {
+      if (loadedSurveyData.value && Array.isArray(loadedSurveyData.value.questions) && loadedSurveyData.value.questions.length > 0) {
+        return ((currentQuestionIndex.value + 1) / loadedSurveyData.value.questions.length) * 100;
+      }
+      return 0;
+    });
+    const isLastQuestion = computed(() => {
+      if (loadedSurveyData.value && Array.isArray(loadedSurveyData.value.questions)) {
+        return currentQuestionIndex.value === loadedSurveyData.value.questions.length - 1;
+      }
+      return false;
+    });
 
     const isCheckingCode = computed(() => isChecking.value);
     const isCodeValid = computed(() => codeStatus.value === 'valid');
@@ -298,13 +370,14 @@ export default {
     };
 
     const updateTimeLeft = () => {
-      if (loadedSurveyData.value && loadedSurveyData.value.questions) {
+      if (loadedSurveyData.value && Array.isArray(loadedSurveyData.value.questions)) {
         const unansweredQuestions = loadedSurveyData.value.questions.slice(currentQuestionIndex.value);
         timeLeftInSeconds.value = calculateTotalTime(unansweredQuestions);
       }
     };
 
     watch(currentQuestionIndex, updateTimeLeft);
+    
     onMounted(async () => {
       if (!props.surveyId) {
         error.value = t('takeSurvey.missingSurveyId');
@@ -318,22 +391,41 @@ export default {
           loadedSurveyData.value = props.surveyData;
         } else {
           const response = await api.getSurvey(props.surveyId);
+          console.log('API Response:', JSON.stringify(response.data, null, 2));
           loadedSurveyData.value = response.data;
         }
         if (loadedSurveyData.value) {
+          // Ensure total_responses is included
+          if (typeof loadedSurveyData.value.total_responses === 'undefined') {
+            loadedSurveyData.value.total_responses = 0; // or some default value
+          }
           if (isSurveyExpired.value) {
             error.value = t('takeSurvey.surveyExpired');
           } else {
             updateTimeLeft();
           }
+          // Initialize answer distributions if not present
+          if (Array.isArray(loadedSurveyData.value.questions)) {
+            loadedSurveyData.value.questions.forEach(question => {
+              if (!question.answer_distribution) {
+                question.answer_distribution = question.response_type === 'boolean' 
+                  ? { true_percentage: 0, false_percentage: 0 }
+                  : {};
+              }
+            });
+          } else {
+            console.error('loadedSurveyData.questions is not an array:', loadedSurveyData.value);
+            error.value = t('takeSurvey.invalidSurveyData');
+          }
         }
       } catch (err) {
-        console.error('Error fetching survey:', err);
-        handleError(err);
-      } finally {
-        isLoading.value = false;
+          console.error('Error fetching survey:', err);
+          handleError(err);
+        } finally {
+          isLoading.value = false;
+        }
       }
-    });
+    );
 
     async function fetchInitialCode() {
       try {
@@ -385,14 +477,36 @@ export default {
       }
     }
 
-    function selectAnswer(value) {
-      currentAnswer.value = value;
+    async function selectAnswer(value) {
+      if (currentAnswer.value === null && currentQuestion.value) {
+        currentAnswer.value = value;
+        // Fetch the answer distribution after selecting an answer
+        await fetchAnswerDistribution();
+      }
+    }
+
+    async function fetchAnswerDistribution() {
+      if (!currentQuestion.value || !loadedSurveyData.value) return;
+
+      try {
+        const response = await api.getAnswerDistribution(props.surveyId, currentQuestion.value.id);
+        if (response.data && response.data.distribution) {
+          currentQuestion.value.answer_distribution = response.data.distribution;
+        }
+      } catch (error) {
+        console.error('Error fetching answer distribution:', error);
+        // Optionally, you can set an error state or show a notification to the user
+      }
     }
 
     function previousQuestion() {
       if (currentQuestionIndex.value > 0) {
         currentQuestionIndex.value--;
         currentAnswer.value = answers.value[currentQuestion.value.id] || null;
+        // If there's a previous answer, fetch its distribution
+        if (currentAnswer.value !== null) {
+          fetchAnswerDistribution();
+        }
       }
     }
 
@@ -400,12 +514,12 @@ export default {
       if (currentAnswer.value === null || !isCodeValid.value || isSurveyExpired.value) return;
 
       answers.value[currentQuestion.value.id] = currentAnswer.value;
-      
+
       if (isLastQuestion.value) {
         await submitSurvey();
       } else {
         currentQuestionIndex.value++;
-        currentAnswer.value = answers.value[currentQuestion.value.id] || null;
+        currentAnswer.value = null; // Reset the current answer
         updateTimeLeft();
       }
     }
@@ -485,6 +599,8 @@ export default {
       rotateCode,
       handleCodeInput,
       timeLeftInMinutes,
+      isSurveyExpired,
+      MINIMUM_RESPONSES,
     };
   }
 }

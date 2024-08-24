@@ -232,15 +232,15 @@ def get_survey(survey_id):
         app.logger.warning(f"Survey not found: {survey_id}")
         return jsonify({'error': 'Survey not found'}), 404
     
+    # Remove the _id field from the survey dict
+    survey.pop('_id', None)
+    
     # Check if the survey has expired
     expiry_date = make_tz_aware(survey.get('expiry_date', datetime.datetime.now(datetime.UTC) + DEFAULT_EXPIRY))
     is_expired = expiry_date < datetime.datetime.now(datetime.UTC)
     
     if is_expired:
         return jsonify({'error': 'Survey has expired', 'expired': True}), 410
-    
-    # Remove the _id field from the survey dict
-    survey.pop('_id', None)
     
     # Calculate trending status
     twenty_four_hours_ago = datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=24)
@@ -254,8 +254,8 @@ def get_survey(survey_id):
     total_answers = mongo.db.answers.count_documents({'survey_id': survey_id})
     participant_bucket = get_participant_bucket(total_answers)
     
-    app.logger.debug(f"Found survey: {survey}")
-    return jsonify({
+    # Prepare the response data
+    response_data = {
         'survey_id': survey['survey_id'],
         'title': survey['title'],
         'description': survey.get('description', ''),
@@ -264,14 +264,40 @@ def get_survey(survey_id):
                 'id': q['id'],
                 'text': q['text'],
                 'response_type': q['response_type'],
-                'response_scale_max': q.get('response_scale_max')
+                'response_scale_max': q.get('response_scale_max'),
+                'answer_distribution': {}
             } for q in survey['questions']
         ],
         'is_trending': is_trending,
         'participant_bucket': participant_bucket,
         'expiry_date': expiry_date.isoformat(),
-        'expired': is_expired
-    })
+        'expired': is_expired,
+        'total_responses': total_answers,
+        'current_responses': total_answers,
+        'minimum_responses': MINIMUM_RESPONSES,
+        'remaining_responses': max(0, MINIMUM_RESPONSES - total_answers),
+        'status': 'incomplete' if total_answers < MINIMUM_RESPONSES else 'complete'
+    }
+    app.logger.debug(f"Base json for survey {response_data}")
+    # Calculate answer distribution for each question if we have enough responses
+    if total_answers >= MINIMUM_RESPONSES:
+        for question in response_data['questions']:
+            answers = [a['answers'].get(str(question['id'])) for a in mongo.db.answers.find({'survey_id': survey_id}, {'answers': 1})]
+            if question['response_type'] == 'scale':
+                total_answers = len(answers)
+                distribution = {score: answers.count(score) for score in range(1, question['response_scale_max'] + 1)}
+                question['answer_distribution'] = {score: (count / total_answers * 100) if total_answers > 0 else 0 
+                                                   for score, count in distribution.items()}
+            elif question['response_type'] == 'boolean':
+                true_count = sum(answers)
+                total_count = len(answers)
+                question['answer_distribution'] = {
+                    'true_percentage': round(true_count / total_count * 100, 2) if total_count > 0 else 0,
+                    'false_percentage': round((total_count - true_count) / total_count * 100, 2) if total_count > 0 else 0
+                }
+
+    app.logger.debug(f"Returning survey data: {response_data}")
+    return jsonify(response_data)
 
 @app.route(f'{api_prefix}/v1/surveys/<string:survey_id>/answers', methods=['POST'])
 def submit_answers(survey_id):

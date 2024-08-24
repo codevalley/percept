@@ -50,6 +50,7 @@ export default {
       unexpectedError: 'An unexpected error occurred. Please try again.',
       surveyExpired: "This survey has expired and is no longer available.",
       privacyNote: "This page ONLY collects the answers choices and the handle you choose.",
+      invalidSurveyData: 'The survey data is invalid. Please try again later.',
     },
     resultsView:{
       copySuccess: 'Copied to the clipboard',
