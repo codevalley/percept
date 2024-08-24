@@ -39,7 +39,7 @@
           </div>
 
           <!-- Question Section -->
-          <div v-if="currentQuestion" class="bg-accent-green p-4 sm:p-7 relative">
+          <div v-if="currentQuestion" class="bg-accent-green p-4 sm:p-7 relative min-h-[300px]">
             <!-- Progress Bar -->
             <div class="w-full h-2 sm:h-2.5 bg-neutral-200 absolute top-0 left-0 right-0">
               <div class="h-full bg-accent transition-all duration-300 ease-in-out" :style="{ width: `${progress}%` }"></div>
@@ -311,7 +311,8 @@ export default {
       return loadedSurveyData.value && 
             loadedSurveyData.value.status === 'complete' && 
             currentQuestion.value && 
-            currentQuestion.value.answer_distribution;
+            currentQuestion.value.answer_distribution &&
+            Object.keys(currentQuestion.value.answer_distribution).length > 0;
     });
     const isCheckingCode = computed(() => isChecking.value);
     const isCodeValid = computed(() => codeStatus.value === 'valid');
@@ -473,31 +474,29 @@ export default {
       if (currentQuestion.value) {
         currentAnswer.value = value;
         answers.value[currentQuestion.value.id] = value;
-        fetchAnswerDistribution();
+        // No need to fetch distribution as it's already in the survey data
       }
     }
 
-    async function fetchAnswerDistribution() {
-      if (!currentQuestion.value || !loadedSurveyData.value) return;
+    // async function fetchAnswerDistribution() {
+    //   if (!currentQuestion.value || !loadedSurveyData.value) return;
 
-      try {
-        const response = await api.getAnswerDistribution(props.surveyId, currentQuestion.value.id);
-        if (response.data && response.data.distribution) {
-          currentQuestion.value.answer_distribution = response.data.distribution;
-        }
-      } catch (error) {
-        console.error('Error fetching answer distribution:', error);
-        // Optionally, you can set an error state or show a notification to the user
-      }
-    }
+    //   try {
+    //     const response = await api.getAnswerDistribution(props.surveyId, currentQuestion.value.id);
+    //     if (response.data && response.data.distribution) {
+    //       currentQuestion.value.answer_distribution = response.data.distribution;
+    //     }
+    //   } catch (error) {
+    //     console.error('Error fetching answer distribution:', error);
+    //     // Optionally, you can set an error state or show a notification to the user
+    //   }
+    // }
 
     function previousQuestion() {
       if (currentQuestionIndex.value > 0) {
         currentQuestionIndex.value--;
         currentAnswer.value = answers.value[currentQuestion.value.id] || null;
-        if (currentAnswer.value !== null) {
-          fetchAnswerDistribution();
-        }
+        // No need to fetch distribution
       }
     }
 
