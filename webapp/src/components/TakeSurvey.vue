@@ -54,38 +54,56 @@
             <!-- Answer Options -->
             <div class="flex justify-center space-x-2 sm:space-x-5 mb-12 sm:mb-16">
               <template v-if="currentQuestion.response_type === 'scale'">
-                <button 
-                  v-for="n in (currentQuestion.response_scale_max || 5)" 
-                  :key="n" 
-                  @click="selectAnswer(n)"
-                  :class="[
-                    'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center text-sm sm:text-base',
-                    n <= currentAnswer ? 'bg-primary border-primary text-white' : 'bg-white border-neutral-200 text-primary'
-                  ]"
-                >
-                  {{ n }}
-                </button>
+                <div v-for="n in (currentQuestion.response_scale_max || 5)" :key="n" class="flex flex-col items-center">
+                  <button 
+                    @click="selectAnswer(n)"
+                    :class="[
+                      'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center text-sm sm:text-base mb-2',
+                      n <= currentAnswer ? 'bg-primary border-primary text-white' : 'bg-white border-neutral-200 text-primary'
+                    ]"
+                  >
+                    {{ n }}
+                  </button>
+                  <span v-if="showDistribution" class="text-xs text-gray-600">
+                    {{ ((currentQuestion.answer_distribution[n] || 0)).toFixed(1) }}%
+                  </span>
+                </div>
               </template>
               <template v-else-if="currentQuestion.response_type === 'boolean'">
-                <button 
-                  @click="selectAnswer(true)"
-                  :class="[
-                    'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center',
-                    currentAnswer === true ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
-                  ]"
-                >
-                  <inline-svg src="/assets/yes-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === true ? 'text-white' : 'text-primary'"/>
-                </button>
-                <button 
-                  @click="selectAnswer(false)"
-                  :class="[
-                    'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center',
-                    currentAnswer === false ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
-                  ]"
-                >
-                  <inline-svg src="/assets/no-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === false ? 'text-white' : 'text-primary'"/>
-                </button>
+                <div class="flex flex-col items-center">
+                  <button 
+                    @click="selectAnswer(true)"
+                    :class="[
+                      'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center mb-2',
+                      currentAnswer === true ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
+                    ]"
+                  >
+                    <inline-svg src="/assets/yes-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === true ? 'text-white' : 'text-primary'"/>
+                  </button>
+                  <span v-if="showDistribution" class="text-xs text-gray-600">
+                    {{ currentQuestion.answer_distribution.true_percentage.toFixed(1) }}%
+                  </span>
+                </div>
+                <div class="flex flex-col items-center">
+                  <button 
+                    @click="selectAnswer(false)"
+                    :class="[
+                      'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center mb-2',
+                      currentAnswer === false ? 'bg-primary border-primary' : 'bg-white border-neutral-200'
+                    ]"
+                  >
+                    <inline-svg src="/assets/no-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === false ? 'text-white' : 'text-primary'"/>
+                  </button>
+                  <span v-if="showDistribution" class="text-xs text-gray-600">
+                    {{ currentQuestion.answer_distribution.false_percentage.toFixed(1) }}%
+                  </span>
+                </div>
               </template>
+            </div>
+
+            <!-- Answer trend footnote -->
+            <div v-if="showDistribution" class="text-center mt-2">
+              <span class="text-xs text-gray-600">Answer trend</span>
             </div>
 
             <!-- Display Answer Distribution (if available) -->
@@ -104,7 +122,7 @@
                     >
                       {{ n }}
                     </div>
-                    <span class="text-xs">{{ ((currentQuestion.answer_distribution[n] || 0) * 100).toFixed(1) }}%</span>
+                    <span class="text-xs">{{ ((currentQuestion.answer_distribution[n] || 0) ).toFixed(1) }}%</span>
                   </div>
                 </div>
                 <!-- Boolean question distribution -->
@@ -320,7 +338,13 @@ export default {
       }
       return false;
     });
-
+    const showDistribution = computed(() => {
+      return currentAnswer.value !== null && 
+            loadedSurveyData.value && 
+            loadedSurveyData.value.status === 'complete' && 
+            currentQuestion.value && 
+            currentQuestion.value.answer_distribution;
+    });
     const isCheckingCode = computed(() => isChecking.value);
     const isCodeValid = computed(() => codeStatus.value === 'valid');
     const isCodeInvalid = computed(() => codeStatus.value === 'invalid');
@@ -600,6 +624,7 @@ export default {
       handleCodeInput,
       timeLeftInMinutes,
       isSurveyExpired,
+      showDistribution,
       MINIMUM_RESPONSES,
     };
   }
