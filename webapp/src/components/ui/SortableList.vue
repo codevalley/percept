@@ -3,9 +3,11 @@
     :model-value="modelValue" 
     @update:model-value="$emit('update:modelValue', $event)"
     item-key="id"
-    :disabled="disabled"
+    :disabled="disabled || isTouchDevice"
     @start="drag = true"
     @end="drag = false"
+    :delay="200"
+    :delayOnTouchOnly="true"
   >
     <template #item="{ element }">
       <div class="sortable-item" :class="{ 'is-dragging': drag }">
@@ -16,7 +18,7 @@
 </template>
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import draggable from 'vuedraggable';
 
 export default {
@@ -37,9 +39,15 @@ export default {
   emits: ['update:modelValue'],
   setup() {
     const drag = ref(false);
+    const isTouchDevice = ref(false);
+
+    onMounted(() => {
+      isTouchDevice.value = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    });
 
     return {
-      drag
+      drag,
+      isTouchDevice
     };
   }
 }
