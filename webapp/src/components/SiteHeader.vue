@@ -68,7 +68,11 @@
         </div>
       </div>
       
-      <ToastView :message="toastMessage" :type="toastType" @hidden="clearToast" />
+      <ToastView 
+        :message="toastMessage" 
+        :type="toastType || 'success'" 
+        @hidden="clearToast" 
+      />
     </div>
   </header>
 </template>

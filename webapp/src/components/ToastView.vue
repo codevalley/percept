@@ -33,7 +33,7 @@ export default {
     type: {
       type: String,
       default: 'success',
-      validator: (value) => ['success', 'error'].includes(value)
+      validator: (value) => ['success', 'error', ''].includes(value)
     },
     duration: {
       type: Number,

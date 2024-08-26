@@ -30,6 +30,16 @@ module.exports = defineConfig({
     config.resolve.extensions
       .add('.ts')
       .add('.tsx')
+
+    // Add feature flags configuration
+    config.plugin('define').tap(args => {
+      Object.assign(args[0]['process.env'], {
+        __VUE_OPTIONS_API__: true,
+        __VUE_PROD_DEVTOOLS__: false,
+        __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false
+      })
+      return args
+    })
   },
 
   // Public path configuration

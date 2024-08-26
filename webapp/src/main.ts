@@ -1,4 +1,4 @@
-import { createApp, App as VueApp } from 'vue';
+import { createApp } from 'vue';
 import { createHead } from '@vueuse/head';
 import App from './App.vue';
 import router from './router';
@@ -7,7 +7,7 @@ import FloatingVue from 'floating-vue';
 import 'floating-vue/dist/style.css';
 import './index.css';
 
-const app: VueApp = createApp(App);
+const app = createApp(App);
 const head = createHead();
 
 router.onError((error: Error) => {
