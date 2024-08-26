@@ -77,7 +77,7 @@
 
 
 <script>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import api from '@/services/api';
@@ -100,8 +100,8 @@ export default {
     const participateCode = ref('');
     const isLoading = ref(false);
     const errorMessage = ref('');
-    const totalSurveys = ref(23);  // Fallback number
-    const totalParticipants = ref(313);  // Fallback number
+    const totalSurveys = ref(0);
+    const totalParticipants = ref(0);
 
     const subtitleTexts = [
       "Compare what you think about yourself...",
@@ -109,6 +109,23 @@ export default {
       "Gain insights into your self-awareness.",
       "Improve your understanding of yourself.",
     ];
+
+    const fetchStats = async () => {
+      try {
+        const response = await api.getStats();
+        totalSurveys.value = response.data.total_surveys;
+        totalParticipants.value = response.data.total_participants;
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        // Fallback to default values if API call fails
+        totalSurveys.value = 23;
+        totalParticipants.value = 313;
+      }
+    };
+
+    onMounted(() => {
+      fetchStats();
+    });
 
     const submitParticipateCode = async () => {
       isLoading.value = true;

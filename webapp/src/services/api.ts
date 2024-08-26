@@ -66,5 +66,10 @@ export default {
   // Check ID availability
   checkIdAvailability(id: string): Promise<AxiosResponse> {
     return api.get(`/ids/check`, { params: { id } });
+  },
+
+  // Get statistics
+  getStats(): Promise<AxiosResponse> {
+    return api.get('/stats');
   }
 };

@@ -593,6 +593,20 @@ def internal_error(error):
     app.logger.error(f"500 error: {str(error)}")
     return jsonify({'error': 'Internal server error'}), 500
 
+@app.route(f'{api_prefix}/v1/stats', methods=['GET'])
+def get_stats():
+    try:
+        total_surveys = mongo.db.surveys.count_documents({})
+        total_participants = mongo.db.answers.count_documents({})
+        
+        return jsonify({
+            'total_surveys': total_surveys,
+            'total_participants': total_participants
+        }), 200
+    except Exception as e:
+        app.logger.error(f"Error fetching stats: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
 if __name__ == '__main__':
     app.logger.info("Starting the Flask application")
     app.logger.info(f"Registered routes: {app.url_map}")
