@@ -67,14 +67,21 @@
                   >
                     {{ n }}
                   </button>
-                  <div class="h-6 flex items-center justify-center mt-1"> <!-- Increased height and added mt-1 -->
-                    <div v-if="showDistribution && currentAnswer !== null" 
-                         class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
-                      {{ ((currentQuestion.answer_distribution[n] || 0)).toFixed(1) }}%
-                    </div>
-                    <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
-                      00.0%
-                    </div>
+                  <div class="h-6 flex items-center justify-center mt-1">
+                    <transition name="fade" mode="out-in">
+                      <div v-if="showDistribution && currentAnswer !== null" 
+                           class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+                        <AnimatedNumber 
+                          :value="currentQuestion.answer_distribution[n] || 0" 
+                          :duration="0.5"
+                          :precision="1"
+                          :format="(num) => `${num}%`"
+                        />
+                      </div>
+                      <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
+                        00.0%
+                      </div>
+                    </transition>
                   </div>
                 </div>
               </template>
@@ -94,25 +101,32 @@
                                 class="w-6 h-6 sm:w-8 sm:h-8" 
                                 :class="currentAnswer === (option === 'true') ? 'text-white' : currentAnswer !== null ? 'text-neutral-300' : 'text-primary'"/>
                   </button>
-                  <div class="h-6 flex items-center justify-center mt-1"> <!-- Increased height and added mt-1 -->
-                    <div v-if="showDistribution && currentAnswer !== null" 
-                         class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
-                      {{ currentQuestion.answer_distribution[`${option}_percentage`].toFixed(1) }}%
-                    </div>
-                    <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
-                      00.0%
-                    </div>
+                  <div class="h-6 flex items-center justify-center mt-1">
+                    <transition name="fade" mode="out-in">
+                      <div v-if="showDistribution && currentAnswer !== null" 
+                           class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+                        <AnimatedNumber 
+                          :value="currentQuestion.answer_distribution[`${option}_percentage`] || 0" 
+                          :duration="0.5"
+                          :precision="1"
+                          :format="(num) => `${num}%`"
+                        />
+                      </div>
+                      <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
+                        00.0%
+                      </div>
+                    </transition>
                   </div>
                 </div>
               </template>
             </div>
 
             <!-- Answer trend footnote -->
-            <div class="text-center h-4 -mt-2"> <!-- Added negative margin to compensate for the pushed-down percentages -->
+            <div class="text-center h-4 -mt-2">
               <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
                 Answer trend
               </span>
-              <span v-else class="text-xs text-transparent">Answer trend</span> <!-- Invisible placeholder -->
+              <span v-else class="text-xs text-transparent">Answer trend</span>
             </div>
 
 
@@ -242,6 +256,7 @@ import debounce from 'lodash/debounce';
 import { useHead } from '@vueuse/head'
 import FancyButton from '@/components/FancyButton.vue';
 import SurveyChips from '@/components/SurveyChips.vue';
+import AnimatedNumber from './ui/AnimatedNumber.vue';
 
 const MINIMUM_RESPONSES = 5;
 export default {
@@ -251,6 +266,7 @@ export default {
     FancyInput,
     FancyButton,
     SurveyChips,
+    AnimatedNumber,
   },
   props: {
     surveyId: {
@@ -591,4 +607,14 @@ export default {
 
 <style scoped>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;700&display=swap');
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>
