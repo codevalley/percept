@@ -76,6 +76,7 @@
                           :duration="0.5"
                           :precision="1"
                           :format="(num) => `${num}%`"
+                          @animationStart="showAnswerTrendLabel = true"
                         />
                       </div>
                       <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
@@ -110,6 +111,7 @@
                           :duration="0.5"
                           :precision="1"
                           :format="(num) => `${num}%`"
+                          @animationStart="showAnswerTrendLabel = true"
                         />
                       </div>
                       <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
@@ -123,10 +125,12 @@
 
             <!-- Answer trend footnote -->
             <div class="text-center h-4 -mt-2">
-              <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
-                Answer trend
-              </span>
-              <span v-else class="text-xs text-transparent">Answer trend</span>
+              <transition name="fade" mode="out-in">
+                <span v-if="showDistribution && currentAnswer !== null && showAnswerTrendLabel" class="text-xs text-gray-600">
+                  Answer trend
+                </span>
+                <span v-else class="text-xs text-transparent">Answer trend</span>
+              </transition>
             </div>
 
 
@@ -480,33 +484,21 @@ export default {
       }
     }
 
+    const showAnswerTrendLabel = ref(false);
+
     function selectAnswer(value) {
       if (currentQuestion.value) {
         currentAnswer.value = value;
         answers.value[currentQuestion.value.id] = value;
-        // No need to fetch distribution as it's already in the survey data
+        showAnswerTrendLabel.value = false; // Reset the label visibility
       }
     }
 
-    // async function fetchAnswerDistribution() {
-    //   if (!currentQuestion.value || !loadedSurveyData.value) return;
-
-    //   try {
-    //     const response = await api.getAnswerDistribution(props.surveyId, currentQuestion.value.id);
-    //     if (response.data && response.data.distribution) {
-    //       currentQuestion.value.answer_distribution = response.data.distribution;
-    //     }
-    //   } catch (error) {
-    //     console.error('Error fetching answer distribution:', error);
-    //     // Optionally, you can set an error state or show a notification to the user
-    //   }
-    // }
-
-    function previousQuestion() {
+    async function previousQuestion() {
       if (currentQuestionIndex.value > 0) {
         currentQuestionIndex.value--;
         currentAnswer.value = answers.value[currentQuestion.value.id] || null;
-        // No need to fetch distribution
+        showAnswerTrendLabel.value = false; // Reset the label visibility
       }
     }
 
@@ -518,6 +510,7 @@ export default {
       } else {
         currentQuestionIndex.value++;
         currentAnswer.value = answers.value[currentQuestion.value.id] || null;
+        showAnswerTrendLabel.value = false; // Reset the label visibility
         updateTimeLeft();
       }
     }
@@ -600,6 +593,7 @@ export default {
       isSurveyExpired,
       showDistribution,
       MINIMUM_RESPONSES,
+      showAnswerTrendLabel,
     };
   }
 }
@@ -610,7 +604,7 @@ export default {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.5s ease;
+  transition: opacity 0.3s ease;
 }
 
 .fade-enter-from,
