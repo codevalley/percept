@@ -1,13 +1,12 @@
 <template>
   <draggable 
+    v-if="!isTouchDevice"
     :model-value="modelValue" 
     @update:model-value="$emit('update:modelValue', $event)"
     item-key="id"
-    :disabled="disabled || isTouchDevice"
+    :disabled="disabled"
     @start="drag = true"
     @end="drag = false"
-    :delay="200"
-    :delayOnTouchOnly="true"
   >
     <template #item="{ element }">
       <div class="sortable-item" :class="{ 'is-dragging': drag }">
@@ -15,6 +14,12 @@
       </div>
     </template>
   </draggable>
+
+  <div v-else>
+    <div v-for="element in modelValue" :key="element.id" class="sortable-item">
+      <slot :item="element"></slot>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -42,7 +47,7 @@ export default {
     const isTouchDevice = ref(false);
 
     onMounted(() => {
-      isTouchDevice.value = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+      isTouchDevice.value = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
     });
 
     return {
