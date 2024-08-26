@@ -52,14 +52,14 @@
             </div>
 
             <!-- Answer Options -->
-            <div class="flex justify-center space-x-2 sm:space-x-5 mb-4 sm:mb-6">
+            <div class="flex justify-center space-x-2 sm:space-x-5 mb-2 sm:mb-3">
               <template v-if="currentQuestion.response_type === 'scale'">
                 <div v-for="n in (currentQuestion.response_scale_max || 5)" :key="n" class="flex flex-col items-center">
                   <button 
                     @click="selectAnswer(n)"
                     :disabled="currentAnswer !== null"
                     :class="[
-                      'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center text-sm sm:text-base mb-2',
+                      'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center text-sm sm:text-base mb-1',
                       n === currentAnswer ? 'bg-primary border-primary text-white' : 
                       currentAnswer !== null ? 'bg-white border-neutral-300 text-neutral-300' :
                       'bg-white border-neutral-200 text-primary hover:bg-neutral-100'
@@ -67,60 +67,48 @@
                   >
                     {{ n }}
                   </button>
-                  <div class="h-5 flex items-center justify-center"> <!-- Always render this container -->
-                    <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
+                  <div class="h-6 flex items-center justify-center mt-1"> <!-- Increased height and added mt-1 -->
+                    <div v-if="showDistribution && currentAnswer !== null" 
+                         class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
                       {{ ((currentQuestion.answer_distribution[n] || 0)).toFixed(1) }}%
-                    </span>
-                    <span v-else class="text-xs text-transparent">00.0%</span> <!-- Invisible placeholder -->
+                    </div>
+                    <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
+                      00.0%
+                    </div>
                   </div>
                 </div>
               </template>
               <template v-else-if="currentQuestion.response_type === 'boolean'">
-                <div class="flex flex-col items-center">
+                <div v-for="option in ['true', 'false']" :key="option" class="flex flex-col items-center">
                   <button 
-                    @click="selectAnswer(true)"
+                    @click="selectAnswer(option === 'true')"
                     :disabled="currentAnswer !== null"
                     :class="[
-                      'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center mb-2',
-                      currentAnswer === true ? 'bg-primary border-primary' : 
+                      'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center mb-1',
+                      currentAnswer === (option === 'true') ? 'bg-primary border-primary' : 
                       currentAnswer !== null ? 'bg-white border-neutral-300' :
                       'bg-white border-neutral-200 hover:bg-neutral-100'
                     ]"
                   >
-                    <inline-svg src="/assets/yes-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === true ? 'text-white' : currentAnswer !== null ? 'text-neutral-300' : 'text-primary'"/>
+                    <inline-svg :src="option === 'true' ? '/assets/yes-icon.svg' : '/assets/no-icon.svg'" 
+                                class="w-6 h-6 sm:w-8 sm:h-8" 
+                                :class="currentAnswer === (option === 'true') ? 'text-white' : currentAnswer !== null ? 'text-neutral-300' : 'text-primary'"/>
                   </button>
-                  <div class="h-5 flex items-center justify-center"> <!-- Always render this container -->
-                    <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
-                      {{ currentQuestion.answer_distribution.true_percentage.toFixed(1) }}%
-                    </span>
-                    <span v-else class="text-xs text-transparent">00.0%</span> <!-- Invisible placeholder -->
-                  </div>
-                </div>
-                <div class="flex flex-col items-center">
-                  <button 
-                    @click="selectAnswer(false)"
-                    :disabled="currentAnswer !== null"
-                    :class="[
-                      'w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 sm:border-4 transition-colors flex items-center justify-center mb-2',
-                      currentAnswer === false ? 'bg-primary border-primary' : 
-                      currentAnswer !== null ? 'bg-white border-neutral-300' :
-                      'bg-white border-neutral-200 hover:bg-neutral-100'
-                    ]"
-                  >
-                    <inline-svg src="/assets/no-icon.svg" class="w-6 h-6 sm:w-8 sm:h-8" :class="currentAnswer === false ? 'text-white' : currentAnswer !== null ? 'text-neutral-300' : 'text-primary'"/>
-                  </button>
-                  <div class="h-5 flex items-center justify-center"> <!-- Always render this container -->
-                    <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
-                      {{ currentQuestion.answer_distribution.false_percentage.toFixed(1) }}%
-                    </span>
-                    <span v-else class="text-xs text-transparent">00.0%</span> <!-- Invisible placeholder -->
+                  <div class="h-6 flex items-center justify-center mt-1"> <!-- Increased height and added mt-1 -->
+                    <div v-if="showDistribution && currentAnswer !== null" 
+                         class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+                      {{ currentQuestion.answer_distribution[`${option}_percentage`].toFixed(1) }}%
+                    </div>
+                    <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
+                      00.0%
+                    </div>
                   </div>
                 </div>
               </template>
             </div>
 
             <!-- Answer trend footnote -->
-            <div class="text-center mb-4 h-5"> <!-- Always render this container with fixed height -->
+            <div class="text-center h-4 -mt-2"> <!-- Added negative margin to compensate for the pushed-down percentages -->
               <span v-if="showDistribution && currentAnswer !== null" class="text-xs text-gray-600">
                 Answer trend
               </span>
