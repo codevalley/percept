@@ -24,7 +24,9 @@ export default {
       copyError: 'Failed to copy to clipboard',
       errorCheckingCode:'Cannot validate the id',
       errorFetchingCodes: 'Error fetching suggestions. Please try again.',
-      codeNotAvailable:'The id is already used or invalid (contains space, special characters)'
+      codeNotAvailable:'The id is already used or invalid (contains space, special characters)',
+      titlePlaceholder: "Enter survey title",
+      descriptionPlaceholder: "Enter survey description"
     },
     homeView: {
       title: 'Calibrate your self awareness',
