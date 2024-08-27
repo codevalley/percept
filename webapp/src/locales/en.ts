@@ -25,8 +25,8 @@ export default {
       errorCheckingCode:'Cannot validate the id',
       errorFetchingCodes: 'Error fetching suggestions. Please try again.',
       codeNotAvailable:'The id is already used or invalid (contains space, special characters)',
-      titlePlaceholder: "Enter survey title",
-      descriptionPlaceholder: "Enter survey description"
+      defaultTitle: 'Share feedback',
+      defaultDescription: 'This is a sample description. Feel free to edit it!',
     },
     homeView: {
       title: 'Calibrate your self awareness',
