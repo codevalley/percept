@@ -70,7 +70,7 @@
                   <div class="h-6 flex items-center justify-center mt-1">
                     <transition name="fade" mode="out-in">
                       <div v-if="showDistribution && currentAnswer !== null" 
-                           class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+                           class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600 w-14 text-center">
                         <AnimatedNumber 
                           :value="currentQuestion.answer_distribution[n] || 0" 
                           :duration="0.5"
@@ -79,7 +79,7 @@
                           @animationStart="showAnswerTrendLabel = true"
                         />
                       </div>
-                      <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
+                      <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs w-14 text-center">
                         00.0%
                       </div>
                     </transition>
@@ -105,7 +105,7 @@
                   <div class="h-6 flex items-center justify-center mt-1">
                     <transition name="fade" mode="out-in">
                       <div v-if="showDistribution && currentAnswer !== null" 
-                           class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600">
+                           class="bg-gray-100 rounded-full px-2 py-0.5 text-xs text-gray-600 w-14 text-center">
                         <AnimatedNumber 
                           :value="currentQuestion.answer_distribution[`${option}_percentage`] || 0" 
                           :duration="0.5"
@@ -114,7 +114,7 @@
                           @animationStart="showAnswerTrendLabel = true"
                         />
                       </div>
-                      <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs">
+                      <div v-else class="invisible bg-gray-100 rounded-full px-2 py-0.5 text-xs w-14 text-center">
                         00.0%
                       </div>
                     </transition>
